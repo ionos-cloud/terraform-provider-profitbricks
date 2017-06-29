@@ -97,7 +97,11 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 	}
 
 	resp := profitbricks.PatchDatacenter(d.Id(), obj)
-	waitTillProvisioned(meta, resp.Headers.Get("Location"))
+	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
+	if err != nil {
+		return err
+	}
+
 	return resourceProfitBricksDatacenterRead(d, meta)
 }
 

@@ -32,7 +32,7 @@ $ make build
 
 Using the provider
 ----------------------
-## Fill in for each provider
+See the [ProfitBricks Provider documentation](https://www.terraform.io/docs/providers/profitbricks/index.html) to get started using the ProfitBricks provider.
 
 Developing the Provider
 ---------------------------

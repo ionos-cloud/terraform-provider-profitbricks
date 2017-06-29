@@ -17,7 +17,6 @@ func TestAccDataSourceDatacenter_matching(t *testing.T) {
 				Config: testAccDataSourceProfitBricksDataCenter_matching,
 			},
 			{
-
 				Config: testAccDataSourceProfitBricksDataCenter_matchingWithDataSource,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.profitbricks_datacenter.foobar", "name", "test_name"),

@@ -157,7 +157,7 @@ resource "profitbricks_server" "webserver" {
   volume {
     name = "system"
     size = 5
-    disk_type = "SSD"
+    disk_type = "HDD"
     image_name ="ubuntu-16.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }

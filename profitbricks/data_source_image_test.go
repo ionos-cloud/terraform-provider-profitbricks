@@ -1,7 +1,10 @@
 package profitbricks
 
 import (
+	"fmt"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
+	"strings"
 	"testing"
 )
 
@@ -17,13 +20,28 @@ func TestAccDataSourceImage_basic(t *testing.T) {
 				Config: testAccDataSourceProfitBricksImage_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.profitbricks_image.img", "location", "us/las"),
-					resource.TestCheckResourceAttr("data.profitbricks_image.img", "name", "Ubuntu-16.04-LTS-server-2017-05-01"),
+					testAccCheckProfitBricksImageAttributes("data.profitbricks_image.img", "Ubuntu-16.04"),
 					resource.TestCheckResourceAttr("data.profitbricks_image.img", "type", "HDD"),
 				),
 			},
 		},
 	})
 
+}
+
+func testAccCheckProfitBricksImageAttributes(n string, name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("testAccCheckProfitBricksImageAttributes: Not found: %s", n)
+		}
+
+		if !strings.Contains(rs.Primary.Attributes["name"], name) {
+			return fmt.Errorf("Bad name: %s", rs.Primary.Attributes["name"])
+		}
+
+		return nil
+	}
 }
 
 const testAccDataSourceProfitBricksImage_basic = `
@@ -33,4 +51,4 @@ const testAccDataSourceProfitBricksImage_basic = `
 	  version = "16"
 	  location = "us/las"
 	}
-	`
+`

@@ -116,7 +116,7 @@ resource "profitbricks_server" "webserver" {
   volume {
     name = "system"
     size = 5
-    disk_type = "SSD"
+    disk_type = "HDD"
     image_name ="ubuntu-16.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }
@@ -136,10 +136,11 @@ resource "profitbricks_server" "webserver" {
 resource "profitbricks_volume" "database_volume" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
+  availability_zone = "ZONE_1"
   licence_type = "OTHER"
   name = "%s"
   size = 5
-  disk_type = "SSD"
+  disk_type = "HDD"
   bus = "VIRTIO"
 }`
 
@@ -165,7 +166,7 @@ resource "profitbricks_server" "webserver" {
   volume {
     name = "system"
     size = 5
-    disk_type = "SSD"
+    disk_type = "HDD"
     image_name ="ubuntu-16.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }
@@ -186,8 +187,9 @@ resource "profitbricks_volume" "database_volume" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
   licence_type = "OTHER"
+  availability_zone = "ZONE_1"
   name = "updated"
   size = 5
-  disk_type = "SSD"
+  disk_type = "HDD"
   bus = "VIRTIO"
 }`

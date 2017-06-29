@@ -133,7 +133,7 @@ resource "profitbricks_nic" "database_nic" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
   lan = 2
-  dhcp = true
+  dhcp = false
   firewall_active = true
   name = "%s"
 }`
@@ -175,7 +175,7 @@ resource "profitbricks_nic" "database_nic" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
   lan = 2
-  dhcp = true
+  dhcp = false
   firewall_active = true
   name = "updated"
 }

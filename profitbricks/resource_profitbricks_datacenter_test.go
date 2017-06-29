@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/profitbricks/profitbricks-sdk-go"
+	"time"
 )
 
 func TestAccProfitBricksDataCenter_Basic(t *testing.T) {
@@ -24,7 +25,6 @@ func TestAccProfitBricksDataCenter_Basic(t *testing.T) {
 				Config: fmt.Sprintf(testAccCheckProfitBricksDatacenterConfig_basic, dc_name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksDatacenterExists("profitbricks_datacenter.foobar", &datacenter),
-					testAccCheckProfitBricksDatacenterAttributes("profitbricks_datacenter.foobar", dc_name),
 					resource.TestCheckResourceAttr("profitbricks_datacenter.foobar", "name", dc_name),
 				),
 			},
@@ -32,7 +32,6 @@ func TestAccProfitBricksDataCenter_Basic(t *testing.T) {
 				Config: testAccCheckProfitBricksDatacenterConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksDatacenterExists("profitbricks_datacenter.foobar", &datacenter),
-					testAccCheckProfitBricksDatacenterAttributes("profitbricks_datacenter.foobar", "updated"),
 					resource.TestCheckResourceAttr("profitbricks_datacenter.foobar", "name", "updated"),
 				),
 			},
@@ -71,6 +70,7 @@ func testAccCheckProfitBricksDatacenterAttributes(n string, name string) resourc
 }
 
 func testAccCheckProfitBricksDatacenterExists(n string, datacenter *profitbricks.Datacenter) resource.TestCheckFunc {
+	time.Sleep(15 * time.Second)
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
