@@ -24,14 +24,12 @@ func TestAccProfitBricksVolume_Basic(t *testing.T) {
 				Config: fmt.Sprintf(testAccCheckProfitbricksVolumeConfig_basic, volumeName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksVolumeExists("profitbricks_volume.database_volume", &volume),
-					testAccCheckProfitBricksVolumeAttributes("profitbricks_volume.database_volume", volumeName),
 					resource.TestCheckResourceAttr("profitbricks_volume.database_volume", "name", volumeName),
 				),
 			},
 			resource.TestStep{
 				Config: testAccCheckProfitbricksVolumeConfig_update,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckProfitBricksVolumeAttributes("profitbricks_volume.database_volume", "updated"),
 					resource.TestCheckResourceAttr("profitbricks_volume.database_volume", "name", "updated"),
 				),
 			},
