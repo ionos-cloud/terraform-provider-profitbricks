@@ -20,14 +20,14 @@ func TestAccProfitBricksVolume_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksVolumeDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksVolumeConfig_basic, volumeName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksVolumeExists("profitbricks_volume.database_volume", &volume),
 					resource.TestCheckResourceAttr("profitbricks_volume.database_volume", "name", volumeName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitbricksVolumeConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("profitbricks_volume.database_volume", "name", "updated"),
@@ -51,20 +51,6 @@ func testAccCheckDProfitBricksVolumeDestroyCheck(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckProfitBricksVolumeAttributes(n string, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("testAccCheckProfitBricksVolumeAttributes: Not found: %s", n)
-		}
-		if rs.Primary.Attributes["name"] != name {
-			return fmt.Errorf("Bad name: %s", rs.Primary.Attributes["name"])
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckProfitBricksVolumeExists(n string, volume *profitbricks.Volume) resource.TestCheckFunc {

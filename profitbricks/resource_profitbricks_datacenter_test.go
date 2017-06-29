@@ -21,14 +21,14 @@ func TestAccProfitBricksDataCenter_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksDatacenterDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitBricksDatacenterConfig_basic, dc_name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksDatacenterExists("profitbricks_datacenter.foobar", &datacenter),
 					resource.TestCheckResourceAttr("profitbricks_datacenter.foobar", "name", dc_name),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitBricksDatacenterConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksDatacenterExists("profitbricks_datacenter.foobar", &datacenter),
@@ -53,20 +53,6 @@ func testAccCheckDProfitBricksDatacenterDestroyCheck(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckProfitBricksDatacenterAttributes(n string, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("Not found: %s", n)
-		}
-		if rs.Primary.Attributes["name"] != name {
-			return fmt.Errorf("Bad name: expected %s : found %s ", name, rs.Primary.Attributes["name"])
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckProfitBricksDatacenterExists(n string, datacenter *profitbricks.Datacenter) resource.TestCheckFunc {
