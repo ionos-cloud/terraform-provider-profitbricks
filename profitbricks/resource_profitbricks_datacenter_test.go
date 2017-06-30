@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/profitbricks/profitbricks-sdk-go"
-	"time"
 )
 
 func TestAccProfitBricksDataCenter_Basic(t *testing.T) {
@@ -56,7 +55,6 @@ func testAccCheckDProfitBricksDatacenterDestroyCheck(s *terraform.State) error {
 }
 
 func testAccCheckProfitBricksDatacenterExists(n string, datacenter *profitbricks.Datacenter) resource.TestCheckFunc {
-	time.Sleep(15 * time.Second)
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
