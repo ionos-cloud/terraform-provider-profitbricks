@@ -23,6 +23,7 @@ resource "profitbricks_loadbalancer" "example" {
 
 ##Argument reference
 
+* `name` - (Required) the name of the loadbalancer
 * `datacenter_id` - (Required)[string]
 * `nic_id` - (Required)[string]
 * `dhcp` - (Optional) [boolean] Indicates if the load balancer will reserve an IP using DHCP.

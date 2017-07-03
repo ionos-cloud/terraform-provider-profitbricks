@@ -56,7 +56,12 @@ resource "profitbricks_server" "example" {
 * `ram` - (Required)[integer] The amount of memory for the server in MB.
 * `availability_zone` - (Optional)[string] The availability zone in which the server should exist.
 * `licence_type` - (Optional)[string] Sets the OS type of the server.
-* `cpuFamily` - (Optional)[string] Sets the CPU type. "AMD_OPTERON" or "INTEL_XEON". Defaults to "AMD_OPTERON".
+* `cpu_family` - (Optional)[string] Sets the CPU type. "AMD_OPTERON" or "INTEL_XEON". Defaults to "AMD_OPTERON".
 * `volume` -  (Required) See Volume section.
 * `nic` - (Required) See NIC section.
 * `firewall` - (Optional) See Firewall Rule section.
+* `boot_volume` - (Computed) The associated boot volume.
+* `boot_cdrom` - (Computed) The associated boot drive, if any.
+* `boot_image` - (Computed) The associated boot image.
+* `primary_nic` - (Computed) The associated nic.
+* `primary_ip` - (Computed) The associated ip.

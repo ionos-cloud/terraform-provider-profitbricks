@@ -23,4 +23,5 @@ resource "profitbricks_ipblock" "example" {
 
 * `location` - (Required)
 * `size` - (Required)
+* `ips` - (Computed) IPs associated with this block
 

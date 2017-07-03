@@ -34,6 +34,7 @@ resource "profitbricks_volume" "example" {
 * `bus` - (Required) [boolean] The bus type of the volume.
 * `size` -  (Required)[integer] The size of the volume in GB.
 * `ssh_key_path` -  (Required)[list] List of paths to files containing a public SSH key that will be injected into ProfitBricks provided Linux images. Required if `image_password` is not provided.
+* `sshkey` - (Computed) the associated public ssh key.
 * `image_password` - [string] Required if `sshkey_path` is not provided.
 * `image_name` - [string] The image or snapshot ID. It is required if `licence_type` is not provided.
 * `licence_type` - [string] Required if `image_name` is not provided.
