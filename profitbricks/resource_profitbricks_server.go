@@ -530,6 +530,16 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	server := profitbricks.PatchServer(dcId, d.Id(), request)
 
+	if server.StatusCode > 299 {
+		return fmt.Errorf(
+			"Error patching Server (%s)", server.Response)
+	}
+
+	err := waitTillProvisioned(meta, server.Headers.Get("Location"))
+	if err != nil {
+		return err
+	}
+
 	//Volume stuff
 	if d.HasChange("volume") {
 		volume := server.Entities.Volumes.Items[0]
@@ -614,10 +624,6 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if server.StatusCode > 299 {
-		return fmt.Errorf(
-			"Error patching server (%s) (%s)", d.Id(), server.Response)
-	}
 	return resourceProfitBricksServerRead(d, meta)
 }
 

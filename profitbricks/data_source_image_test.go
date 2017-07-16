@@ -2,10 +2,12 @@ package profitbricks
 
 import (
 	"github.com/hashicorp/terraform/helper/resource"
+	"regexp"
 	"testing"
 )
 
 func TestAccDataSourceImage_basic(t *testing.T) {
+	r, _ := regexp.Compile("Ubuntu-16.04")
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
@@ -17,7 +19,7 @@ func TestAccDataSourceImage_basic(t *testing.T) {
 				Config: testAccDataSourceProfitBricksImage_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.profitbricks_image.img", "location", "us/las"),
-					resource.TestCheckResourceAttr("data.profitbricks_image.img", "name", "Ubuntu-16.04-LTS-server-2017-05-01"),
+					resource.TestMatchResourceAttr("data.profitbricks_image.img", "name", r),
 					resource.TestCheckResourceAttr("data.profitbricks_image.img", "type", "HDD"),
 				),
 			},
@@ -33,4 +35,4 @@ const testAccDataSourceProfitBricksImage_basic = `
 	  version = "16"
 	  location = "us/las"
 	}
-	`
+`

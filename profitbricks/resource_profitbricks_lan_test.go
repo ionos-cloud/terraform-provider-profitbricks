@@ -20,7 +20,7 @@ func TestAccProfitBricksLan_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksLanDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksLanConfig_basic, lanName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksLanExists("profitbricks_lan.webserver_lan", &lan),
@@ -28,7 +28,7 @@ func TestAccProfitBricksLan_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("profitbricks_lan.webserver_lan", "name", lanName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitbricksLanConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksLanAttributes("profitbricks_lan.webserver_lan", "updated"),

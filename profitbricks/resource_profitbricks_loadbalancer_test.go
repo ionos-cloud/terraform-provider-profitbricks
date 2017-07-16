@@ -20,7 +20,7 @@ func TestAccProfitBricksLoadbalancer_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksLoadbalancerDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksLoadbalancerConfig_basic, lbName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksLoadbalancerExists("profitbricks_loadbalancer.example", &loadbalancer),
@@ -28,7 +28,7 @@ func TestAccProfitBricksLoadbalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("profitbricks_loadbalancer.example", "name", lbName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitbricksLoadbalancerConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksLoadbalancerAttributes("profitbricks_loadbalancer.example", "updated"),

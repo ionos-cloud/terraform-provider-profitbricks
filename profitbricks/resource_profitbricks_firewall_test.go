@@ -20,7 +20,7 @@ func TestAccProfitBricksFirewall_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksFirewallDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksFirewallConfig_basic, firewallName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksFirewallExists("profitbricks_firewall.webserver_http", &firewall),
@@ -28,7 +28,7 @@ func TestAccProfitBricksFirewall_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("profitbricks_firewall.webserver_http", "name", firewallName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitbricksFirewallConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksFirewallAttributes("profitbricks_firewall.webserver_http", "updated"),

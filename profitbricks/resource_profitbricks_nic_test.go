@@ -20,7 +20,7 @@ func TestAccProfitBricksNic_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksNicDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksNicConfig_basic, volumeName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksNICExists("profitbricks_nic.database_nic", &nic),
@@ -28,7 +28,7 @@ func TestAccProfitBricksNic_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("profitbricks_nic.database_nic", "name", volumeName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitbricksNicConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksNicAttributes("profitbricks_nic.database_nic", "updated"),
@@ -133,7 +133,7 @@ resource "profitbricks_nic" "database_nic" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
   lan = 2
-  dhcp = true
+  dhcp = false
   firewall_active = true
   name = "%s"
 }`
@@ -175,7 +175,7 @@ resource "profitbricks_nic" "database_nic" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
   lan = 2
-  dhcp = true
+  dhcp = false
   firewall_active = true
   name = "updated"
 }

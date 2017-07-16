@@ -156,10 +156,12 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 	if nic.StatusCode > 299 {
 		return fmt.Errorf("Error occured while updating a nic: %s", nic.Response)
 	}
+
 	err := waitTillProvisioned(meta, nic.Headers.Get("Location"))
 	if err != nil {
 		return err
 	}
+
 	return resourceProfitBricksNicRead(d, meta)
 }
 

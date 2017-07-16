@@ -20,7 +20,7 @@ func TestAccProfitBricksIPBlock_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksIPBlockDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksIPBlockConfig_basic, location),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksIPBlockExists("profitbricks_ipblock.webserver_ip", &ipblock),

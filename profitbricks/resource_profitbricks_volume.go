@@ -167,9 +167,6 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	config := meta.(*Config)
-	profitbricks.SetAuth(config.Username, config.Password)
-
 	dcId := d.Get("datacenter_id").(string)
 
 	volume := profitbricks.GetVolume(dcId, d.Id())
@@ -192,6 +189,7 @@ func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("size", volume.Properties.Size)
 	d.Set("bus", volume.Properties.Bus)
 	d.Set("image_name", volume.Properties.Image)
+	d.Set("availability_zone", volume.Properties.AvailabilityZone)
 
 	return nil
 }
@@ -230,18 +228,8 @@ func resourceProfitBricksVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("An error occured while updating a volume ID %s %s", d.Id(), volume.Response)
 
 	}
-	err = resourceProfitBricksVolumeRead(d, meta)
-	if err != nil {
-		return err
-	}
-	d.SetId(d.Get("server_id").(string))
-	err = resourceProfitBricksServerRead(d, meta)
-	if err != nil {
-		return err
-	}
 
-	d.SetId(volume.Id)
-	return nil
+	return resourceProfitBricksVolumeRead(d, meta)
 }
 
 func resourceProfitBricksVolumeDelete(d *schema.ResourceData, meta interface{}) error {

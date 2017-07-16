@@ -20,7 +20,7 @@ func TestAccProfitBricksServer_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksServerDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksServerConfig_basic, serverName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksServerExists("profitbricks_server.webserver", &server),
@@ -28,7 +28,7 @@ func TestAccProfitBricksServer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("profitbricks_server.webserver", "name", serverName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitbricksServerConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksServerAttributes("profitbricks_server.webserver", "updated"),
@@ -157,7 +157,7 @@ resource "profitbricks_server" "webserver" {
   volume {
     name = "system"
     size = 5
-    disk_type = "SSD"
+    disk_type = "HDD"
     image_name ="ubuntu-16.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }

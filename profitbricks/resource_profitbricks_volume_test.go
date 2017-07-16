@@ -20,18 +20,16 @@ func TestAccProfitBricksVolume_Basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksVolumeDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksVolumeConfig_basic, volumeName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksVolumeExists("profitbricks_volume.database_volume", &volume),
-					testAccCheckProfitBricksVolumeAttributes("profitbricks_volume.database_volume", volumeName),
 					resource.TestCheckResourceAttr("profitbricks_volume.database_volume", "name", volumeName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: testAccCheckProfitbricksVolumeConfig_update,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckProfitBricksVolumeAttributes("profitbricks_volume.database_volume", "updated"),
 					resource.TestCheckResourceAttr("profitbricks_volume.database_volume", "name", "updated"),
 				),
 			},
@@ -53,20 +51,6 @@ func testAccCheckDProfitBricksVolumeDestroyCheck(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testAccCheckProfitBricksVolumeAttributes(n string, name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[n]
-		if !ok {
-			return fmt.Errorf("testAccCheckProfitBricksVolumeAttributes: Not found: %s", n)
-		}
-		if rs.Primary.Attributes["name"] != name {
-			return fmt.Errorf("Bad name: %s", rs.Primary.Attributes["name"])
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckProfitBricksVolumeExists(n string, volume *profitbricks.Volume) resource.TestCheckFunc {
@@ -118,7 +102,7 @@ resource "profitbricks_server" "webserver" {
   volume {
     name = "system"
     size = 5
-    disk_type = "SSD"
+    disk_type = "HDD"
     image_name ="ubuntu-16.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }
@@ -138,10 +122,11 @@ resource "profitbricks_server" "webserver" {
 resource "profitbricks_volume" "database_volume" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
+  availability_zone = "ZONE_1"
   licence_type = "OTHER"
   name = "%s"
   size = 5
-  disk_type = "SSD"
+  disk_type = "HDD"
   bus = "VIRTIO"
 }`
 
@@ -167,7 +152,7 @@ resource "profitbricks_server" "webserver" {
   volume {
     name = "system"
     size = 5
-    disk_type = "SSD"
+    disk_type = "HDD"
     image_name ="ubuntu-16.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }
@@ -188,8 +173,9 @@ resource "profitbricks_volume" "database_volume" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
   licence_type = "OTHER"
+  availability_zone = "ZONE_1"
   name = "updated"
   size = 5
-  disk_type = "SSD"
+  disk_type = "HDD"
   bus = "VIRTIO"
 }`
