@@ -36,7 +36,7 @@ resource "profitbricks_volume" "example" {
 * `ssh_key_path` -  (Required)[list] List of paths to files containing a public SSH key that will be injected into ProfitBricks provided Linux images. Required if `image_password` is not provided.
 * `sshkey` - (Computed) the associated public ssh key.
 * `image_password` - [string] Required if `sshkey_path` is not provided.
-* `image_name` - [string] The image or snapshot ID. It is required if `licence_type` is not provided.
+* `image_name` - [string] The image ID. It is required if `licence_type` is not provided.
 * `licence_type` - [string] Required if `image_name` is not provided.
 * `name` - (Optional) [string] The name of the volume.
 * `availability_zone` - (Optional) [string] The storage availability zone assigned to the volume. AUTO, ZONE_1, ZONE_2, or ZONE_3
