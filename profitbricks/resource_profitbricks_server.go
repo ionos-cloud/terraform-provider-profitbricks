@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -234,6 +235,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
+	var IsSnapshot bool = false
 	if v, ok := d.GetOk("availability_zone"); ok {
 		request.Properties.AvailabilityZone = v.(string)
 	}
@@ -270,9 +272,13 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			} else {
 				img := profitbricks.GetImage(image_name)
 				if img.StatusCode > 299 {
-					return fmt.Errorf("Error fetching image: %s", img.Response)
+					img := profitbricks.GetSnapshot(image_name)
+					if img.StatusCode > 299 {
+						return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
+					}
+					IsSnapshot = true
 				}
-				if img.Properties.Public == true {
+				if img.Properties.Public == true && IsSnapshot == false {
 					if imagePassword == "" && len(sshkey_path) == 0 {
 						return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 					}
@@ -300,8 +306,13 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			if rawMap["availability_zone"] != nil {
 				availabilityZone = rawMap["availability_zone"].(string)
 			}
-			if image == "" && licenceType == "" {
-				return fmt.Errorf("Either 'image', or 'licenceType' must be set.")
+			if image == "" && licenceType == "" && !IsSnapshot {
+				return fmt.Errorf("Either 'image',  or 'licenceType', must be set.")
+			}
+
+			if IsSnapshot == true {
+				imagePassword = ""
+				publicKeys = []string{}
 			}
 
 			request.Entities = &profitbricks.ServerEntities{
@@ -529,16 +540,6 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		request.CpuFamily = n.(string)
 	}
 	server := profitbricks.PatchServer(dcId, d.Id(), request)
-
-	if server.StatusCode > 299 {
-		return fmt.Errorf(
-			"Error patching Server (%s)", server.Response)
-	}
-
-	err := waitTillProvisioned(meta, server.Headers.Get("Location"))
-	if err != nil {
-		return err
-	}
 
 	//Volume stuff
 	if d.HasChange("volume") {
