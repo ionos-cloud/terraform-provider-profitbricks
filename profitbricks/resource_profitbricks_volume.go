@@ -70,7 +70,7 @@ func resourceProfitBricksVolume() *schema.Resource {
 func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	var err error
 	var ssh_keypath []interface{}
-	var IsSnapshot bool = false
+	IsSnapshot := false
 	dcId := d.Get("datacenter_id").(string)
 	serverId := d.Get("server_id").(string)
 	imagePassword := d.Get("image_password").(string)
@@ -94,10 +94,17 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	var image string
 	if image_name != "" {
 		if !IsValidUUID(image_name) {
-			if imagePassword == "" && len(ssh_keypath) == 0 {
+			image = getImageId(d.Get("datacenter_id").(string), image_name, d.Get("disk_type").(string))
+			//if no image id was found with that name we look for a matching snapshot
+			if image == "" {
+				image = getSnapshotId(image_name)
+				if image != "" {
+					IsSnapshot = true
+				}
+			}
+			if imagePassword == "" && len(ssh_keypath) == 0 && IsSnapshot == false {
 				return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 			}
-			image = getImageId(d.Get("datacenter_id").(string), image_name, d.Get("disk_type").(string))
 		} else {
 			img := profitbricks.GetImage(image_name)
 			if img.StatusCode > 299 {
@@ -118,12 +125,12 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if image_name == "" && licenceType == "" && !IsSnapshot {
+	if image_name == "" && licenceType == "" && IsSnapshot == false {
 		return fmt.Errorf("Either 'image_name', or 'licenceType' must be set.")
 	}
-	if IsSnapshot == true {
-		imagePassword = ""
-		publicKeys = []string{}
+
+	if IsSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
+		return fmt.Errorf("You can't pass 'image_password' and/or 'ssh keys' when creating a volume from a snapshot")
 	}
 
 	volume := profitbricks.Volume{
