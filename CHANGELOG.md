@@ -2,6 +2,7 @@
 IMPROVEMENTS: 
 
 * Acceptance test fix [GH-1]
+* Added ability to pass snapshot id or name when creating a volume or a server [GH-6]
 
 BUG FIXES:
 
