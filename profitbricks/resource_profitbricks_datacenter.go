@@ -182,6 +182,30 @@ func getImageId(dcId string, imageName string, imageType string) string {
 	return ""
 }
 
+func getSnapshotId(snapshotName string) string {
+	if snapshotName == "" {
+		return ""
+	}
+	snapshots := profitbricks.ListSnapshots()
+	if snapshots.StatusCode > 299 {
+		log.Print(fmt.Errorf("Error while fetching the list of snapshots %s", snapshots.Response))
+	}
+
+	if len(snapshots.Items) > 0 {
+		for _, i := range snapshots.Items {
+			imgName := ""
+			if i.Properties.Name != "" {
+				imgName = i.Properties.Name
+			}
+
+			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(snapshotName)) {
+				return i.Id
+			}
+		}
+	}
+	return ""
+}
+
 func IsValidUUID(uuid string) bool {
 	r := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
 	return r.MatchString(uuid)

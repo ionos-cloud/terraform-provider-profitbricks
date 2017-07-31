@@ -234,6 +234,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
+	isSnapshot := false
 	if v, ok := d.GetOk("availability_zone"); ok {
 		request.Properties.AvailabilityZone = v.(string)
 	}
@@ -263,16 +264,31 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 
 			image_name := rawMap["image_name"].(string)
 			if !IsValidUUID(image_name) {
-				if imagePassword == "" && len(sshkey_path) == 0 {
+				image = getImageId(d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
+				//if no image id was found with that name we look for a matching snapshot
+				if image == "" {
+					image = getSnapshotId(image_name)
+					if image != "" {
+						isSnapshot = true
+					}
+				}
+				if imagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false {
 					return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 				}
-				image = getImageId(d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
 			} else {
 				img := profitbricks.GetImage(image_name)
-				if img.StatusCode > 299 {
-					return fmt.Errorf("Error fetching image: %s", img.Response)
+				if img.StatusCode == 404 {
+					img := profitbricks.GetSnapshot(image_name)
+					if img.StatusCode == 404 {
+						return fmt.Errorf("image/snapshot: %s Not Found", img.Response)
+					}
+					isSnapshot = true
+				} else {
+					if img.StatusCode > 299 {
+						return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
+					}
 				}
-				if img.Properties.Public == true {
+				if img.Properties.Public == true && isSnapshot == false {
 					if imagePassword == "" && len(sshkey_path) == 0 {
 						return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 					}
@@ -300,8 +316,12 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			if rawMap["availability_zone"] != nil {
 				availabilityZone = rawMap["availability_zone"].(string)
 			}
-			if image == "" && licenceType == "" {
-				return fmt.Errorf("Either 'image', or 'licenceType' must be set.")
+			if image == "" && licenceType == "" && isSnapshot == false {
+				return fmt.Errorf("Either 'image',  or 'licenceType', must be set.")
+			}
+
+			if isSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
+				return fmt.Errorf("Passwords/SSH keys  are not supported for snapshots.")
 			}
 
 			request.Entities = &profitbricks.ServerEntities{
@@ -529,16 +549,6 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		request.CpuFamily = n.(string)
 	}
 	server := profitbricks.PatchServer(dcId, d.Id(), request)
-
-	if server.StatusCode > 299 {
-		return fmt.Errorf(
-			"Error patching Server (%s)", server.Response)
-	}
-
-	err := waitTillProvisioned(meta, server.Headers.Get("Location"))
-	if err != nil {
-		return err
-	}
 
 	//Volume stuff
 	if d.HasChange("volume") {
