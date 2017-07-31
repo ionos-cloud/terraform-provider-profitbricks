@@ -70,7 +70,7 @@ func resourceProfitBricksVolume() *schema.Resource {
 func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	var err error
 	var ssh_keypath []interface{}
-	IsSnapshot := false
+	isSnapshot := false
 	dcId := d.Get("datacenter_id").(string)
 	serverId := d.Get("server_id").(string)
 	imagePassword := d.Get("image_password").(string)
@@ -99,10 +99,10 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 			if image == "" {
 				image = getSnapshotId(image_name)
 				if image != "" {
-					IsSnapshot = true
+					isSnapshot = true
 				}
 			}
-			if imagePassword == "" && len(ssh_keypath) == 0 && IsSnapshot == false {
+			if imagePassword == "" && len(ssh_keypath) == 0 && isSnapshot == false {
 				return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 			}
 		} else {
@@ -112,9 +112,9 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 				if img.StatusCode > 299 {
 					return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
 				}
-				IsSnapshot = true
+				isSnapshot = true
 			}
-			if img.Properties.Public == true && IsSnapshot == false {
+			if img.Properties.Public == true && isSnapshot == false {
 				if imagePassword == "" && len(ssh_keypath) == 0 {
 					return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 				}
@@ -125,11 +125,11 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if image_name == "" && licenceType == "" && IsSnapshot == false {
+	if image_name == "" && licenceType == "" && isSnapshot == false {
 		return fmt.Errorf("Either 'image_name', or 'licenceType' must be set.")
 	}
 
-	if IsSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
+	if isSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
 		return fmt.Errorf("You can't pass 'image_password' and/or 'ssh keys' when creating a volume from a snapshot")
 	}
 

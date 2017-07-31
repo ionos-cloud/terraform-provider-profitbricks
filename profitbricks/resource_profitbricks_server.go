@@ -234,7 +234,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
-	IsSnapshot := false
+	isSnapshot := false
 	if v, ok := d.GetOk("availability_zone"); ok {
 		request.Properties.AvailabilityZone = v.(string)
 	}
@@ -269,10 +269,10 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 				if image == "" {
 					image = getSnapshotId(image_name)
 					if image != "" {
-						IsSnapshot = true
+						isSnapshot = true
 					}
 				}
-				if imagePassword == "" && len(sshkey_path) == 0 && IsSnapshot == false {
+				if imagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false {
 					return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 				}
 			} else {
@@ -282,13 +282,13 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					if img.StatusCode == 404 {
 						return fmt.Errorf("image/snapshot: %s Not Found", img.Response)
 					}
-					IsSnapshot = true
+					isSnapshot = true
 				} else {
 					if img.StatusCode > 299 {
 						return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
 					}
 				}
-				if img.Properties.Public == true && IsSnapshot == false {
+				if img.Properties.Public == true && isSnapshot == false {
 					if imagePassword == "" && len(sshkey_path) == 0 {
 						return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 					}
@@ -316,11 +316,11 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			if rawMap["availability_zone"] != nil {
 				availabilityZone = rawMap["availability_zone"].(string)
 			}
-			if image == "" && licenceType == "" && IsSnapshot == false {
+			if image == "" && licenceType == "" && isSnapshot == false {
 				return fmt.Errorf("Either 'image',  or 'licenceType', must be set.")
 			}
 
-			if IsSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
+			if isSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
 				return fmt.Errorf("Passwords/SSH keys  are not supported for snapshots.")
 			}
 
