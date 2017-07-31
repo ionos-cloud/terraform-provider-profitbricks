@@ -3,6 +3,10 @@ IMPROVEMENTS:
 
 * Acceptance test fix [GH-1]
 
+BUG FIXES:
+
+* resource/profitbricks_server - Fix how primary_nic is updated [GH-5]
+
 ## 0.1.0 (June 21, 2017)
 
 NOTES:
