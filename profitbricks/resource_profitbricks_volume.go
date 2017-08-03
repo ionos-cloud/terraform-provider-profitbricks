@@ -70,6 +70,7 @@ func resourceProfitBricksVolume() *schema.Resource {
 func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	var err error
 	var ssh_keypath []interface{}
+	var image_alias string
 	isSnapshot := false
 	dcId := d.Get("datacenter_id").(string)
 	serverId := d.Get("server_id").(string)
