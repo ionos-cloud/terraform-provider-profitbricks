@@ -12,7 +12,6 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceProfitBricksIPBlockCreate,
 		Read:   resourceProfitBricksIPBlockRead,
-		//Update: resourceProfitBricksIPBlockUpdate,
 		Delete: resourceProfitBricksIPBlockDelete,
 		Schema: map[string]*schema.Schema{
 			"location": {

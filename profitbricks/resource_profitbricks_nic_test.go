@@ -62,7 +62,7 @@ func testAccCheckProfitBricksNicAttributes(n string, name string) resource.TestC
 			return fmt.Errorf("testAccCheckProfitBricksNicAttributes: Not found: %s", n)
 		}
 		if rs.Primary.Attributes["name"] != name {
-			return fmt.Errorf("Bad name: %s", rs.Primary.Attributes["name"])
+			return fmt.Errorf("Bad name: %s it should be %s", rs.Primary.Attributes["name"], name)
 		}
 
 		return nil
