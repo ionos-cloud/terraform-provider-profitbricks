@@ -15,7 +15,7 @@ Manages groups and group priviliages on ProfitBricks
 ```hcl
 resource "profitbricks_group" "group" {
   name = "my group"
-  create_dataCenter = true
+  create_datacenter = true
   create_snapshot = true
   reserve_ip = true
   access_activity_log = false
@@ -26,7 +26,7 @@ resource "profitbricks_group" "group" {
 ##Argument reference
 
 * `access_activity_log` - (Required) [Boolean] The group will be allowed to access the activity log.
-* `create_dataCenter` - (Optional) [Boolean] The group will be allowed to create virtual data centers.
+* `create_datacenter` - (Optional) [Boolean] The group will be allowed to create virtual data centers.
 * `create_snapshot` - (Optional) [Boolean] The group will be allowed to create snapshots.
 * `name` - (Optional) [string] A name for the group.
 * `reserve_ip` - (Optional) [Boolean] The group will be allowed to reserve IP addresses.

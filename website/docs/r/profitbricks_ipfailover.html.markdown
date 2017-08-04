@@ -17,7 +17,7 @@ resource "profitbricks_ipfailover" "failovertest" {
   datacenter_id = "datacenterId"
   lan_id="lanId"
   ip ="reserved IP"
-  nicUuid= "nicId"
+  nicuuid= "nicId"
 }
 ```
 
@@ -26,4 +26,4 @@ resource "profitbricks_ipfailover" "failovertest" {
 * `datacenter_id` - (Required) [string] The ID of a virtual data center.
 * `ip` - (Required) [string] The Reserved IP address to be used in the failover group.
 * `lan_id` - (Required) [string] The ID of a LAN.
-* `nicUuid` - (Required) [string] The ID of a NIC.
+* `nicuuid` - (Required) [string] The ID of a NIC.

@@ -95,7 +95,7 @@ func testAccCheckProfitBricksGroupExists(n string, group *profitbricks.Group) re
 const testAccCheckProfitbricksGroupConfig_basic = `
 resource "profitbricks_group" "group" {
   name = "%s"
-  create_dataCenter = true
+  create_datacenter = true
   create_snapshot = true
   reserve_ip = true
   access_activity_log = false
@@ -104,7 +104,7 @@ resource "profitbricks_group" "group" {
 const testAccCheckProfitbricksGroupConfig_update = `
 resource "profitbricks_group" "group" {
   name = "updated"
-  create_dataCenter = true
+  create_datacenter = true
   create_snapshot = true
   reserve_ip = true
   access_activity_log = true

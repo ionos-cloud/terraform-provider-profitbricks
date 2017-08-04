@@ -101,7 +101,7 @@ const testAccCheckProfitbricksUserConfig_basic = `
 
 resource "profitbricks_group" "group" {
   name = "terraform user group"
-  create_dataCenter = true
+  create_datacenter = true
   create_snapshot = true
   reserve_ip = true
   access_activity_log = false
@@ -130,7 +130,7 @@ resource "profitbricks_user" "user" {
 
 resource "profitbricks_group" "group" {
   name = "terraform user group"
-  create_dataCenter = true
+  create_datacenter = true
   create_snapshot = true
   reserve_ip = true
   access_activity_log = false

@@ -18,7 +18,7 @@ func resourceProfitBricksLanIPFailover() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"nicUuid": {
+			"nicuuid": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -41,7 +41,7 @@ func resourceProfitBricksLanIPFailoverCreate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("'lan_id' is missing, please provide a valid lan ID ")
 	}
 	ip := d.Get("ip").(string)
-	nicUuid := d.Get("nicUuid").(string)
+	nicUuid := d.Get("nicuuid").(string)
 	properties := &profitbricks.LanProperties{}
 
 	properties.IpFailover = []profitbricks.IpFailover{}
@@ -87,7 +87,7 @@ func resourceProfitBricksLanIPFailoverUpdate(d *schema.ResourceData, meta interf
 	dcid := d.Get("datacenter_id").(string)
 	lanid := d.Get("lan_id").(string)
 	ip := d.Get("ip").(string)
-	nicUuid := d.Get("nicUuid").(string)
+	nicUuid := d.Get("nicuuid").(string)
 
 	properties.IpFailover = []profitbricks.IpFailover{}
 	properties.IpFailover = append(properties.IpFailover, profitbricks.IpFailover{

@@ -58,7 +58,7 @@ func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failo
 		}
 
 		lanId := rs.Primary.Attributes["lan_id"]
-		nicUuid := rs.Primary.Attributes["nicUuid"]
+		nicUuid := rs.Primary.Attributes["nicuuid"]
 
 		lan := profitbricks.GetLan(rs.Primary.Attributes["datacenter_id"], lanId)
 		if lan.StatusCode > 299 {
@@ -87,7 +87,7 @@ func testAccCheckDProfitBricksLanIPFailoverDestroyCheck(s *terraform.State) erro
 		if rs.Type != "profitbricks_ipfailover" {
 			continue
 		}
-		nicUuid := rs.Primary.Attributes["nicUuid"]
+		nicUuid := rs.Primary.Attributes["nicuuid"]
 		resp := profitbricks.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
 		found := false
 		for _, fo := range resp.Properties.IpFailover {
@@ -145,7 +145,7 @@ resource "profitbricks_ipfailover" "failovertest" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   lan_id="${profitbricks_lan.webserver_lan1.id}"
   ip ="${profitbricks_ipblock.webserver_ip.ips[0]}"
-  nicUuid= "${profitbricks_server.webserver.primary_nic}"
+  nicuuid= "${profitbricks_server.webserver.primary_nic}"
 }`
 
 const testAccCheckProfitbricksLanIPFailoverConfig_update = `

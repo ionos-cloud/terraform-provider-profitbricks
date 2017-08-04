@@ -19,7 +19,7 @@ func resourceProfitBricksGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"create_dataCenter": {
+			"create_datacenter": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -85,7 +85,7 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 		request.Properties.Name = d.Get("name").(string)
 	}
 
-	tempCreateDataCenter := d.Get("create_dataCenter").(bool)
+	tempCreateDataCenter := d.Get("create_datacenter").(bool)
 	request.Properties.CreateDataCenter = &tempCreateDataCenter
 	tempCreateSnapshot := d.Get("create_snapshot").(bool)
 	request.Properties.CreateSnapshot = &tempCreateSnapshot
@@ -136,7 +136,7 @@ func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.Set("name", group.Properties.Name)
-	d.Set("create_dataCenter", group.Properties.CreateDataCenter)
+	d.Set("create_datacenter", group.Properties.CreateDataCenter)
 	d.Set("create_snapshot", group.Properties.CreateSnapshot)
 	d.Set("reserve_ip", group.Properties.ReserveIp)
 	d.Set("access_activity_log", group.Properties.AccessActivityLog)
@@ -154,7 +154,7 @@ func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	tempCreateDataCenter := d.Get("create_dataCenter").(bool)
+	tempCreateDataCenter := d.Get("create_datacenter").(bool)
 	tempCreateSnapshot := d.Get("create_snapshot").(bool)
 	tempReserveIp := d.Get("reserve_ip").(bool)
 	tempAccessActivityLog := d.Get("access_activity_log").(bool)
