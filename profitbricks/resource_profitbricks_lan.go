@@ -88,7 +88,6 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 		_, newValue := d.GetChange("name")
 		properties.Name = newValue.(string)
 	}
-	log.Printf("[DEBUG] LAN UPDATE: %s : %s", properties, d.Get("name"))
 	if properties != nil {
 		lan := profitbricks.PatchLan(d.Get("datacenter_id").(string), d.Id(), *properties)
 		if lan.StatusCode > 299 {
