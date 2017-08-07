@@ -50,6 +50,8 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_datacenter": dataSourceDataCenter(),
 			"profitbricks_location":   dataSourceLocation(),
 			"profitbricks_image":      dataSourceImage(),
+			"profitbricks_resource":   dataSourceResource(),
+			"profitbricks_snapshot":   dataSourceSnapshot(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

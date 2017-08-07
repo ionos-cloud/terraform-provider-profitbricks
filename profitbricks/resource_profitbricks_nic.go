@@ -59,7 +59,7 @@ func resourceProfitBricksNic() *schema.Resource {
 
 func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) error {
 	nic := profitbricks.Nic{
-		Properties: profitbricks.NicProperties{
+		Properties: &profitbricks.NicProperties{
 			Lan: d.Get("lan").(int),
 		},
 	}

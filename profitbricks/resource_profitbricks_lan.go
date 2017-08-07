@@ -33,8 +33,8 @@ func resourceProfitBricksLan() *schema.Resource {
 }
 
 func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) error {
-	request := profitbricks.Lan{
-		Properties: profitbricks.LanProperties{
+	request := profitbricks.CreateLanRequest{
+		Properties: profitbricks.CreateLanProperties{
 			Public: d.Get("public").(bool),
 		},
 	}
