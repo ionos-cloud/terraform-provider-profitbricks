@@ -91,25 +91,32 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 		fw.Properties.Name = d.Get("name").(string)
 	}
 	if _, ok := d.GetOk("source_mac"); ok {
-		fw.Properties.SourceMac = d.Get("source_mac").(string)
+		tempSourceMac := d.Get("source_mac").(string)
+		fw.Properties.SourceMac = &tempSourceMac
 	}
 	if _, ok := d.GetOk("source_ip"); ok {
-		fw.Properties.SourceIp = d.Get("source_ip").(string)
+		tempSourceIp := d.Get("source_ip").(string)
+		fw.Properties.SourceIp = &tempSourceIp
 	}
 	if _, ok := d.GetOk("target_ip"); ok {
-		fw.Properties.TargetIp = d.Get("target_ip").(string)
+		tempTargetIp := d.Get("target_ip").(string)
+		fw.Properties.TargetIp = &tempTargetIp
 	}
 	if _, ok := d.GetOk("port_range_start"); ok {
-		fw.Properties.PortRangeStart = d.Get("port_range_start").(int)
+		tempPortRangeStart := d.Get("port_range_start").(int)
+		fw.Properties.PortRangeStart = &tempPortRangeStart
 	}
 	if _, ok := d.GetOk("port_range_end"); ok {
-		fw.Properties.PortRangeEnd = d.Get("port_range_end").(int)
+		tempPortRangeEnd := d.Get("port_range_end").(int)
+		fw.Properties.PortRangeEnd = &tempPortRangeEnd
 	}
 	if _, ok := d.GetOk("icmp_type"); ok {
-		fw.Properties.IcmpType = d.Get("icmp_type").(string)
+		tempIcmpType := d.Get("icmp_type").(int)
+		fw.Properties.IcmpType = &tempIcmpType
 	}
 	if _, ok := d.GetOk("icmp_code"); ok {
-		fw.Properties.IcmpCode = d.Get("icmp_code").(string)
+		tempIcmpCodee := d.Get("icmp_type").(int)
+		fw.Properties.IcmpCode = &tempIcmpCodee
 	}
 
 	fw = profitbricks.CreateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), fw)
@@ -157,43 +164,35 @@ func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}
 
 	if d.HasChange("name") {
 		_, new := d.GetChange("name")
-
 		properties.Name = new.(string)
 	}
 	if d.HasChange("source_mac") {
 		_, new := d.GetChange("source_mac")
-
-		properties.SourceMac = new.(string)
+		properties.SourceMac = new.(*string)
 	}
 	if d.HasChange("source_ip") {
 		_, new := d.GetChange("source_ip")
-
-		properties.SourceIp = new.(string)
+		properties.SourceIp = new.(*string)
 	}
 	if d.HasChange("target_ip") {
 		_, new := d.GetChange("target_ip")
-
-		properties.TargetIp = new.(string)
+		properties.TargetIp = new.(*string)
 	}
 	if d.HasChange("port_range_start") {
 		_, new := d.GetChange("port_range_start")
-
-		properties.PortRangeStart = new.(int)
+		properties.PortRangeStart = new.(*int)
 	}
 	if d.HasChange("port_range_end") {
 		_, new := d.GetChange("port_range_end")
-
-		properties.PortRangeEnd = new.(int)
+		properties.PortRangeEnd = new.(*int)
 	}
 	if d.HasChange("icmp_type") {
 		_, new := d.GetChange("icmp_type")
-
-		properties.IcmpType = new.(int)
+		properties.IcmpType = new.(*int)
 	}
 	if d.HasChange("icmp_code") {
 		_, new := d.GetChange("icmp_code")
-
-		properties.IcmpCode = new.(int)
+		properties.IcmpCode = new.(*int)
 	}
 
 	resp := profitbricks.PatchFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id(), properties)

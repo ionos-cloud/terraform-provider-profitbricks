@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 )
 
@@ -357,7 +358,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 
 		for _, raw := range nicRaw {
 			rawMap := raw.(map[string]interface{})
-			nic := profitbricks.Nic{Properties: profitbricks.NicProperties{}}
+			nic := profitbricks.Nic{Properties: &profitbricks.NicProperties{}}
 			if rawMap["lan"] != nil {
 				nic.Properties.Lan = rawMap["lan"].(int)
 			}
@@ -401,26 +402,39 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					if fwRaw["name"] != nil {
 						firewall.Properties.Name = fwRaw["name"].(string)
 					}
-					if fwRaw["source_mac"] != nil {
-						firewall.Properties.SourceMac = fwRaw["source_mac"].(string)
+					if fwRaw["source_mac"] != "" {
+						tempSourceMac := fwRaw["source_mac"].(string)
+						firewall.Properties.SourceMac = &tempSourceMac
 					}
-					if fwRaw["source_ip"] != nil {
-						firewall.Properties.SourceIp = fwRaw["source_ip"].(string)
+					if fwRaw["source_ip"] != "" {
+						tempSourceIp := fwRaw["source_ip"].(string)
+						firewall.Properties.SourceIp = &tempSourceIp
 					}
-					if fwRaw["target_ip"] != nil {
-						firewall.Properties.TargetIp = fwRaw["target_ip"].(string)
+					if fwRaw["target_ip"] != "" {
+						tempTargetIp := fwRaw["target_ip"].(string)
+						firewall.Properties.TargetIp = &tempTargetIp
 					}
 					if fwRaw["port_range_start"] != nil {
-						firewall.Properties.PortRangeStart = fwRaw["port_range_start"].(int)
+						tempPortRangeStart := fwRaw["port_range_start"].(int)
+						firewall.Properties.PortRangeStart = &tempPortRangeStart
 					}
 					if fwRaw["port_range_end"] != nil {
-						firewall.Properties.PortRangeEnd = fwRaw["port_range_end"].(int)
+						tempPortRangeStart := fwRaw["port_range_end"].(int)
+						firewall.Properties.PortRangeEnd = &tempPortRangeStart
 					}
 					if fwRaw["icmp_type"] != nil {
-						firewall.Properties.IcmpType = fwRaw["icmp_type"].(string)
+						tempIcmpType := fwRaw["icmp_type"].(string)
+						if tempIcmpType != "" {
+							i, _ := strconv.Atoi(tempIcmpType)
+							firewall.Properties.IcmpType = &i
+						}
 					}
 					if fwRaw["icmp_code"] != nil {
-						firewall.Properties.IcmpCode = fwRaw["icmp_code"].(string)
+						tempIcmpCode := fwRaw["icmp_type"].(string)
+						if tempIcmpCode != "" {
+							i, _ := strconv.Atoi(tempIcmpCode)
+							firewall.Properties.IcmpCode = &i
+						}
 					}
 
 					request.Entities.Nics.Items[0].Entities = &profitbricks.NicEntities{
