@@ -133,7 +133,14 @@ resource "profitbricks_server" "webserver" {
       port_range_end = 22
     }
   }
-}`
+}
+
+resource "profitbricks_nic" "secondary" {
+  datacenter_id   = "${profitbricks_datacenter.foobar.id}"
+  server_id       = "${profitbricks_server.webserver.id}"
+  lan             = 2
+}
+`
 
 const testAccCheckProfitbricksServerConfig_update = `
 resource "profitbricks_datacenter" "foobar" {
@@ -172,4 +179,11 @@ resource "profitbricks_server" "webserver" {
       port_range_end = 22
     }
   }
-}`
+}
+
+resource "profitbricks_nic" "secondary" {
+  datacenter_id   = "${profitbricks_datacenter.foobar.id}"
+  server_id       = "${profitbricks_server.webserver.id}"
+  lan             = 2
+}
+`
