@@ -33,8 +33,8 @@ func resourceProfitBricksLan() *schema.Resource {
 }
 
 func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) error {
-	request := profitbricks.Lan{
-		Properties: profitbricks.LanProperties{
+	request := profitbricks.CreateLanRequest{
+		Properties: profitbricks.CreateLanProperties{
 			Public: d.Get("public").(bool),
 		},
 	}
@@ -74,21 +74,21 @@ func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("public", lan.Properties.Public)
 	d.Set("name", lan.Properties.Name)
+	d.Set("ip_failover", lan.Properties.IpFailover)
 	d.Set("datacenter_id", d.Get("datacenter_id").(string))
 	return nil
 }
 
 func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) error {
 	properties := &profitbricks.LanProperties{}
-	if d.HasChange("public") {
-		_, newValue := d.GetChange("public")
-		properties.Public = newValue.(bool)
-	}
+	newValue := d.Get("public")
+	properties.Public = newValue.(bool)
+	properties.IpFailover = make([]profitbricks.IpFailover, 0)
 	if d.HasChange("name") {
 		_, newValue := d.GetChange("name")
 		properties.Name = newValue.(string)
 	}
-	log.Printf("[DEBUG] LAN UPDATE: %s : %s", properties, d.Get("name"))
+
 	if properties != nil {
 		lan := profitbricks.PatchLan(d.Get("datacenter_id").(string), d.Id(), *properties)
 		if lan.StatusCode > 299 {

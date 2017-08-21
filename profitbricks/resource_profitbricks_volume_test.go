@@ -103,7 +103,7 @@ resource "profitbricks_server" "webserver" {
     name = "system"
     size = 5
     disk_type = "HDD"
-    image_name ="ubuntu-16.04"
+    image_name = "ubuntu:14.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }
   nic {
@@ -153,7 +153,7 @@ resource "profitbricks_server" "webserver" {
     name = "system"
     size = 5
     disk_type = "HDD"
-    image_name ="ubuntu-16.04"
+    image_name = "ubuntu:14.04"
     image_password = "K3tTj8G14a3EgKyNeeiY"
 }
   nic {

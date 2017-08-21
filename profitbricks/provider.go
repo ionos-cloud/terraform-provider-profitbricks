@@ -45,11 +45,18 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_nic":          resourceProfitBricksNic(),
 			"profitbricks_server":       resourceProfitBricksServer(),
 			"profitbricks_volume":       resourceProfitBricksVolume(),
+			"profitbricks_group":        resourceProfitBricksGroup(),
+			"profitbricks_share":        resourceProfitBricksShare(),
+			"profitbricks_user":         resourceProfitBricksUser(),
+			"profitbricks_snapshot":     resourceProfitBricksSnapshot(),
+			"profitbricks_ipfailover":   resourceProfitBricksLanIPFailover(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"profitbricks_datacenter": dataSourceDataCenter(),
 			"profitbricks_location":   dataSourceLocation(),
 			"profitbricks_image":      dataSourceImage(),
+			"profitbricks_resource":   dataSourceResource(),
+			"profitbricks_snapshot":   dataSourceSnapshot(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

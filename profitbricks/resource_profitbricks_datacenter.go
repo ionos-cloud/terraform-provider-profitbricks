@@ -206,6 +206,30 @@ func getSnapshotId(snapshotName string) string {
 	return ""
 }
 
+func getImageAlias(imageAlias string, location string) string {
+	if imageAlias == "" {
+		return ""
+	}
+	locations := profitbricks.GetLocation(location)
+	if locations.StatusCode > 299 {
+		log.Print(fmt.Errorf("Error while fetching the list of snapshots %s", locations.Response))
+	}
+
+	if len(locations.Properties.ImageAliases) > 0 {
+		for _, i := range locations.Properties.ImageAliases {
+			alias := ""
+			if i != "" {
+				alias = i
+			}
+
+			if alias != "" && strings.ToLower(alias) == strings.ToLower(imageAlias) {
+				return i
+			}
+		}
+	}
+	return ""
+}
+
 func IsValidUUID(uuid string) bool {
 	r := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
 	return r.MatchString(uuid)

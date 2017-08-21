@@ -544,10 +544,10 @@
 			"revisionTime": "2016-10-03T17:45:16Z"
 		},
 		{
-			"checksumSHA1": "72v9EDEuAVJBbzmZ/TT1etVzZTU=",
+			"checksumSHA1": "Kq0fF7R65dDcGReuhf47O3LQgrY=",
 			"path": "github.com/profitbricks/profitbricks-sdk-go",
-			"revision": "6198377adc75ed630c2a0a4b3f42d131baf7f316",
-			"revisionTime": "2017-05-03T18:59:30Z"
+			"revision": "7bdb11aecb0e457ea23c86898c6b49bfc0eb4bb1",
+			"revisionTime": "2017-08-01T13:52:49Z"
 		},
 		{
 			"checksumSHA1": "u5s2PZ7fzCOqQX7bVPf9IJ+qNLQ=",
@@ -660,5 +660,5 @@
 			"versionExact": "v1.6.1"
 		}
 	],
-	"rootPath": "github.com/terraform-providers/terraform-provider-profitbricks"
+	"rootPath": "terraform-provider-profitbricks"
 }
