@@ -84,7 +84,6 @@ func resourceProfitBricksServer() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-
 						"disk_type": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -227,6 +226,7 @@ func resourceProfitBricksServer() *schema.Resource {
 }
 
 func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) error {
+	var image_alias string
 	request := profitbricks.Server{
 		Properties: profitbricks.ServerProperties{
 			Name:  d.Get("name").(string),
@@ -234,6 +234,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			Ram:   d.Get("ram").(int),
 		},
 	}
+	dcId := d.Get("datacenter_id").(string)
 
 	isSnapshot := false
 	if v, ok := d.GetOk("availability_zone"); ok {
@@ -265,13 +266,19 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 
 			image_name := rawMap["image_name"].(string)
 			if !IsValidUUID(image_name) {
-				image = getImageId(d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
+				image = getImageId(dcId, image_name, rawMap["disk_type"].(string))
 				//if no image id was found with that name we look for a matching snapshot
 				if image == "" {
 					image = getSnapshotId(image_name)
 					if image != "" {
 						isSnapshot = true
+					} else {
+						dc := profitbricks.GetDatacenter(dcId)
+						image_alias = getImageAlias(image_name, dc.Properties.Location)
 					}
+				}
+				if image == "" && image_alias == "" {
+					return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
 				}
 				if imagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false {
 					return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
@@ -293,9 +300,24 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					if imagePassword == "" && len(sshkey_path) == 0 {
 						return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 					}
-					image = image_name
+					image = getImageId(d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
 				} else {
-					image = image_name
+					img := profitbricks.GetImage(image_name)
+					if img.StatusCode > 299 {
+						img := profitbricks.GetSnapshot(image_name)
+						if img.StatusCode > 299 {
+							return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
+						}
+						isSnapshot = true
+					}
+					if img.Properties.Public == true && isSnapshot == false {
+						if imagePassword == "" && len(sshkey_path) == 0 {
+							return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
+						}
+						image = image_name
+					} else {
+						image = image_name
+					}
 				}
 			}
 
@@ -317,8 +339,8 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			if rawMap["availability_zone"] != nil {
 				availabilityZone = rawMap["availability_zone"].(string)
 			}
-			if image == "" && licenceType == "" && isSnapshot == false {
-				return fmt.Errorf("Either 'image',  or 'licenceType', must be set.")
+			if image == "" && licenceType == "" && image_alias == "" && !isSnapshot {
+				return fmt.Errorf("Either 'image', 'licenceType', or 'imageAlias' must be set.")
 			}
 
 			if isSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
@@ -335,6 +357,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 								Type:             rawMap["disk_type"].(string),
 								ImagePassword:    imagePassword,
 								Image:            image,
+								ImageAlias:       image_alias,
 								Bus:              rawMap["bus"].(string),
 								LicenceType:      licenceType,
 								AvailabilityZone: availabilityZone,
@@ -445,7 +468,6 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 						},
 					}
 				}
-
 			}
 		}
 	}
