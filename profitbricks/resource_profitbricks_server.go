@@ -522,6 +522,8 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("availability_zone", server.Properties.AvailabilityZone)
 
 	if primarynic, ok := d.GetOk("primary_nic"); ok {
+		d.Set("primary_nic", primarynic.(string))
+
 		nic := profitbricks.GetNic(dcId, serverId, primarynic.(string))
 
 		if len(nic.Properties.Ips) > 0 {
@@ -655,7 +657,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		nic = profitbricks.PatchNic(d.Get("datacenter_id").(string), server.Id, d.Get("primary_nic").(string), properties)
+		nic = profitbricks.PatchNic(d.Get("datacenter_id").(string), server.Id, server.Entities.Nics.Items[0].Id, properties)
 
 		if nic.StatusCode > 299 {
 			return fmt.Errorf(

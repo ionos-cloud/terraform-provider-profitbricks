@@ -70,6 +70,7 @@ func resourceProfitBricksVolume() *schema.Resource {
 func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) error {
 	var err error
 	var ssh_keypath []interface{}
+	var image_alias string
 	isSnapshot := false
 	dcId := d.Get("datacenter_id").(string)
 	serverId := d.Get("server_id").(string)
@@ -92,15 +93,22 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	var image string
-	if image_name != "" {
+	if image_alias == "" && image_name != "" {
 		if !IsValidUUID(image_name) {
-			image = getImageId(d.Get("datacenter_id").(string), image_name, d.Get("disk_type").(string))
+			image = getImageId(dcId, image_name, d.Get("disk_type").(string))
 			//if no image id was found with that name we look for a matching snapshot
 			if image == "" {
 				image = getSnapshotId(image_name)
 				if image != "" {
 					isSnapshot = true
+				} else {
+					dc := profitbricks.GetDatacenter(dcId)
+					image_alias = getImageAlias(image_name, dc.Properties.Location)
 				}
+			}
+
+			if image == "" && image_alias == "" {
+				return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
 			}
 			if imagePassword == "" && len(ssh_keypath) == 0 && isSnapshot == false {
 				return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
@@ -140,6 +148,7 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 			Type:          d.Get("disk_type").(string),
 			ImagePassword: imagePassword,
 			Image:         image,
+			ImageAlias:    image_alias,
 			Bus:           d.Get("bus").(string),
 			LicenceType:   licenceType,
 		},
@@ -204,7 +213,7 @@ func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("size", volume.Properties.Size)
 	d.Set("bus", volume.Properties.Bus)
 	d.Set("image_name", volume.Properties.Image)
-	d.Set("availability_zone", volume.Properties.AvailabilityZone)
+	d.Set("image_alias", volume.Properties.ImageAlias)
 
 	return nil
 }

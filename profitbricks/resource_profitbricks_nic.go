@@ -136,10 +136,9 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 		_, n := d.GetChange("lan")
 		properties.Lan = n.(int)
 	}
-	if d.HasChange("dhcp") {
-		_, n := d.GetChange("dhcp")
-		properties.Dhcp = n.(bool)
-	}
+	n := d.Get("dhcp")
+	properties.Dhcp = n.(bool)
+
 	if d.HasChange("ip") {
 		_, raw := d.GetChange("ip")
 		ips := strings.Split(raw.(string), ",")
