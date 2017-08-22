@@ -1,4 +1,16 @@
 ## 0.1.2 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `profitbricks_resource` ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
+* **New Data Source:** `profitbricks_snapshot` ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
+
+
+IMPROVEMENTS: 
+
+* Update `profitbricks_datacenter` with getImagealias method ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
+* Update `profitbricks_server` to use getImagealias method ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
+
 ## 0.1.1 (July 31, 2017)
 IMPROVEMENTS: 
 
