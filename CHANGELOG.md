@@ -4,12 +4,18 @@ FEATURES:
 
 * **New Data Source:** `profitbricks_resource` ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
 * **New Data Source:** `profitbricks_snapshot` ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
-
+* **New Resource:** `profitbricks_group` ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
+* **New Resource:** `profitbricks_share` ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
+* **New Resource:** `profitbricks_user` ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
+* **New Resource:** `profitbricks_snapshot` ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
+* **New Resource:** `profitbricks_ipfailover` ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
 
 IMPROVEMENTS: 
 
 * Update `profitbricks_datacenter` with getImagealias method ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
 * Update `profitbricks_server` to use getImagealias method ([#8](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/8))
+* Update `resource_profitbricks_lan` to read IP failover groups ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
+* Update `resource_profitbricks_volume` with imageAlias feature ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
 
 ## 0.1.1 (July 31, 2017)
 IMPROVEMENTS: 
