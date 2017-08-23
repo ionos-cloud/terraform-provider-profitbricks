@@ -1,6 +1,7 @@
 package profitbricks
 
 import (
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
@@ -15,6 +16,8 @@ type Config struct {
 func (c *Config) Client() (*Config, error) {
 	profitbricks.SetAuth(c.Username, c.Password)
 	profitbricks.SetDepth("5")
+	profitbricks.SetUserAgent(terraform.UserAgentString())
+
 	if len(c.Endpoint) > 0 {
 		profitbricks.SetEndpoint(c.Endpoint)
 	}
