@@ -93,4 +93,5 @@ const testAccCheckProfitbricksIPBlockConfig_basic = `
 resource "profitbricks_ipblock" "webserver_ip" {
   location = "%s"
   size = 1
+  name = "ipblock TF test"
 }`

@@ -112,6 +112,7 @@ resource "profitbricks_datacenter" "foobar" {
 resource "profitbricks_ipblock" "webserver_ip" {
   location = "us/las"
   size = 1
+  name = "failover test"
 }
 
 resource "profitbricks_lan" "webserver_lan1" {
@@ -157,6 +158,7 @@ resource "profitbricks_datacenter" "foobar" {
 resource "profitbricks_ipblock" "webserver_ip" {
   location = "us/las"
   size = 1
+  name = "failover test"
 }
 
 resource "profitbricks_lan" "webserver_lan1" {

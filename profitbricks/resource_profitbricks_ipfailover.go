@@ -117,8 +117,8 @@ func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interf
 
 	resp := profitbricks.PatchLan(dcid, lanid, *properties)
 	if resp.StatusCode > 299 {
-		//try again in 50 seconds
-		time.Sleep(50 * time.Second)
+		//try again in 90 seconds
+		time.Sleep(90 * time.Second)
 		resp = profitbricks.PatchLan(dcid, lanid, *properties)
 		if resp.StatusCode > 299 && resp.StatusCode != 404 {
 			return fmt.Errorf("An error occured while removing a lans ipfailover groups dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), string(resp.Response))
