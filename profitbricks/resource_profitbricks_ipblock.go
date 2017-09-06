@@ -14,6 +14,11 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 		Read:   resourceProfitBricksIPBlockRead,
 		Delete: resourceProfitBricksIPBlockDelete,
 		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 			"location": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -38,6 +43,7 @@ func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{})
 		Properties: profitbricks.IpBlockProperties{
 			Size:     d.Get("size").(int),
 			Location: d.Get("location").(string),
+			Name:     d.Get("name").(string),
 		},
 	}
 
@@ -71,6 +77,7 @@ func resourceProfitBricksIPBlockRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("ips", ipblock.Properties.Ips)
 	d.Set("location", ipblock.Properties.Location)
 	d.Set("size", ipblock.Properties.Size)
+	d.Set("name", ipblock.Properties.Name)
 
 	return nil
 }
