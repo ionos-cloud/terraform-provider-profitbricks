@@ -1,4 +1,11 @@
 ## 0.1.3 (Unreleased)
+
+IMPROVEMENTS: 
+
+* Fix IPFailover failing test ([#13](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/13))
+* Fix issue with failover test failing ([#13](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/13))
+
+
 ## 0.1.2 (August 23, 2017)
 
 FEATURES:
