@@ -144,7 +144,7 @@ resource "profitbricks_nic" "database_nic" {
 
 resource "profitbricks_loadbalancer" "example" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
-  nic_id = "${profitbricks_nic.database_nic.id}"
+  nic_ids = ["${profitbricks_nic.database_nic.id}"]
   name = "%s"
   dhcp = true
 }`
@@ -182,7 +182,7 @@ resource "profitbricks_server" "webserver" {
   }
 }
 
-resource "profitbricks_nic" "database_nic" {
+resource "profitbricks_nic" "database_nic1" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
   server_id = "${profitbricks_server.webserver.id}"
   lan = "2"
@@ -191,9 +191,18 @@ resource "profitbricks_nic" "database_nic" {
   name = "updated"
 }
 
+resource "profitbricks_nic" "database_nic2" {
+  datacenter_id = "${profitbricks_datacenter.foobar.id}"
+  server_id = "${profitbricks_server.webserver.id}"
+  lan = "3"
+  dhcp = true
+  firewall_active = true
+  name = "updated"
+}
+
 resource "profitbricks_loadbalancer" "example" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
-  nic_id = "${profitbricks_nic.database_nic.id}"
+  nic_ids = ["${profitbricks_nic.database_nic1.id}","${profitbricks_nic.database_nic2.id}"]
   name = "updated"
   dhcp = true
 }`
