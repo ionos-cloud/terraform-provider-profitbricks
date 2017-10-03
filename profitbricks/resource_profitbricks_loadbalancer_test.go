@@ -202,7 +202,7 @@ resource "profitbricks_nic" "database_nic2" {
 
 resource "profitbricks_loadbalancer" "example" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
-  nic_ids = ["${profitbricks_nic.database_nic1.id}","${profitbricks_nic.database_nic2.id}"]
+  nic_id = ["${profitbricks_nic.database_nic1.id}","${profitbricks_nic.database_nic2.id}"]
   name = "updated"
   dhcp = true
 }`
