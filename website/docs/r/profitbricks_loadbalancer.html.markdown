@@ -15,7 +15,7 @@ Manages a Load Balancers on ProfitBricks
 ```hcl
 resource "profitbricks_loadbalancer" "example" {
   datacenter_id = "${profitbricks_datacenter.example.id}"
-  nic_id        = "${profitbricks_nic.example.id}"
+  nic_ids        = ["${profitbricks_nic.example.id}"]
   name          = "load balancer name"
   dhcp          = true
 }
@@ -25,7 +25,7 @@ resource "profitbricks_loadbalancer" "example" {
 
 * `name` - (Required) the name of the loadbalancer
 * `datacenter_id` - (Required)[string]
-* `nic_id` - (Required)[string]
+* `nic_ids` - (Required)[list]
 * `dhcp` - (Optional) [boolean] Indicates if the load balancer will reserve an IP using DHCP.
 * `ip` - (Optional) [string] IPv4 address of the load balancer.
 
