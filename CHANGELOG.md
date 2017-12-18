@@ -1,9 +1,15 @@
-## 0.1.3 (Unreleased)
+## 1.0.1 (Unreleased)
+## 1.0.0 (October 04, 2017)
+
+BACKWARDS INCOMPATIBILITIES / NOTES:
+
+* Deprecated nic_id parameter in profitbricks_loadbalancer and replaced it with nic_ids ([#15](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/15))
 
 IMPROVEMENTS: 
 
 * Fix IPFailover failing test ([#13](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/13))
 * Fix issue with failover test failing ([#13](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/13))
+* Deprecated nic_id parameter in profitbricks_loadbalancer and replaced it with nic_ids ([#15](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/15))
 
 
 ## 0.1.2 (August 23, 2017)
