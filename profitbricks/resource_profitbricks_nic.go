@@ -2,10 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"log"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func resourceProfitBricksNic() *schema.Resource {
@@ -67,7 +68,8 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 		nic.Properties.Name = d.Get("name").(string)
 	}
 	if _, ok := d.GetOk("dhcp"); ok {
-		nic.Properties.Dhcp = d.Get("dhcp").(bool)
+		val := d.Get("dhcp").(bool)
+		nic.Properties.Dhcp = &val
 	}
 
 	if _, ok := d.GetOk("ip"); ok {
@@ -136,8 +138,8 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 		_, n := d.GetChange("lan")
 		properties.Lan = n.(int)
 	}
-	n := d.Get("dhcp")
-	properties.Dhcp = n.(bool)
+	n := d.Get("dhcp").(bool)
+	properties.Dhcp = &n
 
 	if d.HasChange("ip") {
 		_, raw := d.GetChange("ip")
