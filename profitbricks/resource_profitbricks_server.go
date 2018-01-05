@@ -3,13 +3,14 @@ package profitbricks
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
-	"golang.org/x/crypto/ssh"
 	"io/ioutil"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
+	"golang.org/x/crypto/ssh"
 )
 
 func resourceProfitBricksServer() *schema.Resource {
@@ -389,7 +390,8 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 				nic.Properties.Name = rawMap["name"].(string)
 			}
 			if rawMap["dhcp"] != nil {
-				nic.Properties.Dhcp = rawMap["dhcp"].(bool)
+				val := rawMap["dhcp"].(bool)
+				nic.Properties.Dhcp = &val
 			}
 			if rawMap["firewall_active"] != nil {
 				nic.Properties.FirewallActive = rawMap["firewall_active"].(bool)
@@ -650,7 +652,8 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 				properties.Lan = rawMap["lan"].(int)
 			}
 			if rawMap["dhcp"] != nil {
-				properties.Dhcp = rawMap["dhcp"].(bool)
+				val := rawMap["dhcp"].(bool)
+				properties.Dhcp = &val
 			}
 			if rawMap["nat"] != nil {
 				properties.Nat = rawMap["nat"].(bool)
