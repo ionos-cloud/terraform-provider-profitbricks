@@ -1,4 +1,7 @@
 ## 1.0.1 (Unreleased)
+
+* Updated dependency profitbricks-sdk-go to 4.0.4. ([#18](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/18))
+
 ## 1.0.0 (October 04, 2017)
 
 BACKWARDS INCOMPATIBILITIES / NOTES:
