@@ -2,10 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func resourceProfitBricksLan() *schema.Resource {
@@ -83,7 +84,6 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 	properties := &profitbricks.LanProperties{}
 	newValue := d.Get("public")
 	properties.Public = newValue.(bool)
-	properties.IpFailover = make([]profitbricks.IpFailover, 0)
 	if d.HasChange("name") {
 		_, newValue := d.GetChange("name")
 		properties.Name = newValue.(string)

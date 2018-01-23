@@ -2,9 +2,10 @@ package profitbricks
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/profitbricks/profitbricks-sdk-go"
-	"time"
 )
 
 func resourceProfitBricksLanIPFailover() *schema.Resource {
@@ -44,11 +45,11 @@ func resourceProfitBricksLanIPFailoverCreate(d *schema.ResourceData, meta interf
 	nicUuid := d.Get("nicuuid").(string)
 	properties := &profitbricks.LanProperties{}
 
-	properties.IpFailover = []profitbricks.IpFailover{}
-	properties.IpFailover = append(properties.IpFailover, profitbricks.IpFailover{
-		Ip:      ip,
-		NicUuid: nicUuid,
-	})
+	properties.IpFailover = &[]profitbricks.IpFailover{
+		profitbricks.IpFailover{
+			Ip:      ip,
+			NicUuid: nicUuid,
+		}}
 
 	if properties != nil {
 		lan := profitbricks.PatchLan(dcid, lanid, *properties)
@@ -89,11 +90,11 @@ func resourceProfitBricksLanIPFailoverUpdate(d *schema.ResourceData, meta interf
 	ip := d.Get("ip").(string)
 	nicUuid := d.Get("nicuuid").(string)
 
-	properties.IpFailover = []profitbricks.IpFailover{}
-	properties.IpFailover = append(properties.IpFailover, profitbricks.IpFailover{
-		Ip:      ip,
-		NicUuid: nicUuid,
-	})
+	properties.IpFailover = &[]profitbricks.IpFailover{
+		profitbricks.IpFailover{
+			Ip:      ip,
+			NicUuid: nicUuid,
+		}}
 
 	if properties != nil {
 		lan := profitbricks.PatchLan(dcid, lanid, *properties)
@@ -113,7 +114,6 @@ func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interf
 	lanid := d.Get("lan_id").(string)
 
 	properties := &profitbricks.LanProperties{}
-	properties.IpFailover = make([]profitbricks.IpFailover, 0)
 
 	resp := profitbricks.PatchLan(dcid, lanid, *properties)
 	if resp.StatusCode > 299 {

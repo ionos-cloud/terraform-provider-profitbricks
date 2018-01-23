@@ -65,11 +65,11 @@ func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failo
 			return fmt.Errorf("Lan %s not found.", lanId)
 		}
 
-		if len(lan.Properties.IpFailover) == 0 {
+		if lan.Properties.IpFailover == nil {
 			return fmt.Errorf("Lan %s has no failover groups.", lanId)
 		}
 		found := false
-		for _, fo := range lan.Properties.IpFailover {
+		for _, fo := range *lan.Properties.IpFailover {
 			if fo.NicUuid == nicUuid {
 				found = true
 			}
@@ -90,7 +90,7 @@ func testAccCheckDProfitBricksLanIPFailoverDestroyCheck(s *terraform.State) erro
 		nicUuid := rs.Primary.Attributes["nicuuid"]
 		resp := profitbricks.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
 		found := false
-		for _, fo := range resp.Properties.IpFailover {
+		for _, fo := range *resp.Properties.IpFailover {
 			if fo.NicUuid == nicUuid {
 				found = true
 			}
