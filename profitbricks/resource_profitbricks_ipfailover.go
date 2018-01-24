@@ -113,7 +113,10 @@ func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interf
 	dcid := d.Get("datacenter_id").(string)
 	lanid := d.Get("lan_id").(string)
 
-	properties := &profitbricks.LanProperties{}
+	//remove the failover group
+	properties := &profitbricks.LanProperties{
+		IpFailover: &[]profitbricks.IpFailover{},
+	}
 
 	resp := profitbricks.PatchLan(dcid, lanid, *properties)
 	if resp.StatusCode > 299 {
