@@ -16,7 +16,7 @@ func TestAccProfitBricksUser_Basic(t *testing.T) {
 	var user profitbricks.User
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
-	email := "terraform_test" + strconv.Itoa(r1.Intn(1000)) + "@go.com"
+	email := strconv.Itoa(r1.Intn(100000)) + "terraform_test" + strconv.Itoa(r1.Intn(100000)) + "@go.com"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
