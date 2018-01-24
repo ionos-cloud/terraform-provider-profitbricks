@@ -96,7 +96,10 @@ func testAccCheckDProfitBricksLanIPFailoverDestroyCheck(s *terraform.State) erro
 			}
 		}
 		if found {
-			return fmt.Errorf("IP failover group with nicId %s still exists %s %s", nicUuid, rs.Primary.ID, resp.Response)
+			delResp := profitbricks.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
+			if delResp.StatusCode > 299 {
+				return fmt.Errorf("IP failover group with nicId %s still exists %s %s, removing datacenter....", nicUuid, rs.Primary.ID, resp.Response)
+			}
 		}
 	}
 
