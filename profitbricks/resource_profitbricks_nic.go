@@ -67,7 +67,7 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 	if _, ok := d.GetOk("name"); ok {
 		nic.Properties.Name = d.Get("name").(string)
 	}
-	if _, ok := d.GetOk("dhcp"); ok {
+	if _, ok := d.GetOkExists("dhcp"); ok {
 		val := d.Get("dhcp").(bool)
 		nic.Properties.Dhcp = &val
 	}

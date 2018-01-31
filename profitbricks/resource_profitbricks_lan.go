@@ -103,11 +103,12 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) error {
-	resp := profitbricks.DeleteLan(d.Get("datacenter_id").(string), d.Id())
+	dcId := d.Get("datacenter_id").(string)
+	resp := profitbricks.DeleteLan(dcId, d.Id())
 	if resp.StatusCode > 299 {
 		//try again in 120 seconds
 		time.Sleep(120 * time.Second)
-		resp = profitbricks.DeleteLan(d.Get("datacenter_id").(string), d.Id())
+		resp = profitbricks.DeleteLan(dcId, d.Id())
 		if resp.StatusCode > 299 && resp.StatusCode != 404 {
 			return fmt.Errorf("An error occured while deleting a lan dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), string(resp.Body))
 		}

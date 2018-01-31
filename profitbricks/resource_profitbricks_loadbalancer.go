@@ -36,12 +36,6 @@ func resourceProfitBricksLoadbalancer() *schema.Resource {
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"nic_id": &schema.Schema{
-				Type:     schema.TypeList,
-				Removed:  "Use nic_ids instead",
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
 		},
 	}
 }
