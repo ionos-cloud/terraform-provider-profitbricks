@@ -1,4 +1,7 @@
 ## 1.0.2 (Unreleased)
+
+* Test fixes - Ensuring that unit tests clean up even when tests fail (#19)
+
 ## 1.0.1 (January 05, 2018)
 
 * Updated dependency profitbricks-sdk-go to 4.0.4. ([#18](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/18))
