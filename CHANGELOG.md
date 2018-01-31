@@ -1,6 +1,7 @@
 ## 1.0.2 (Unreleased)
 
 * Test fixes - Ensuring that unit tests clean up even when tests fail (#19)
+* Removed nic_id parameter from load_balancer entirely 
 
 ## 1.0.1 (January 05, 2018)
 
