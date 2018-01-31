@@ -1,6 +1,6 @@
-## 1.1.0 (Unreleased)
+## 1.1.0 (January 31, 2018)
 
-* resource/profitbricks_loadbalancer: Removed `nic_id` parameter entirely [GH-21]
+* resource/profitbricks_loadbalancer: Removed `nic_id` parameter entirely ([#21](https://github.com/terraform-providers/terraform-provider-profitbricks/issues/21))
 
 ## 1.0.1 (January 05, 2018)
 
