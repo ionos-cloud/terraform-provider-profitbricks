@@ -1,7 +1,6 @@
 ## 1.0.2 (Unreleased)
 
-* Test fixes - Ensuring that unit tests clean up even when tests fail (#21)
-* Removed nic_id parameter from load_balancer entirely 
+* resource/profitbricks_loadbalancer: Removed `nic_id` parameter entirely [GH-21]
 
 ## 1.0.1 (January 05, 2018)
 
