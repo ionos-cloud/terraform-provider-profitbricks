@@ -1,3 +1,4 @@
+## 1.2.0 (Unreleased)
 ## 1.1.1 (February 27, 2018)
 
 * Removed reboot from nic resource ([#22](https://github.com/terraform-providers/terraform-provider-profitbricks/issues/22))
