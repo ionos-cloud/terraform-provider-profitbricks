@@ -95,15 +95,6 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return err
 	}
-	// resp := profitbricks.RebootServer(d.Get("datacenter_id").(string), d.Get("server_id").(string))
-	// if resp.StatusCode > 299 {
-	// 	return fmt.Errorf("Error occured while creating a nic: %s", string(resp.Body))
-
-	// }
-	// err = waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	// if err != nil {
-	// 	return err
-	// }
 	d.SetId(nic.Id)
 	return resourceProfitBricksNicRead(d, meta)
 }
