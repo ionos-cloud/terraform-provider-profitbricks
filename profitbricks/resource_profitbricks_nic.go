@@ -67,7 +67,7 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 	if _, ok := d.GetOk("name"); ok {
 		nic.Properties.Name = d.Get("name").(string)
 	}
-	if _, ok := d.GetOk("dhcp"); ok {
+	if _, ok := d.GetOkExists("dhcp"); ok {
 		val := d.Get("dhcp").(bool)
 		nic.Properties.Dhcp = &val
 	}
@@ -92,15 +92,6 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	err := waitTillProvisioned(meta, nic.Headers.Get("Location"))
-	if err != nil {
-		return err
-	}
-	resp := profitbricks.RebootServer(d.Get("datacenter_id").(string), d.Get("server_id").(string))
-	if resp.StatusCode > 299 {
-		return fmt.Errorf("Error occured while creating a nic: %s", string(resp.Body))
-
-	}
-	err = waitTillProvisioned(meta, resp.Headers.Get("Location"))
 	if err != nil {
 		return err
 	}

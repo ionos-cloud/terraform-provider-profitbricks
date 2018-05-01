@@ -51,7 +51,7 @@ func testAccCheckDProfitBricksLoadbalancerDestroyCheck(s *terraform.State) error
 			resp := profitbricks.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
 
 			if resp.StatusCode > 299 {
-				return fmt.Errorf("Firewall still exists %s %s", rs.Primary.ID, string(resp.Body))
+				return fmt.Errorf("profitbricks_loadbalancer still exists %s %s", rs.Primary.ID, string(resp.Body))
 			}
 		}
 	}
@@ -202,7 +202,7 @@ resource "profitbricks_nic" "database_nic2" {
 
 resource "profitbricks_loadbalancer" "example" {
   datacenter_id = "${profitbricks_datacenter.foobar.id}"
-  nic_id = ["${profitbricks_nic.database_nic1.id}","${profitbricks_nic.database_nic2.id}"]
+  nic_ids = ["${profitbricks_nic.database_nic1.id}","${profitbricks_nic.database_nic2.id}"]
   name = "updated"
   dhcp = true
 }`

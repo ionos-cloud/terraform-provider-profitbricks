@@ -1,4 +1,12 @@
-## 1.0.2 (Unreleased)
+## 1.2.0 (Unreleased)
+## 1.1.1 (February 27, 2018)
+
+* Removed reboot from nic resource ([#22](https://github.com/terraform-providers/terraform-provider-profitbricks/issues/22))
+
+## 1.1.0 (January 31, 2018)
+
+* resource/profitbricks_loadbalancer: Removed `nic_id` parameter entirely ([#21](https://github.com/terraform-providers/terraform-provider-profitbricks/issues/21))
+
 ## 1.0.1 (January 05, 2018)
 
 * Updated dependency profitbricks-sdk-go to 4.0.4. ([#18](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/18))
