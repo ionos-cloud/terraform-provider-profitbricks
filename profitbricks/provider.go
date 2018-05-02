@@ -75,9 +75,18 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
 		Username: d.Get("username").(string),
 		Password: d.Get("password").(string),
-		Endpoint: d.Get("endpoint").(string),
+		Endpoint: cleanURL(d.Get("endpoint").(string)),
 		Retries:  d.Get("retries").(int),
 	}
 
 	return config.Client()
+}
+
+// cleanURL makes sure trailing slash does not corrupte the state 
+func cleanURL(url string) string {
+	if url[len(url)-1] == '/' {
+		url = url[:len(url)-1]
+	}
+
+	return url
 }
