@@ -96,6 +96,11 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 		obj.Description = newDescription.(string)
 	}
 
+	if d.HasChange("location") {
+		oldLocation, newLocation := d.GetChange("location")
+		return fmt.Errorf("Data center is created in %s location. You can not change location of the data center to %s. It requires recreation of the data center.", oldLocation, newLocation)
+	}
+
 	resp := profitbricks.PatchDatacenter(d.Id(), obj)
 	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
 	if err != nil {
