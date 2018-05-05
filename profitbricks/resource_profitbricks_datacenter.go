@@ -2,13 +2,12 @@ package profitbricks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"log"
 	"regexp"
-	"runtime"
 	"strings"
-	"time"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func resourceProfitBricksDatacenter() *schema.Resource {
@@ -35,6 +34,8 @@ func resourceProfitBricksDatacenter() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -59,10 +60,12 @@ func resourceProfitBricksDatacenterCreate(d *schema.ResourceData, meta interface
 
 	log.Printf("[INFO] DataCenter Id: %s", d.Id())
 
-	err := waitTillProvisioned(meta, dc.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, dc.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	return resourceProfitBricksDatacenterRead(d, meta)
 }
 
@@ -97,9 +100,11 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 	}
 
 	resp := profitbricks.PatchDatacenter(d.Id(), obj)
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
 
 	return resourceProfitBricksDatacenterRead(d, meta)
@@ -112,42 +117,15 @@ func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface
 	if resp.StatusCode > 299 {
 		return fmt.Errorf("An error occured while deleting the data center ID %s %s", d.Id(), string(resp.Body))
 	}
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
-}
-
-func waitTillProvisioned(meta interface{}, path string) error {
-	config := meta.(*Config)
-	waitCount := 50
-
-	if config.Retries != 0 {
-		waitCount = config.Retries
-	}
-	for i := 0; i < waitCount; i++ {
-		request := profitbricks.GetRequestStatus(path)
-		pc, _, _, ok := runtime.Caller(1)
-		details := runtime.FuncForPC(pc)
-		if ok && details != nil {
-			log.Printf("[DEBUG] Called from %s", details.Name())
-		}
-		log.Printf("[DEBUG] Request status: %s", request.Metadata.Status)
-		log.Printf("[DEBUG] Request status path: %s", path)
-
-		if request.Metadata.Status == "DONE" {
-			return nil
-		}
-		if request.Metadata.Status == "FAILED" {
-
-			return fmt.Errorf("Request failed with following error: %s", request.Metadata.Message)
-		}
-		time.Sleep(10 * time.Second)
-		i++
-	}
-	return fmt.Errorf("Timeout has expired")
 }
 
 func getImageId(dcId string, imageName string, imageType string) string {

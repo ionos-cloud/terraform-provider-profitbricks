@@ -2,10 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func resourceProfitBricksGroup() *schema.Resource {
@@ -72,6 +73,8 @@ func resourceProfitBricksGroup() *schema.Resource {
 				},
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -104,10 +107,12 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("An error occured while creating a group: %s", group.Response)
 	}
 
-	err := waitTillProvisioned(meta, group.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, group.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(group.Id)
 
 	//add users to group if any is provided
@@ -116,9 +121,10 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 		if addedUser.StatusCode > 299 {
 			return fmt.Errorf("An error occured while adding %s user to group ID %s %s", usertoAdd, d.Id(), group.Response)
 		}
-		err := waitTillProvisioned(meta, addedUser.Headers.Get("Location"))
-		if err != nil {
-			return err
+		// Wait, catching any errors
+		_, errState := getStateChangeConf(meta, d, addedUser.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+		if errState != nil {
+			return errState
 		}
 	}
 	return resourceProfitBricksGroupRead(d, meta)
@@ -175,19 +181,23 @@ func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) e
 	if group.StatusCode > 299 {
 		return fmt.Errorf("An error occured while patching a group ID %s %s", d.Id(), group.Response)
 	}
-	err := waitTillProvisioned(meta, group.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, group.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	//add users to group if any is provided
 	if usertoAdd != "" {
 		addedUser := profitbricks.AddUserToGroup(d.Id(), usertoAdd)
 		if addedUser.StatusCode > 299 {
 			return fmt.Errorf("An error occured while adding %s user to group ID %s %s", usertoAdd, d.Id(), group.Response)
 		}
-		err := waitTillProvisioned(meta, addedUser.Headers.Get("Location"))
-		if err != nil {
-			return err
+
+		// Wait, catching any errors
+		_, errState := getStateChangeConf(meta, d, addedUser.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+		if errState != nil {
+			return errState
 		}
 	}
 	return resourceProfitBricksGroupRead(d, meta)
@@ -204,12 +214,12 @@ func resourceProfitBricksGroupDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if resp.Headers.Get("Location") != "" {
-		err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-		if err != nil {
-			return err
-		}
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
 }

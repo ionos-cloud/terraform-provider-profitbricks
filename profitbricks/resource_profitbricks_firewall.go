@@ -2,6 +2,7 @@ package profitbricks
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/profitbricks/profitbricks-sdk-go"
 )
@@ -77,6 +78,8 @@ func resourceProfitBricksFirewall() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -125,10 +128,12 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("An error occured while creating a firewall rule: %s", fw.Response)
 	}
 
-	err := waitTillProvisioned(meta, fw.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, fw.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(fw.Id)
 
 	return resourceProfitBricksFirewallRead(d, meta)
@@ -201,10 +206,12 @@ func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("An error occured while deleting a firewall rule ID %s %s", d.Id(), resp.Response)
 	}
 
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	return resourceProfitBricksFirewallRead(d, meta)
 }
 
@@ -215,10 +222,12 @@ func resourceProfitBricksFirewallDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("An error occured while deleting a firewall rule ID %s %s", d.Id(), string(resp.Body))
 	}
 
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 
 	return nil
