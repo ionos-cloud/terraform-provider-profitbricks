@@ -2,10 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"log"
 	"strings"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func resourceProfitBricksIPBlock() *schema.Resource {
@@ -35,6 +36,8 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -52,10 +55,13 @@ func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{})
 	if ipblock.StatusCode > 299 {
 		return fmt.Errorf("An error occured while reserving an ip block: %s", ipblock.Response)
 	}
-	err := waitTillProvisioned(meta, ipblock.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, ipblock.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(ipblock.Id)
 
 	return resourceProfitBricksIPBlockRead(d, meta)
@@ -88,10 +94,12 @@ func resourceProfitBricksIPBlockDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("An error occured while releasing an ipblock ID: %s %s", d.Id(), string(resp.Body))
 	}
 
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
 }
