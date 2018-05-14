@@ -2,10 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func resourceProfitBricksShare() *schema.Resource {
@@ -32,6 +33,8 @@ func resourceProfitBricksShare() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -53,10 +56,12 @@ func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("An error occured while creating a share: %s", share.Response)
 	}
 
-	err := waitTillProvisioned(meta, share.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, share.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(share.Id)
 	return resourceProfitBricksShareRead(d, meta)
 }
@@ -91,10 +96,13 @@ func resourceProfitBricksShareUpdate(d *schema.ResourceData, meta interface{}) e
 	if share.StatusCode > 299 {
 		return fmt.Errorf("An error occured while patching a share ID %s %s", d.Id(), share.Response)
 	}
-	err := waitTillProvisioned(meta, share.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, share.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	return resourceProfitBricksShareRead(d, meta)
 }
 
@@ -109,12 +117,14 @@ func resourceProfitBricksShareDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	// Wait, catching any errors
 	if resp.Headers.Get("Location") != "" {
-		err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-		if err != nil {
-			return err
+		_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+		if errState != nil {
+			return errState
 		}
 	}
+
 	d.SetId("")
 	return nil
 }

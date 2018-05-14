@@ -2,6 +2,9 @@ package profitbricks
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/profitbricks/profitbricks-sdk-go"
@@ -65,11 +68,11 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	if _, ok := d.GetOk("username"); !ok {
-		return nil, fmt.Errorf("ProfitBricks username has not been provided.")
+		return nil, fmt.Errorf("ProfitBricks username has not been provided")
 	}
 
 	if _, ok := d.GetOk("password"); !ok {
-		return nil, fmt.Errorf("ProfitBricks password has not been provided.")
+		return nil, fmt.Errorf("ProfitBricks password has not been provided")
 	}
 
 	config := Config{
@@ -82,11 +85,67 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	return config.Client()
 }
 
-// cleanURL makes sure trailing slash does not corrupte the state 
+// cleanURL makes sure trailing slash does not corrupte the state
 func cleanURL(url string) string {
 	if url[len(url)-1] == '/' {
 		url = url[:len(url)-1]
 	}
 
 	return url
+}
+
+// getStateChangeConf gets the default configuration for tracking a request progress
+func getStateChangeConf(meta interface{}, d *schema.ResourceData, location string, timeoutType string) *resource.StateChangeConf {
+	stateConf := &resource.StateChangeConf{
+		Pending:    resourcePendingStates,
+		Target:     resourceTargetStates,
+		Refresh:    resourceStateRefreshFunc(meta, location),
+		Timeout:    d.Timeout(timeoutType),
+		MinTimeout: 10 * time.Second,
+		Delay:      10 * time.Second, // Wait 10 secs before starting
+	}
+
+	return stateConf
+}
+
+// resourceStateRefreshFunc tracks progress of a request
+func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+
+		if path == "" {
+			return nil, "", fmt.Errorf("Can not check a state when path is empty")
+		}
+
+		request := profitbricks.GetRequestStatus(path)
+
+		if request.Metadata.Status == "FAILED" {
+
+			return nil, "", fmt.Errorf("Request failed with following error: %s", request.Metadata.Message)
+		}
+
+		if request.Metadata.Status == "DONE" {
+			return request, "DONE", nil
+		}
+
+		return nil, request.Metadata.Status, nil
+	}
+}
+
+// resourcePendingStates defines states of working in progress
+var resourcePendingStates = []string{
+	"RUNNING",
+	"QUEUED",
+}
+
+// resourceTargetStates defines states of completion
+var resourceTargetStates = []string{
+	"DONE",
+}
+
+// resourceDefaultTimeouts sets default value for each Timeout type
+var resourceDefaultTimeouts = schema.ResourceTimeout{
+	Create:  schema.DefaultTimeout(60 * time.Minute),
+	Update:  schema.DefaultTimeout(60 * time.Minute),
+	Delete:  schema.DefaultTimeout(60 * time.Minute),
+	Default: schema.DefaultTimeout(60 * time.Minute),
 }

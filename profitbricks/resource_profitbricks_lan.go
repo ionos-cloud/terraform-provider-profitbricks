@@ -30,6 +30,8 @@ func resourceProfitBricksLan() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -54,10 +56,12 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("An error occured while creating a lan: %s", lan.Response)
 	}
 
-	err := waitTillProvisioned(meta, lan.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, lan.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(lan.Id)
 	return resourceProfitBricksLanRead(d, meta)
 }
@@ -94,10 +98,13 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 		if lan.StatusCode > 299 {
 			return fmt.Errorf("An error occured while patching a lan ID %s %s", d.Id(), lan.Response)
 		}
-		err := waitTillProvisioned(meta, lan.Headers.Get("Location"))
-		if err != nil {
-			return err
+
+		// Wait, catching any errors
+		_, errState := getStateChangeConf(meta, d, lan.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+		if errState != nil {
+			return errState
 		}
+
 	}
 	return resourceProfitBricksLanRead(d, meta)
 }
@@ -114,12 +121,12 @@ func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if resp.Headers.Get("Location") != "" {
-		err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-		if err != nil {
-			return err
-		}
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
 }
