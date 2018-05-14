@@ -2,10 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func resourceProfitBricksUser() *schema.Resource {
@@ -40,6 +41,8 @@ func resourceProfitBricksUser() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -73,10 +76,12 @@ func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("An error occured while creating a user: %s", user.Response)
 	}
 
-	err := waitTillProvisioned(meta, user.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, user.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(user.Id)
 	return resourceProfitBricksUserRead(d, meta)
 }
@@ -135,10 +140,13 @@ func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) er
 	if user.StatusCode > 299 {
 		return fmt.Errorf("An error occured while patching a user ID %s %s", d.Id(), user.Response)
 	}
-	err := waitTillProvisioned(meta, user.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, user.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	return resourceProfitBricksUserRead(d, meta)
 }
 
@@ -153,12 +161,12 @@ func resourceProfitBricksUserDelete(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	if resp.Headers.Get("Location") != "" {
-		err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-		if err != nil {
-			return err
-		}
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
 }

@@ -2,6 +2,7 @@ package profitbricks
 
 import (
 	"fmt"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/profitbricks/profitbricks-sdk-go"
 )
@@ -37,6 +38,8 @@ func resourceProfitBricksLoadbalancer() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -65,10 +68,11 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 	if lb.StatusCode > 299 {
 		return fmt.Errorf("Error occured while creating a loadbalancer %s", lb.Response)
 	}
-	err := waitTillProvisioned(meta, lb.Headers.Get("Location"))
 
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, lb.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
 
 	d.SetId(lb.Id)
@@ -120,9 +124,11 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 			if resp.StatusCode > 299 {
 				return fmt.Errorf("Error occured while deleting a balanced nic: %s", string(resp.Body))
 			}
-			err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-			if err != nil {
-				return err
+
+			// Wait, catching any errors
+			_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+			if errState != nil {
+				return errState
 			}
 		}
 
@@ -133,10 +139,13 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 			if nic.StatusCode > 299 {
 				return fmt.Errorf("Error occured while deleting a balanced nic: %s", nic.Response)
 			}
-			err := waitTillProvisioned(meta, nic.Headers.Get("Location"))
-			if err != nil {
-				return err
+
+			// Wait, catching any errors
+			_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+			if errState != nil {
+				return errState
 			}
+
 		}
 
 	}
@@ -151,9 +160,10 @@ func resourceProfitBricksLoadbalancerDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error occured while deleting a loadbalancer: %s", string(resp.Body))
 	}
 
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
 
 	d.SetId("")

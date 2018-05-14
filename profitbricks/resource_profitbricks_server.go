@@ -223,6 +223,8 @@ func resourceProfitBricksServer() *schema.Resource {
 				},
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -488,10 +490,12 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			"Error creating server: (%s)", server.Response)
 	}
 
-	err := waitTillProvisioned(meta, server.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, server.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(server.Id)
 	server = profitbricks.GetServer(d.Get("datacenter_id").(string), server.Id)
 
@@ -615,9 +619,10 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error patching volume (%s) (%s)", d.Id(), volume.Response)
 		}
 
-		err := waitTillProvisioned(meta, volume.Headers.Get("Location"))
-		if err != nil {
-			return err
+		// Wait, catching any errors
+		_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+		if errState != nil {
+			return errState
 		}
 	}
 
@@ -667,9 +672,10 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 				"Error patching nic (%s)", nic.Response)
 		}
 
-		err := waitTillProvisioned(meta, nic.Headers.Get("Location"))
-		if err != nil {
-			return err
+		// Wait, catching any errors
+		_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+		if errState != nil {
+			return errState
 		}
 	}
 
@@ -683,9 +689,10 @@ func resourceProfitBricksServerDelete(d *schema.ResourceData, meta interface{}) 
 
 	if server.Properties.BootVolume != nil {
 		resp := profitbricks.DeleteVolume(dcId, server.Properties.BootVolume.Id)
-		err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-		if err != nil {
-			return err
+		// Wait, catching any errors
+		_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+		if errState != nil {
+			return errState
 		}
 	}
 
@@ -694,10 +701,13 @@ func resourceProfitBricksServerDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("An error occured while deleting a server ID %s %s", d.Id(), string(resp.Body))
 
 	}
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
 }

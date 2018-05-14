@@ -55,6 +55,8 @@ func resourceProfitBricksNic() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
@@ -91,10 +93,12 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error occured while creating a nic: %s", nic.Response)
 	}
 
-	err := waitTillProvisioned(meta, nic.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(nic.Id)
 	return resourceProfitBricksNicRead(d, meta)
 }
@@ -149,9 +153,10 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error occured while updating a nic: %s", nic.Response)
 	}
 
-	err := waitTillProvisioned(meta, nic.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
 
 	return resourceProfitBricksNicRead(d, meta)
@@ -159,10 +164,13 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 
 func resourceProfitBricksNicDelete(d *schema.ResourceData, meta interface{}) error {
 	resp := profitbricks.DeleteNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
 }

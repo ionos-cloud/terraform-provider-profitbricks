@@ -2,9 +2,10 @@ package profitbricks
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/profitbricks/profitbricks-sdk-go"
-	"log"
 )
 
 func resourceProfitBricksVolume() *schema.Resource {
@@ -64,11 +65,12 @@ func resourceProfitBricksVolume() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
 func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	var err error
 	var ssh_keypath []interface{}
 	var image_alias string
 	isSnapshot := false
@@ -172,19 +174,23 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("An error occured while creating a volume: %s", volume.Response)
 	}
 
-	err = waitTillProvisioned(meta, volume.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	volume = profitbricks.AttachVolume(dcId, serverId, volume.Id)
 	if volume.StatusCode > 299 {
 		return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverId, volume.Id, volume.Response)
 	}
 
-	err = waitTillProvisioned(meta, volume.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState = getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(volume.Id)
 
 	return resourceProfitBricksVolumeRead(d, meta)
@@ -244,10 +250,13 @@ func resourceProfitBricksVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	volume := profitbricks.PatchVolume(dcId, d.Id(), properties)
-	err := waitTillProvisioned(meta, volume.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	if volume.StatusCode > 299 {
 		return fmt.Errorf("An error occured while updating a volume ID %s %s", d.Id(), volume.Response)
 
@@ -264,10 +273,13 @@ func resourceProfitBricksVolumeDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("An error occured while deleting a volume ID %s %s", d.Id(), string(resp.Body))
 
 	}
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId("")
 	return nil
 }

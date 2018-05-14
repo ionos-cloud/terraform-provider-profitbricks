@@ -2,9 +2,10 @@ package profitbricks
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/profitbricks/profitbricks-sdk-go"
-	"time"
 )
 
 func resourceProfitBricksSnapshot() *schema.Resource {
@@ -27,11 +28,12 @@ func resourceProfitBricksSnapshot() *schema.Resource {
 				Required: true,
 			},
 		},
+
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
 func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	var err error
 	dcId := d.Get("datacenter_id").(string)
 	volumeId := d.Get("volume_id").(string)
 	name := d.Get("name").(string)
@@ -42,10 +44,12 @@ func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("An error occured while creating a snapshot: %s", snapshot.Response)
 	}
 
-	err = waitTillProvisioned(meta, snapshot.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, snapshot.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	d.SetId(snapshot.Id)
 
 	return resourceProfitBricksSnapshotRead(d, meta)
@@ -80,10 +84,12 @@ func resourceProfitBricksSnapshotUpdate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("An error occured while restoring a snapshot ID %s %d", d.Id(), snapshot.StatusCode)
 	}
 
-	err := waitTillProvisioned(meta, snapshot.Headers.Get("Location"))
-	if err != nil {
-		return err
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, snapshot.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
 	}
+
 	return resourceProfitBricksSnapshotRead(d, meta)
 }
 
@@ -104,12 +110,14 @@ func resourceProfitBricksSnapshotDelete(d *schema.ResourceData, meta interface{}
 	resp := profitbricks.DeleteSnapshot(d.Id())
 	if resp.StatusCode > 299 {
 		return fmt.Errorf("An error occured while deleting a snapshot ID %s %s", d.Id(), string(resp.Body))
+	}
 
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if errState != nil {
+		return errState
 	}
-	err := waitTillProvisioned(meta, resp.Headers.Get("Location"))
-	if err != nil {
-		return err
-	}
+
 	d.SetId("")
 	return nil
 }
