@@ -1,6 +1,14 @@
 ## 1.2.0 (Unreleased)
 
+IMPROVEMENTS: 
+
+* ProfitBricks provider support for terraform timeouts ([#25](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/25))
+
+BUGS:
+
 * Fixes issue with server update affecting LAN assignment ([#24](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/24))
+* Inconsistent interpretation of endpoint ([#25](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/25))
+* Changing data center location silently ignored ([#25](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/25))
 
 ## 1.1.1 (February 27, 2018)
 
