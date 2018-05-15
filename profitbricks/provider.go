@@ -36,6 +36,7 @@ func Provider() terraform.ResourceProvider {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  50,
+				Removed:  "Timeout is used instead of this functionality",
 			},
 		},
 
