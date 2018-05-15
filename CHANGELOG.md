@@ -2,6 +2,7 @@
 
 IMPROVEMENTS: 
 
+* Documentation update ([#26](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/26))
 * ProfitBricks provider support for terraform timeouts ([#25](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/25))
 
 BUGS:
