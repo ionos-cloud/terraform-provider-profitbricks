@@ -1,5 +1,9 @@
 ## 1.3.0 (Unreleased)
 
+IMPROVEMENT
+
+* Adding navigation for data source documentation. ([#29](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/29))
+
 BUGS:
 
 * Retries attribute is marked as Deprecated instead of Remove. ([#28](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/28))
