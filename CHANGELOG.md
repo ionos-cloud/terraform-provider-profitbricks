@@ -1,4 +1,9 @@
 ## 1.3.0 (Unreleased)
+
+BUGS:
+
+* Retries attribute is marked as Deprecated instead of Remove. ([#28](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/28))
+
 ## 1.2.0 (May 15, 2018)
 
 IMPROVEMENTS: 
