@@ -33,10 +33,10 @@ func Provider() terraform.ResourceProvider {
 				Description: "ProfitBricks REST API URL.",
 			},
 			"retries": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  50,
-				Removed:  "Timeout is used instead of this functionality",
+				Type:       schema.TypeInt,
+				Optional:   true,
+				Default:    50,
+				Deprecated: "Timeout is used instead of this functionality",
 			},
 		},
 
@@ -98,12 +98,13 @@ func cleanURL(url string) string {
 // getStateChangeConf gets the default configuration for tracking a request progress
 func getStateChangeConf(meta interface{}, d *schema.ResourceData, location string, timeoutType string) *resource.StateChangeConf {
 	stateConf := &resource.StateChangeConf{
-		Pending:    resourcePendingStates,
-		Target:     resourceTargetStates,
-		Refresh:    resourceStateRefreshFunc(meta, location),
-		Timeout:    d.Timeout(timeoutType),
-		MinTimeout: 10 * time.Second,
-		Delay:      10 * time.Second, // Wait 10 secs before starting
+		Pending:        resourcePendingStates,
+		Target:         resourceTargetStates,
+		Refresh:        resourceStateRefreshFunc(meta, location),
+		Timeout:        d.Timeout(timeoutType),
+		MinTimeout:     10 * time.Second,
+		Delay:          10 * time.Second, // Wait 10 secs before starting
+		NotFoundChecks: 600,              //Setting high number, to support long timeouts
 	}
 
 	return stateConf
