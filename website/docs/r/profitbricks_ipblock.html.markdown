@@ -19,7 +19,7 @@ resource "profitbricks_ipblock" "example" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
 * `location` - (Required)[string] The regional location for this IP Block: us/las, us/ewr, de/fra, de/fkb.
 * `size` - (Required)[integer] The number of IP addresses to reserve for this block.
