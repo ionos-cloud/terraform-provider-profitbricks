@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_datacenter
 
-Manages a Virtual Data Center on ProfitBricks
+Manages a Virtual Data Center on ProfitBricks.
 
 ## Example Usage
 
@@ -25,5 +25,5 @@ resource "profitbricks_datacenter" "example" {
 The following arguments are supported:
 
 * `name` - (Required)[string] The name of the Virtual Data Center.
-* `location` - (Required)[string] The physical location where the data center will be created.
-* `description` - (Optional)[string] Description for the data center.
+* `location` - (Required)[string] The regional location where the Virtual Data Center will be created.
+* `description` - (Optional)[string] Description for the Virtual Data Center.

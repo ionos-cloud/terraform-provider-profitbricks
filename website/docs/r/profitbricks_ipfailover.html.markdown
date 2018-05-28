@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_ipfailover
 
-Manages Ip Failover groups on ProfitBricks
+Manages IP Failover groups on ProfitBricks.
 
 ## Example Usage
 
@@ -21,9 +21,9 @@ resource "profitbricks_ipfailover" "failovertest" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
-* `datacenter_id` - (Required) [string] The ID of a virtual data center.
-* `ip` - (Required) [string] The Reserved IP address to be used in the failover group.
-* `lan_id` - (Required) [string] The ID of a LAN.
-* `nicuuid` - (Required) [string] The ID of a NIC.
+* `datacenter_id` - (Required)[string] The ID of a Virtual Data Center.
+* `ip` - (Required)[string] The reserved IP address to be used in the IP failover group.
+* `lan_id` - (Required)[string] The ID of a LAN.
+* `nicuuid` - (Required)[string] The ID of a NIC.

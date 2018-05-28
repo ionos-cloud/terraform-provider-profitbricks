@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_loadbalancer
 
-Manages a Load Balancers on ProfitBricks
+Manages a Load Balancer on ProfitBricks.
 
 ## Example Usage
 
@@ -21,11 +21,10 @@ resource "profitbricks_loadbalancer" "example" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
-* `name` - (Required) the name of the loadbalancer
-* `datacenter_id` - (Required)[string]
-* `nic_ids` - (Required)[list]
-* `dhcp` - (Optional) [boolean] Indicates if the load balancer will reserve an IP using DHCP.
-* `ip` - (Optional) [string] IPv4 address of the load balancer.
-
+* `name` - (Required)[string] The name of the load balancer.
+* `datacenter_id` - (Required)[string] The ID of a Virtual Data Center.
+* `nic_ids` - (Required)[list] A list of NIC IDs that are part of the load balancer.
+* `dhcp` - (Optional)[Boolean] Indicates if the load balancer will reserve an IP using DHCP.
+* `ip` - (Optional)[string] IPv4 address of the load balancer.

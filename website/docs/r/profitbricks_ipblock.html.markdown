@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_ipblock
 
-Manages a IP Blocks on ProfitBricks
+Manages IP Blocks on ProfitBricks. IP Blocks contain reserved public IP addresses that can be assigned servers or other resources.
 
 ## Example Usage
 
@@ -19,9 +19,8 @@ resource "profitbricks_ipblock" "example" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
-* `location` - (Required)
-* `size` - (Required)
-* `ips` - (Computed) IPs associated with this block
-
+* `location` - (Required)[string] The regional location for this IP Block: us/las, us/ewr, de/fra, de/fkb.
+* `size` - (Required)[integer] The number of IP addresses to reserve for this block.
+* `ips` - (Computed)[integer] The list of IP addresses associated with this block.
