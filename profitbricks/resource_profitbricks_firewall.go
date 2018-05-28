@@ -58,11 +58,11 @@ func resourceProfitBricksFirewall() *schema.Resource {
 				},
 			},
 			"icmp_type": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Optional: true,
 			},
 			"icmp_code": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Optional: true,
 			},
 			"datacenter_id": {

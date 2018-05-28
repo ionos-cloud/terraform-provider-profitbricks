@@ -1,4 +1,9 @@
 ## 1.3.0 (Unreleased)
+
+BUGS:
+
+* ICMP type and code had wrong type ([#30](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/30))
+
 ## 1.2.1 (May 23, 2018)
 
 IMPROVEMENT
