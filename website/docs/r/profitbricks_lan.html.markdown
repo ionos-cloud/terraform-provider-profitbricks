@@ -19,7 +19,7 @@ resource "profitbricks_lan" "example" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
 * `datacenter_id` - (Required)[string] The ID of a Virtual Data Center.
 * `name` - (Optional)[string] The name of the LAN.

@@ -21,7 +21,7 @@ resource "profitbricks_ipfailover" "failovertest" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
 * `datacenter_id` - (Required)[string] The ID of a Virtual Data Center.
 * `ip` - (Required)[string] The reserved IP address to be used in the IP failover group.
