@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_firewall
 
-Manages a Firewall Rules on ProfitBricks
+Manages a set of firewall rules on ProfitBricks.
 
 ## Example Usage
 
@@ -24,11 +24,11 @@ resource "profitbricks_firewall" "example" {
 }
 ```
 
-####Argument reference
+## Argument reference
 
-* `datacenter_id` - (Required)[string]
-* `server_id` - (Required)[string]
-* `nic_id` - (Required)[string]
+* `datacenter_id` - (Required)[string] The Virtual Data Center ID.
+* `server_id` - (Required)[string] The Server ID.
+* `nic_id` - (Required)[string] The NIC ID.
 * `protocol` - (Required)[string] The protocol for the rule: TCP, UDP, ICMP, ANY.
 * `name` - (Optional)[string] The name of the firewall rule.
 * `source_mac` - (Optional)[string] Only traffic originating from the respective MAC address is allowed. Valid format: aa:bb:cc:dd:ee:ff.
@@ -38,4 +38,3 @@ resource "profitbricks_firewall" "example" {
 * `port_range_end` - (Optional)[string] Defines the end range of the allowed port (from 1 to 65534) if the protocol TCP or UDP is chosen.
 * `icmp_type` - (Optional)[string] Defines the allowed type (from 0 to 254) if the protocol ICMP is chosen.
 * `icmp_code` - (Optional)[string] Defines the allowed code (from 0 to 254) if protocol ICMP is chosen.
-

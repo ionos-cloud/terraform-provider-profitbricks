@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_server
 
-Manages a Servers on ProfitBricks
+Manages a Server on ProfitBricks.
 
 ## Example Usage
 
@@ -50,18 +50,18 @@ resource "profitbricks_server" "example" {
 
 ##Argument reference
 
-* `name` - (Required) [string] The name of the server.
-* `datacenter_id` - (Required)[string]
-* `cores` - (Required)[integer] Number of server cores.
+* `name` - (Required)[string] The name of the server.
+* `datacenter_id` - (Required)[string] The ID of a Virtual Data Center.
+* `cores` - (Required)[integer] Number of server CPU cores.
 * `ram` - (Required)[integer] The amount of memory for the server in MB.
 * `availability_zone` - (Optional)[string] The availability zone in which the server should exist.
 * `licence_type` - (Optional)[string] Sets the OS type of the server.
 * `cpu_family` - (Optional)[string] Sets the CPU type. "AMD_OPTERON" or "INTEL_XEON". Defaults to "AMD_OPTERON".
-* `volume` -  (Required) See Volume section.
-* `nic` - (Required) See NIC section.
-* `firewall` - (Optional) See Firewall Rule section.
+* `volume` -  (Required) See the Volume section.
+* `nic` - (Required) See the NIC section.
+* `firewall` - (Optional) See the Firewall Rules section.
 * `boot_volume` - (Computed) The associated boot volume.
 * `boot_cdrom` - (Computed) The associated boot drive, if any.
 * `boot_image` - (Computed) The associated boot image.
-* `primary_nic` - (Computed) The associated nic.
-* `primary_ip` - (Computed) The associated ip.
+* `primary_nic` - (Computed) The associated NIC.
+* `primary_ip` - (Computed) The associated IP address.

@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_user
 
-Manages users and list users and groups associated.
+Manages users and list users and groups associated with that user.
 
 ## Example Usage
 
@@ -23,11 +23,11 @@ resource "profitbricks_user" "user" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
-* `administrator` - (Required) [Boolean] The group has permission to edit privileges on this resource.
-* `email` - (Required) [string] An e-mail address for the user.
-* `first_name` - (Required) [string] A name for the user.
-* `force_sec_auth` - (Required) [Boolean] The group has permission to user this resource.
-* `last_name` - (Required) [string] A name for the user.
-* `password` - (Required) [string] A password for the user.
+* `administrator` - (Required)[Boolean] The group has permission to edit privileges on this resource.
+* `email` - (Required)[string] An e-mail address for the user.
+* `first_name` - (Required)[string] A first name for the user.
+* `force_sec_auth` - (Required)[Boolean] Indicates if secure (two-factor) authentication should be enabled for the user (true) or not (false).
+* `last_name` - (Required)[string] A last name for the user.
+* `password` - (Required)[string] A password for the user.
