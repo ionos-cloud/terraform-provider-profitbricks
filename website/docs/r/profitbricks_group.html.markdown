@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_group
 
-Manages groups and group priviliages on ProfitBricks
+Manages groups and group privileges on ProfitBricks.
 
 ## Example Usage
 

@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_lan
 
-Manages a LANs on ProfitBricks
+Manages a LAN on ProfitBricks.
 
 ## Example Usage
 
@@ -21,6 +21,6 @@ resource "profitbricks_lan" "example" {
 
 ##Argument reference
 
-* `datacenter_id` - (Required) [string]
-* `name` - (Optional) [string] The name of the LAN
-* `public` - (Optional) [Boolean] indicating if the LAN faces the public Internet or not.
+* `datacenter_id` - (Required)[string] The ID of a Virtual Data Center.
+* `name` - (Optional)[string] The name of the LAN.
+* `public` - (Optional)[Boolean] Indicates if the LAN faces the public Internet (true) or not (false).

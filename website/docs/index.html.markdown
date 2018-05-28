@@ -8,9 +8,9 @@ description: |-
 
 # ProfitBricks Provider
 
-The ProfitBricks provider gives the ability to deploy and configure resources using ProfitBricks Cloud API.
+The ProfitBricks provider gives the ability to deploy and configure resources using the ProfitBricks Cloud API.
 
-Use the navigation to the left to read about the available resources.
+Use the navigation to the left to read about the available data sources and resources.
 
 
 ## Usage
@@ -53,9 +53,9 @@ The following arguments are supported:
 
 * `password` - (Required) If omitted, the `PROFITBRICKS_PASSWORD` environment variable is used.
 
-* `endpoint` - (Optional) If omitted, the `PROFITBRICKS_API_URL` environment variable is used, or it defaults to the current Cloud API release. (As of this documentation, that would be https://api.profitbricks.com/cloudapi/v4/)
+* `endpoint` - (Optional) If omitted, the `PROFITBRICKS_API_URL` environment variable is used, or it defaults to the current Cloud API release.
 
-* `retries` - (Removed) Number of retries while waiting for a resource to be provisioned. Default value is 50. **Note**: This argument has been removed and replaced by the implementation of resource timeouts described below.
+* `retries` - (Deprecated) Number of retries while waiting for a resource to be provisioned. Default value is 50. **Note**: This argument has been deprecated and replaced by the implementation of resource timeouts described below.
 
 ## Resource Timeout
 
@@ -66,10 +66,10 @@ The default `timeouts` values are:
 
 * create - (Default 60 minutes) Used for creating a resource.
 * update - (Default 60 minutes) Used for updating a resource .
-* delete - (Default 60 minutes) Used for destroying a resoruce.
+* delete - (Default 60 minutes) Used for destroying a resource.
 * default -  (Default 60 minutes) Used for every other action on a resource.
 
-Example overwriting the `create`, `update`, and `delete` timeouts for a `nic` resource:
+An example of overwriting the `create`, `update`, and `delete` timeouts:
 
 ```hcl
 resource "profitbricks_server" "example" {

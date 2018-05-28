@@ -20,8 +20,8 @@ resource "profitbricks_snapshot" "test_snapshot" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
-* `datacenter_id` - (Required) [Boolean] The ID of the Virtual Data Center.
-* `name` - (Required) [Boolean] The name of the snapshot.
-* `volume_id` - (Required) [Boolean] The ID of the specific volume to take snapshot from.
+* `datacenter_id` - (Required)[string] The ID of the Virtual Data Center.
+* `name` - (Required)[string] The name of the snapshot.
+* `volume_id` - (Required)[string] The ID of the specific volume to take the snapshot from.

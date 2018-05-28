@@ -8,7 +8,7 @@ description: |-
 
 # profitbricks\_nic
 
-Manages a NICs on ProfitBricks
+Manages a NIC on ProfitBricks.
 
 ## Example Usage
 
@@ -22,14 +22,14 @@ resource "profitbricks_nic" "example" {
 }
 ```
 
-##Argument reference
+## Argument reference
 
-* `datacenter_id` - (Required)[string]<sup>[1](#myfootnote1)</sup>
-* `server_id` - (Required)[string]<sup>[1](#myfootnote1)</sup>
-* `lan` - (Required) [integer] The LAN ID the NIC will sit on.
-* `name` - (Optional) [string] The name of the LAN.
-* `dhcp` - (Optional) [boolean]
-* `ip` - (Optional) [string] IP assigned to the NIC.
-* `firewall_active` - (Optional) [boolean] If this resource is set to true and is nested under a server resource firewall, with open SSH port, resource must be nested under the nic.
-* `nat` - (Optional) [boolean] Boolean value indicating if the private IP address has outbound access to the public internet.
-* `ips` - (Computed) the IPs assigned to the NIC
+* `datacenter_id` - (Required)[string] The ID of a Virtual Data Center.
+* `server_id` - (Required)[string] The ID of a server.
+* `lan` - (Required)[integer] The LAN ID the NIC will sit on.
+* `name` - (Optional)[string] The name of the LAN.
+* `dhcp` - (Optional)[Boolean] Indicates if the NIC should get an IP address using DHCP (true) or not (false).
+* `ip` - (Optional)[string] IP assigned to the NIC.
+* `firewall_active` - (Optional)[Boolean] If this resource is set to true and is nested under a server resource firewall, with open SSH port, resource must be nested under the NIC.
+* `nat` - (Optional)[Boolean] Boolean value indicating if the private IP address has outbound access to the public internet.
+* `ips` - (Computed) The IP address or addresses assigned to the NIC.
