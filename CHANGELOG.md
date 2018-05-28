@@ -1,5 +1,9 @@
 ## 1.3.0 (Unreleased)
 
+IMPROVEMENT
+
+* Doc sync ([#31](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/31))
+
 BUGS:
 
 * ICMP type and code had wrong type ([#30](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/30))
