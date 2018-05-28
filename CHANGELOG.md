@@ -1,4 +1,4 @@
-## 1.3.0 (Unreleased)
+## 1.2.2 (Unreleased)
 
 IMPROVEMENT
 
