@@ -1,4 +1,9 @@
 ## 1.3.1 (Unreleased)
+
+IMPROVEMENT
+
+* Icmp type ([#32](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/32))
+
 ## 1.3.0 (May 29, 2018)
 
 IMPROVEMENT
