@@ -2,6 +2,7 @@ package profitbricks
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/profitbricks/profitbricks-sdk-go"
@@ -58,11 +59,11 @@ func resourceProfitBricksFirewall() *schema.Resource {
 				},
 			},
 			"icmp_type": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"icmp_code": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 			"datacenter_id": {
@@ -114,11 +115,17 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 		fw.Properties.PortRangeEnd = &tempPortRangeEnd
 	}
 	if _, ok := d.GetOk("icmp_type"); ok {
-		tempIcmpType := d.Get("icmp_type").(int)
+		tempIcmpType, err := strconv.Atoi(d.Get("icmp_type").(string))
+		if err != nil {
+			return fmt.Errorf("An error occured while creating a firewall rule: %s", err)
+		}
 		fw.Properties.IcmpType = &tempIcmpType
 	}
 	if _, ok := d.GetOk("icmp_code"); ok {
-		tempIcmpCodee := d.Get("icmp_type").(int)
+		tempIcmpCodee, err := strconv.Atoi(d.Get("icmp_code").(string))
+		if err != nil {
+			return fmt.Errorf("An error occured while creating a firewall rule: %s", err)
+		}
 		fw.Properties.IcmpCode = &tempIcmpCodee
 	}
 
@@ -193,17 +200,25 @@ func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}
 	}
 	if d.HasChange("icmp_type") {
 		_, new := d.GetChange("icmp_type")
-		properties.IcmpType = new.(*int)
+		tempIcmpType, err := strconv.Atoi(new.(string))
+		if err != nil {
+			return fmt.Errorf("An error occured while updating a firewall rule: %s", err)
+		}
+		properties.IcmpType = &tempIcmpType
 	}
 	if d.HasChange("icmp_code") {
 		_, new := d.GetChange("icmp_code")
-		properties.IcmpCode = new.(*int)
+		tempIcmpCode, err := strconv.Atoi(new.(string))
+		if err != nil {
+			return fmt.Errorf("An error occured while updating a firewall rule: %s", err)
+		}
+		properties.IcmpCode = &tempIcmpCode
 	}
 
 	resp := profitbricks.PatchFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id(), properties)
 
 	if resp.StatusCode > 299 {
-		return fmt.Errorf("An error occured while deleting a firewall rule ID %s %s", d.Id(), resp.Response)
+		return fmt.Errorf("An error occured while updating a firewall rule ID %s %s", d.Id(), resp.Response)
 	}
 
 	// Wait, catching any errors
