@@ -25,10 +25,12 @@ func dataSourceLocation() *schema.Resource {
 }
 
 func dataSourceLocationRead(d *schema.ResourceData, meta interface{}) error {
-	locations := profitbricks.ListLocations()
+	connection := meta.(*profitbricks.Client)
 
-	if locations.StatusCode > 299 {
-		return fmt.Errorf("An error occured while fetching ProfitBricks locations %s", locations.Response)
+	locations, err := connection.ListLocations()
+
+	if err != nil {
+		return fmt.Errorf("An error occured while fetching ProfitBricks locations %s", err)
 	}
 
 	name, nameOk := d.GetOk("name")
@@ -67,7 +69,7 @@ func dataSourceLocationRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("There are no locations that match the search criteria")
 	}
 
-	d.SetId(results[0].Id)
+	d.SetId(results[0].ID)
 
 	return nil
 }

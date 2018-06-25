@@ -47,6 +47,7 @@ func resourceProfitBricksUser() *schema.Resource {
 }
 
 func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	request := profitbricks.User{
 		Properties: &profitbricks.UserProperties{},
 	}
@@ -68,12 +69,12 @@ func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) er
 
 	request.Properties.Administrator = d.Get("administrator").(bool)
 	request.Properties.ForceSecAuth = d.Get("force_sec_auth").(bool)
-	user := profitbricks.CreateUser(request)
+	user, err := connection.CreateUser(request)
 
-	log.Printf("[DEBUG] USER ID: %s", user.Id)
+	log.Printf("[DEBUG] USER ID: %s", user.ID)
 
-	if user.StatusCode > 299 {
-		return fmt.Errorf("An error occured while creating a user: %s", user.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while creating a user: %s", err)
 	}
 
 	// Wait, catching any errors
@@ -82,19 +83,22 @@ func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) er
 		return errState
 	}
 
-	d.SetId(user.Id)
+	d.SetId(user.ID)
 	return resourceProfitBricksUserRead(d, meta)
 }
 
 func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) error {
-	user := profitbricks.GetUser(d.Id())
+	connection := meta.(*profitbricks.Client)
+	user, err := connection.GetUser(d.Id())
 
-	if user.StatusCode > 299 {
-		if user.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if err != nil {
+		if err2, ok := err.(profitbricks.ApiError); ok {
+			if err2.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("An error occured while fetching a User ID %s %s", d.Id(), user.Response)
+		return fmt.Errorf("An error occured while fetching a User ID %s %s", d.Id(), err)
 	}
 
 	d.Set("first_name", user.Properties.Firstname)
@@ -106,7 +110,8 @@ func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) error {
-	originalUser := profitbricks.GetUser(d.Id())
+	connection := meta.(*profitbricks.Client)
+	originalUser, _ := connection.GetUser(d.Id())
 	userReq := profitbricks.User{
 		Properties: &profitbricks.UserProperties{
 			Administrator: d.Get("administrator").(bool),
@@ -136,9 +141,9 @@ func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) er
 		userReq.Properties.Email = originalUser.Properties.Email
 	}
 
-	user := profitbricks.UpdateUser(d.Id(), userReq)
-	if user.StatusCode > 299 {
-		return fmt.Errorf("An error occured while patching a user ID %s %s", d.Id(), user.Response)
+	user, err := connection.UpdateUser(d.Id(), userReq)
+	if err != nil {
+		return fmt.Errorf("An error occured while patching a user ID %s %s", d.Id(), err)
 	}
 
 	// Wait, catching any errors
@@ -151,18 +156,23 @@ func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceProfitBricksUserDelete(d *schema.ResourceData, meta interface{}) error {
-	resp := profitbricks.DeleteUser(d.Id())
-	if resp.StatusCode > 299 {
+	connection := meta.(*profitbricks.Client)
+	resp, err := connection.DeleteUser(d.Id())
+	if err != nil {
 		//try again in 20 seconds
 		time.Sleep(20 * time.Second)
-		resp = profitbricks.DeleteUser(d.Id())
-		if resp.StatusCode > 299 && resp.StatusCode != 404 {
-			return fmt.Errorf("An error occured while deleting a user %s %s", d.Id(), string(resp.Body))
+		resp, err = connection.DeleteUser(d.Id())
+		if err != nil {
+			if err2, ok := err.(profitbricks.ApiError); ok {
+				if err2.HttpStatusCode() != 404 {
+					return fmt.Errorf("An error occured while deleting a user %s %s", d.Id(), err)
+				}
+			}
 		}
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}

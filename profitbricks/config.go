@@ -13,13 +13,13 @@ type Config struct {
 }
 
 // Client() returns a new client for accessing ProfitBricks.
-func (c *Config) Client() (*Config, error) {
-	profitbricks.SetAuth(c.Username, c.Password)
-	profitbricks.SetDepth("5")
-	profitbricks.SetUserAgent(terraform.UserAgentString())
+func (c *Config) Client() (*profitbricks.Client, error) {
+	client := profitbricks.NewClient(c.Username, c.Password)
+	client.SetUserAgent(terraform.UserAgentString())
+	client.SetDepth(5)
 
 	if len(c.Endpoint) > 0 {
-		profitbricks.SetEndpoint(c.Endpoint)
+		client.SetURL(c.Endpoint)
 	}
-	return c, nil
+	return client, nil
 }

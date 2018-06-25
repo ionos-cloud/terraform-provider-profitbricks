@@ -40,18 +40,19 @@ func TestAccProfitBricksLoadbalancer_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksLoadbalancerDestroyCheck(s *terraform.State) error {
+	connection := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_loadbalancer" {
 			continue
 		}
 
-		resp := profitbricks.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		_, err := connection.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			resp := profitbricks.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
+		if err != nil {
+			_, err := connection.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
 
-			if resp.StatusCode > 299 {
-				return fmt.Errorf("profitbricks_loadbalancer still exists %s %s", rs.Primary.ID, string(resp.Body))
+			if err != nil {
+				return fmt.Errorf("profitbricks_loadbalancer still exists %s %s", rs.Primary.ID, err)
 			}
 		}
 	}
@@ -75,6 +76,7 @@ func testAccCheckProfitBricksLoadbalancerAttributes(n string, name string) resou
 
 func testAccCheckProfitBricksLoadbalancerExists(n string, loadbalancer *profitbricks.Loadbalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		connection := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -85,16 +87,16 @@ func testAccCheckProfitBricksLoadbalancerExists(n string, loadbalancer *profitbr
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundLB := profitbricks.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		foundLB, err := connection.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if foundLB.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Loadbalancer: %s", rs.Primary.ID)
 		}
-		if foundLB.Id != rs.Primary.ID {
+		if foundLB.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		loadbalancer = &foundLB
+		loadbalancer = foundLB
 
 		return nil
 	}

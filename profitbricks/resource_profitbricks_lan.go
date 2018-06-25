@@ -36,8 +36,9 @@ func resourceProfitBricksLan() *schema.Resource {
 }
 
 func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) error {
-	request := profitbricks.CreateLanRequest{
-		Properties: profitbricks.CreateLanProperties{
+	connection := meta.(*profitbricks.Client)
+	request := profitbricks.Lan{
+		Properties: profitbricks.LanProperties{
 			Public: d.Get("public").(bool),
 		},
 	}
@@ -47,13 +48,13 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 		request.Properties.Name = d.Get("name").(string)
 	}
 
-	lan := profitbricks.CreateLan(d.Get("datacenter_id").(string), request)
+	lan, err := connection.CreateLan(d.Get("datacenter_id").(string), request)
 
-	log.Printf("[DEBUG] LAN ID: %s", lan.Id)
+	log.Printf("[DEBUG] LAN ID: %s", lan.ID)
 	log.Printf("[DEBUG] LAN RESPONSE: %s", lan.Response)
 
-	if lan.StatusCode > 299 {
-		return fmt.Errorf("An error occured while creating a lan: %s", lan.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while creating a lan: %s", err)
 	}
 
 	// Wait, catching any errors
@@ -62,29 +63,33 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 		return errState
 	}
 
-	d.SetId(lan.Id)
+	d.SetId(lan.ID)
 	return resourceProfitBricksLanRead(d, meta)
 }
 
 func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error {
-	lan := profitbricks.GetLan(d.Get("datacenter_id").(string), d.Id())
+	connection := meta.(*profitbricks.Client)
+	lan, err := connection.GetLan(d.Get("datacenter_id").(string), d.Id())
 
-	if lan.StatusCode > 299 {
-		if lan.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if err != nil {
+		if err2, ok := err.(profitbricks.ApiError); ok {
+			if err2.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("An error occured while fetching a lan ID %s %s", d.Id(), lan.Response)
+		return fmt.Errorf("An error occured while fetching a lan ID %s %s", d.Id(), err)
 	}
 
 	d.Set("public", lan.Properties.Public)
 	d.Set("name", lan.Properties.Name)
-	d.Set("ip_failover", lan.Properties.IpFailover)
+	d.Set("ip_failover", lan.Properties.IPFailover)
 	d.Set("datacenter_id", d.Get("datacenter_id").(string))
 	return nil
 }
 
 func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	properties := &profitbricks.LanProperties{}
 	newValue := d.Get("public")
 	properties.Public = newValue.(bool)
@@ -94,9 +99,9 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if properties != nil {
-		lan := profitbricks.PatchLan(d.Get("datacenter_id").(string), d.Id(), *properties)
-		if lan.StatusCode > 299 {
-			return fmt.Errorf("An error occured while patching a lan ID %s %s", d.Id(), lan.Response)
+		lan, err := connection.UpdateLan(d.Get("datacenter_id").(string), d.Id(), *properties)
+		if err != nil {
+			return fmt.Errorf("An error occured while patching a lan ID %s %s", d.Id(), err)
 		}
 
 		// Wait, catching any errors
@@ -110,19 +115,25 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
-	resp := profitbricks.DeleteLan(dcId, d.Id())
-	if resp.StatusCode > 299 {
+	resp, err := connection.DeleteLan(dcId, d.Id())
+	if err != nil {
 		//try again in 120 seconds
 		time.Sleep(120 * time.Second)
-		resp = profitbricks.DeleteLan(dcId, d.Id())
-		if resp.StatusCode > 299 && resp.StatusCode != 404 {
-			return fmt.Errorf("An error occured while deleting a lan dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), string(resp.Body))
+		resp, err = connection.DeleteLan(dcId, d.Id())
+
+		if err != nil {
+			if err2, ok := err.(profitbricks.ApiError); ok {
+				if err2.HttpStatusCode() != 404 {
+					return fmt.Errorf("An error occured while deleting a lan dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), err)
+				}
+			}
 		}
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccProfitBricksIPBlock_Basic(t *testing.T) {
-	var ipblock profitbricks.IpBlock
+	var ipblock profitbricks.IPBlock
 	location := "us/las"
 
 	resource.Test(t, resource.TestCase{
@@ -33,15 +33,16 @@ func TestAccProfitBricksIPBlock_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksIPBlockDestroyCheck(s *terraform.State) error {
+	connection := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_ipblock" {
 			continue
 		}
 
-		resp := profitbricks.GetIpBlock(rs.Primary.ID)
+		_, err := connection.GetIPBlock(rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("IPBlock still exists %s %s", rs.Primary.ID, resp.Response)
+		if err != nil {
+			return fmt.Errorf("IPBlock still exists %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -62,8 +63,9 @@ func testAccCheckProfitBricksIPBlockAttributes(n string, location string) resour
 	}
 }
 
-func testAccCheckProfitBricksIPBlockExists(n string, ipblock *profitbricks.IpBlock) resource.TestCheckFunc {
+func testAccCheckProfitBricksIPBlockExists(n string, ipblock *profitbricks.IPBlock) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		connection := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -74,16 +76,16 @@ func testAccCheckProfitBricksIPBlockExists(n string, ipblock *profitbricks.IpBlo
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundIP := profitbricks.GetIpBlock(rs.Primary.ID)
+		foundIP, err := connection.GetIPBlock(rs.Primary.ID)
 
-		if foundIP.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching IP Block: %s", rs.Primary.ID)
 		}
-		if foundIP.Id != rs.Primary.ID {
+		if foundIP.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		ipblock = &foundIP
+		ipblock = foundIP
 
 		return nil
 	}

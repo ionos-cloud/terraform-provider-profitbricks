@@ -40,6 +40,7 @@ func resourceProfitBricksDatacenter() *schema.Resource {
 }
 
 func resourceProfitBricksDatacenterCreate(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	datacenter := profitbricks.Datacenter{
 		Properties: profitbricks.DatacenterProperties{
 			Name:     d.Get("name").(string),
@@ -50,13 +51,13 @@ func resourceProfitBricksDatacenterCreate(d *schema.ResourceData, meta interface
 	if attr, ok := d.GetOk("description"); ok {
 		datacenter.Properties.Description = attr.(string)
 	}
-	dc := profitbricks.CreateDatacenter(datacenter)
+	dc, err := connection.CreateDatacenter(datacenter)
 
-	if dc.StatusCode > 299 {
+	if err != nil {
 		return fmt.Errorf(
-			"Error creating data center (%s) (%s)", d.Id(), dc.Response)
+			"Error creating data center (%s) (%s)", d.Id(), err)
 	}
-	d.SetId(dc.Id)
+	d.SetId(dc.ID)
 
 	log.Printf("[INFO] DataCenter Id: %s", d.Id())
 
@@ -70,13 +71,17 @@ func resourceProfitBricksDatacenterCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceProfitBricksDatacenterRead(d *schema.ResourceData, meta interface{}) error {
-	datacenter := profitbricks.GetDatacenter(d.Id())
-	if datacenter.StatusCode > 299 {
-		if datacenter.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	connection := meta.(*profitbricks.Client)
+	datacenter, err := connection.GetDatacenter(d.Id())
+
+	if err != nil {
+		if err2, ok := err.(profitbricks.ApiError); ok {
+			if err2.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("Error while fetching a data center ID %s %s", d.Id(), datacenter.Response)
+		return fmt.Errorf("Error while fetching a data center ID %s %s", d.Id(), err)
 	}
 
 	d.Set("name", datacenter.Properties.Name)
@@ -86,6 +91,7 @@ func resourceProfitBricksDatacenterRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	obj := profitbricks.DatacenterProperties{}
 
 	if d.HasChange("name") {
@@ -104,7 +110,11 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Data center is created in %s location. You can not change location of the data center to %s. It requires recreation of the data center.", oldLocation, newLocation)
 	}
 
-	resp := profitbricks.PatchDatacenter(d.Id(), obj)
+	resp, err := connection.UpdateDataCenter(d.Id(), obj)
+
+	if err != nil {
+		return fmt.Errorf("An error occured while update the data center ID %s %s", d.Id(), err)
+	}
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
@@ -116,15 +126,16 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	dcid := d.Id()
-	resp := profitbricks.DeleteDatacenter(dcid)
+	resp, err := connection.DeleteDatacenter(dcid)
 
-	if resp.StatusCode > 299 {
-		return fmt.Errorf("An error occured while deleting the data center ID %s %s", d.Id(), string(resp.Body))
+	if err != nil {
+		return fmt.Errorf("An error occured while deleting the data center ID %s %s", d.Id(), err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}
@@ -133,18 +144,18 @@ func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func getImageId(dcId string, imageName string, imageType string) string {
+func getImageId(connection *profitbricks.Client, dcId string, imageName string, imageType string) string {
 	if imageName == "" {
 		return ""
 	}
-	dc := profitbricks.GetDatacenter(dcId)
-	if dc.StatusCode > 299 {
-		log.Print(fmt.Errorf("Error while fetching a data center ID %s %s", dcId, dc.Response))
+	dc, err := connection.GetDatacenter(dcId)
+	if err != nil {
+		log.Print(fmt.Errorf("Error while fetching a data center ID %s %s", dcId, err))
 	}
 
-	images := profitbricks.ListImages()
-	if images.StatusCode > 299 {
-		log.Print(fmt.Errorf("Error while fetching the list of images %s", images.Response))
+	images, err := connection.ListImages()
+	if err != nil {
+		log.Print(fmt.Errorf("Error while fetching the list of images %s", err))
 	}
 
 	if len(images.Items) > 0 {
@@ -158,20 +169,20 @@ func getImageId(dcId string, imageName string, imageType string) string {
 				imageType = "HDD"
 			}
 			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) && i.Properties.ImageType == imageType && i.Properties.Location == dc.Properties.Location && i.Properties.Public == true {
-				return i.Id
+				return i.ID
 			}
 		}
 	}
 	return ""
 }
 
-func getSnapshotId(snapshotName string) string {
+func getSnapshotId(connection *profitbricks.Client, snapshotName string) string {
 	if snapshotName == "" {
 		return ""
 	}
-	snapshots := profitbricks.ListSnapshots()
-	if snapshots.StatusCode > 299 {
-		log.Print(fmt.Errorf("Error while fetching the list of snapshots %s", snapshots.Response))
+	snapshots, err := connection.ListSnapshots()
+	if err != nil {
+		log.Print(fmt.Errorf("Error while fetching the list of snapshots %s", err))
 	}
 
 	if len(snapshots.Items) > 0 {
@@ -182,20 +193,20 @@ func getSnapshotId(snapshotName string) string {
 			}
 
 			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(snapshotName)) {
-				return i.Id
+				return i.ID
 			}
 		}
 	}
 	return ""
 }
 
-func getImageAlias(imageAlias string, location string) string {
+func getImageAlias(connection *profitbricks.Client, imageAlias string, location string) string {
 	if imageAlias == "" {
 		return ""
 	}
-	locations := profitbricks.GetLocation(location)
-	if locations.StatusCode > 299 {
-		log.Print(fmt.Errorf("Error while fetching the list of snapshots %s", locations.Response))
+	locations, err := connection.GetLocation(location)
+	if err != nil {
+		log.Print(fmt.Errorf("Error while fetching the list of snapshots %s", err))
 	}
 
 	if len(locations.Properties.ImageAliases) > 0 {

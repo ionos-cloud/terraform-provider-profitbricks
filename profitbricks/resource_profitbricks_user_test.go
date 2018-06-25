@@ -45,11 +45,12 @@ func TestAccProfitBricksUser_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksUserDestroyCheck(s *terraform.State) error {
+	connection := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
-		resp := profitbricks.GetUser(rs.Primary.ID)
+		_, err := connection.GetUser(rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("user still exists %s %s", rs.Primary.ID, resp.Response)
+		if err != nil {
+			return fmt.Errorf("user still exists %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -72,6 +73,7 @@ func testAccCheckProfitBricksUserAttributes(n string, name string) resource.Test
 
 func testAccCheckProfitBricksUserExists(n string, user *profitbricks.User) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		connection := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -82,16 +84,16 @@ func testAccCheckProfitBricksUserExists(n string, user *profitbricks.User) resou
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		founduser := profitbricks.GetUser(rs.Primary.ID)
+		founduser, err := connection.GetUser(rs.Primary.ID)
 
-		if founduser.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching User: %s", rs.Primary.ID)
 		}
-		if founduser.Id != rs.Primary.ID {
+		if founduser.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		user = &founduser
+		user = founduser
 
 		return nil
 	}

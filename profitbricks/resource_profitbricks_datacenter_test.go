@@ -39,15 +39,16 @@ func TestAccProfitBricksDataCenter_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksDatacenterDestroyCheck(s *terraform.State) error {
+	connection := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_datacenter" {
 			continue
 		}
 
-		resp := profitbricks.GetDatacenter(rs.Primary.ID)
+		_, err := connection.GetDatacenter(rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("DataCenter still exists %s %s", rs.Primary.ID, resp.Response)
+		if err != nil {
+			return fmt.Errorf("DataCenter still exists %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -56,6 +57,7 @@ func testAccCheckDProfitBricksDatacenterDestroyCheck(s *terraform.State) error {
 
 func testAccCheckProfitBricksDatacenterExists(n string, datacenter *profitbricks.Datacenter) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		connection := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -66,15 +68,15 @@ func testAccCheckProfitBricksDatacenterExists(n string, datacenter *profitbricks
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundDC := profitbricks.GetDatacenter(rs.Primary.ID)
+		foundDC, err := connection.GetDatacenter(rs.Primary.ID)
 
-		if foundDC.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching DC: %s", rs.Primary.ID)
 		}
-		if foundDC.Id != rs.Primary.ID {
+		if foundDC.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
-		datacenter = &foundDC
+		datacenter = foundDC
 
 		return nil
 	}

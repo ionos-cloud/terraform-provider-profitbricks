@@ -29,7 +29,7 @@ func Provider() terraform.ResourceProvider {
 			"endpoint": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("PROFITBRICKS_API_URL", profitbricks.Endpoint),
+				DefaultFunc: schema.EnvDefaultFunc("PROFITBRICKS_API_URL", ""),
 				Description: "ProfitBricks REST API URL.",
 			},
 			"retries": {
@@ -114,15 +114,19 @@ func getStateChangeConf(meta interface{}, d *schema.ResourceData, location strin
 // resourceStateRefreshFunc tracks progress of a request
 func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
+		connection := meta.(*profitbricks.Client)
 
 		if path == "" {
 			return nil, "", fmt.Errorf("Can not check a state when path is empty")
 		}
 
-		request := profitbricks.GetRequestStatus(path)
+		request, err := connection.GetRequestStatus(path)
+
+		if err != nil {
+			return nil, "", fmt.Errorf("Request failed with following error: %s", err)
+		}
 
 		if request.Metadata.Status == "FAILED" {
-
 			return nil, "", fmt.Errorf("Request failed with following error: %s", request.Metadata.Message)
 		}
 

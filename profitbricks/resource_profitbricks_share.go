@@ -39,6 +39,7 @@ func resourceProfitBricksShare() *schema.Resource {
 }
 
 func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	request := profitbricks.Share{
 		Properties: profitbricks.ShareProperties{},
 	}
@@ -48,12 +49,12 @@ func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) e
 	tempEditPrivilege := d.Get("share_privilege").(bool)
 	request.Properties.EditPrivilege = &tempEditPrivilege
 
-	share := profitbricks.AddShare(request, d.Get("group_id").(string), d.Get("resource_id").(string))
+	share, err := connection.AddShare(d.Get("group_id").(string), d.Get("resource_id").(string), request)
 
-	log.Printf("[DEBUG] SHARE ID: %s", share.Id)
+	log.Printf("[DEBUG] SHARE ID: %s", share.ID)
 
-	if share.StatusCode > 299 {
-		return fmt.Errorf("An error occured while creating a share: %s", share.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while creating a share: %s", err)
 	}
 
 	// Wait, catching any errors
@@ -62,19 +63,22 @@ func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) e
 		return errState
 	}
 
-	d.SetId(share.Id)
+	d.SetId(share.ID)
 	return resourceProfitBricksShareRead(d, meta)
 }
 
 func resourceProfitBricksShareRead(d *schema.ResourceData, meta interface{}) error {
-	share := profitbricks.GetShare(d.Get("group_id").(string), d.Get("resource_id").(string))
+	connection := meta.(*profitbricks.Client)
+	share, err := connection.GetShare(d.Get("group_id").(string), d.Get("resource_id").(string))
 
-	if share.StatusCode > 299 {
-		if share.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if err != nil {
+		if err2, ok := err.(profitbricks.ApiError); ok {
+			if err2.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("An error occured while fetching a Share ID %s %s", d.Id(), share.Response)
+		return fmt.Errorf("An error occured while fetching a Share ID %s %s", d.Id(), err)
 	}
 
 	d.Set("edit_privilege", share.Properties.EditPrivilege)
@@ -83,6 +87,7 @@ func resourceProfitBricksShareRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksShareUpdate(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	tempSharePrivilege := d.Get("share_privilege").(bool)
 	tempEditPrivilege := d.Get("edit_privilege").(bool)
 	shareReq := profitbricks.Share{
@@ -92,9 +97,9 @@ func resourceProfitBricksShareUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	share := profitbricks.UpdateShare(d.Get("group_id").(string), d.Get("resource_id").(string), shareReq)
-	if share.StatusCode > 299 {
-		return fmt.Errorf("An error occured while patching a share ID %s %s", d.Id(), share.Response)
+	share, err := connection.UpdateShare(d.Get("group_id").(string), d.Get("resource_id").(string), shareReq)
+	if err != nil {
+		return fmt.Errorf("An error occured while patching a share ID %s %s", d.Id(), err)
 	}
 
 	// Wait, catching any errors
@@ -107,19 +112,24 @@ func resourceProfitBricksShareUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksShareDelete(d *schema.ResourceData, meta interface{}) error {
-	resp := profitbricks.DeleteShare(d.Id(), d.Get("resource_id").(string))
-	if resp.StatusCode > 299 {
+	connection := meta.(*profitbricks.Client)
+	resp, err := connection.DeleteShare(d.Id(), d.Get("resource_id").(string))
+	if err != nil {
 		//try again in 20 seconds
 		time.Sleep(20 * time.Second)
-		resp = profitbricks.DeleteShare(d.Id(), d.Get("resource_id").(string))
-		if resp.StatusCode > 299 && resp.StatusCode != 404 {
-			return fmt.Errorf("An error occured while deleting a share %s %s", d.Id(), string(resp.Body))
+		resp, err = connection.DeleteShare(d.Id(), d.Get("resource_id").(string))
+		if err != nil {
+			if err2, ok := err.(profitbricks.ApiError); ok {
+				if err2.HttpStatusCode() != 404 {
+					return fmt.Errorf("An error occured while deleting a share %s %s", d.Id(), err)
+				}
+			}
 		}
 	}
 
 	// Wait, catching any errors
-	if resp.Headers.Get("Location") != "" {
-		_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	if resp.Get("Location") != "" {
+		_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 		if errState != nil {
 			return errState
 		}

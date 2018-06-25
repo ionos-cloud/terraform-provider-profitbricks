@@ -23,22 +23,35 @@ func dataSourceResource() *schema.Resource {
 }
 
 func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
-	profitbricks.SetDepth("5")
+	connection := meta.(*profitbricks.Client)
 
-	results := []profitbricks.Resource{}
+	var results []profitbricks.Resource
 
 	resource_type := d.Get("resource_type").(string)
 	resource_id := d.Get("resource_id").(string)
 
 	if resource_type != "" && resource_id != "" {
-		results = append(results, profitbricks.GetResourceByType(resource_type, resource_id))
-		d.Set("resource_type", results[0].Type_)
-		d.Set("resource_id", results[0].Id)
+		results, err := connection.GetResourceByType(resource_type, resource_id)
+		if err != nil {
+			return fmt.Errorf("An error occured while fetching resource by type %s", err)
+		}
+
+		d.Set("resource_type", results.PBType)
+		d.Set("resource_id", results.ID)
 	} else if resource_type != "" {
-		results = profitbricks.ListResourcesByType(resource_type).Items
-		d.Set("resource_type", results[0].Type_)
+		items, err := connection.ListResourcesByType(resource_type)
+		if err != nil {
+			return fmt.Errorf("An error occured while fetching resources by type %s", err)
+		}
+
+		results = items.Items
+		d.Set("resource_type", results[0].PBType)
 	} else {
-		results = profitbricks.ListResources().Items
+		items, err := connection.ListResources()
+		if err != nil {
+			return fmt.Errorf("An error occured while fetching resources %s", err)
+		}
+		results = items.Items
 	}
 
 	if len(results) > 1 {
@@ -49,7 +62,7 @@ func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("There are no resources that match the search criteria")
 	}
 
-	d.SetId(results[0].Id)
+	d.SetId(results[0].ID)
 
 	return nil
 }

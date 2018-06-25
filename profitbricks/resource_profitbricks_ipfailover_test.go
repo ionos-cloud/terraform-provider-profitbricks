@@ -11,7 +11,7 @@ import (
 
 func TestAccProfitBricksLanIPFailover_Basic(t *testing.T) {
 	var lan profitbricks.Lan
-	var ipfailover profitbricks.IpFailover
+	var ipfailover profitbricks.IPFailover
 
 	testDeleted := func(n string) resource.TestCheckFunc {
 		return func(s *terraform.State) error {
@@ -46,8 +46,9 @@ func TestAccProfitBricksLanIPFailover_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failover *profitbricks.IpFailover) resource.TestCheckFunc {
+func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failover *profitbricks.IPFailover) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		connection := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -60,17 +61,17 @@ func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failo
 		lanId := rs.Primary.Attributes["lan_id"]
 		nicUuid := rs.Primary.Attributes["nicuuid"]
 
-		lan := profitbricks.GetLan(rs.Primary.Attributes["datacenter_id"], lanId)
-		if lan.StatusCode > 299 {
+		lan, err := connection.GetLan(rs.Primary.Attributes["datacenter_id"], lanId)
+		if err != nil {
 			return fmt.Errorf("Lan %s not found.", lanId)
 		}
 
-		if lan.Properties.IpFailover == nil {
+		if lan.Properties.IPFailover == nil {
 			return fmt.Errorf("Lan %s has no failover groups.", lanId)
 		}
 		found := false
-		for _, fo := range *lan.Properties.IpFailover {
-			if fo.NicUuid == nicUuid {
+		for _, fo := range *lan.Properties.IPFailover {
+			if fo.NicUUID == nicUuid {
 				found = true
 			}
 		}
@@ -83,22 +84,23 @@ func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failo
 }
 
 func testAccCheckDProfitBricksLanIPFailoverDestroyCheck(s *terraform.State) error {
+	connection := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_ipfailover" {
 			continue
 		}
 		nicUuid := rs.Primary.Attributes["nicuuid"]
-		resp := profitbricks.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
+		resp, _ := connection.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
 		found := false
-		for _, fo := range *resp.Properties.IpFailover {
-			if fo.NicUuid == nicUuid {
+		for _, fo := range *resp.Properties.IPFailover {
+			if fo.NicUUID == nicUuid {
 				found = true
 			}
 		}
 		if found {
-			delResp := profitbricks.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
-			if delResp.StatusCode > 299 {
-				return fmt.Errorf("IP failover group with nicId %s still exists %s %s, removing datacenter....", nicUuid, rs.Primary.ID, resp.Response)
+			_, err := connection.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
+			if err != nil {
+				return fmt.Errorf("IP failover group with nicId %s still exists %s %s, removing datacenter....", nicUuid, rs.Primary.ID, err)
 			}
 		}
 	}

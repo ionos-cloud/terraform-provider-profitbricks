@@ -40,15 +40,16 @@ func TestAccProfitBricksNic_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksNicDestroyCheck(s *terraform.State) error {
+	connection := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_nic" {
 			continue
 		}
 
-		resp := profitbricks.GetNic(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
+		_, err := connection.GetNic(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("NIC still exists %s %s", rs.Primary.ID, resp.Response)
+		if err != nil {
+			return fmt.Errorf("NIC still exists %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -71,6 +72,7 @@ func testAccCheckProfitBricksNicAttributes(n string, name string) resource.TestC
 
 func testAccCheckProfitBricksNICExists(n string, nic *profitbricks.Nic) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		connection := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -81,16 +83,16 @@ func testAccCheckProfitBricksNICExists(n string, nic *profitbricks.Nic) resource
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundNic := profitbricks.GetNic(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.ID)
+		foundNic, err := connection.GetNic(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.ID)
 
-		if foundNic.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Volume: %s", rs.Primary.ID)
 		}
-		if foundNic.Id != rs.Primary.ID {
+		if foundNic.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		nic = &foundNic
+		nic = foundNic
 
 		return nil
 	}

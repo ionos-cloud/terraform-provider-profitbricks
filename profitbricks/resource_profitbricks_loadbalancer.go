@@ -44,12 +44,12 @@ func resourceProfitBricksLoadbalancer() *schema.Resource {
 }
 
 func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interface{}) error {
-
+	connection := meta.(*profitbricks.Client)
 	raw_ids := d.Get("nic_ids").([]interface{})
 	nic_ids := []profitbricks.Nic{}
 
 	for _, id := range raw_ids {
-		nic_ids = append(nic_ids, profitbricks.Nic{Id: id.(string)})
+		nic_ids = append(nic_ids, profitbricks.Nic{ID: id.(string)})
 	}
 
 	lb := profitbricks.Loadbalancer{
@@ -63,42 +63,46 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	lb = profitbricks.CreateLoadbalancer(d.Get("datacenter_id").(string), lb)
+	resp, err := connection.CreateLoadbalancer(d.Get("datacenter_id").(string), lb)
 
-	if lb.StatusCode > 299 {
-		return fmt.Errorf("Error occured while creating a loadbalancer %s", lb.Response)
+	if err != nil {
+		return fmt.Errorf("Error occured while creating a loadbalancer %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, lb.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(lb.Id)
+	d.SetId(lb.ID)
 
 	return resourceProfitBricksLoadbalancerRead(d, meta)
 }
 
 func resourceProfitBricksLoadbalancerRead(d *schema.ResourceData, meta interface{}) error {
-	lb := profitbricks.GetLoadbalancer(d.Get("datacenter_id").(string), d.Id())
+	connection := meta.(*profitbricks.Client)
+	lb, err := connection.GetLoadbalancer(d.Get("datacenter_id").(string), d.Id())
 
-	if lb.StatusCode > 299 {
-		if lb.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if err != nil {
+		if err2, ok := err.(profitbricks.ApiError); ok {
+			if err2.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("An error occured while fetching a lan ID %s %s", d.Id(), lb.Response)
+		return fmt.Errorf("An error occured while fetching a lan ID %s %s", d.Id(), err)
 	}
 
 	d.Set("name", lb.Properties.Name)
-	d.Set("ip", lb.Properties.Ip)
+	d.Set("ip", lb.Properties.IP)
 	d.Set("dhcp", lb.Properties.Dhcp)
 
 	return nil
 }
 
 func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interface{}) error {
+	connection := meta.(*profitbricks.Client)
 	properties := profitbricks.LoadbalancerProperties{}
 	if d.HasChange("name") {
 		_, new := d.GetChange("name")
@@ -106,7 +110,7 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 	}
 	if d.HasChange("ip") {
 		_, new := d.GetChange("ip")
-		properties.Ip = new.(string)
+		properties.IP = new.(string)
 	}
 	if d.HasChange("dhcp") {
 		_, new := d.GetChange("dhcp")
@@ -120,13 +124,13 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 
 		for _, o := range oldList {
 
-			resp := profitbricks.DeleteBalancedNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
-			if resp.StatusCode > 299 {
-				return fmt.Errorf("Error occured while deleting a balanced nic: %s", string(resp.Body))
+			resp, err := connection.DeleteBalancedNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
+			if err != nil {
+				return fmt.Errorf("Error occured while deleting a balanced nic: %s", err)
 			}
 
 			// Wait, catching any errors
-			_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+			_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutUpdate).WaitForState()
 			if errState != nil {
 				return errState
 			}
@@ -135,9 +139,9 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 		newList := new.([]interface{})
 
 		for _, o := range newList {
-			nic := profitbricks.AssociateNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
-			if nic.StatusCode > 299 {
-				return fmt.Errorf("Error occured while deleting a balanced nic: %s", nic.Response)
+			nic, err := connection.AssociateNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
+			if err != nil {
+				return fmt.Errorf("Error occured while deleting a balanced nic: %s", err)
 			}
 
 			// Wait, catching any errors
@@ -154,14 +158,15 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceProfitBricksLoadbalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	resp := profitbricks.DeleteLoadbalancer(d.Get("datacenter_id").(string), d.Id())
+	connection := meta.(*profitbricks.Client)
+	resp, err := connection.DeleteLoadbalancer(d.Get("datacenter_id").(string), d.Id())
 
-	if resp.StatusCode > 299 {
-		return fmt.Errorf("Error occured while deleting a loadbalancer: %s", string(resp.Body))
+	if err != nil {
+		return fmt.Errorf("Error occured while deleting a loadbalancer: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}
