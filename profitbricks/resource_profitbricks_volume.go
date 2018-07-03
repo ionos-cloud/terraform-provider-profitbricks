@@ -192,6 +192,7 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(volume.Id)
+	d.Set("server_id", serverId)
 
 	return resourceProfitBricksVolumeRead(d, meta)
 }
@@ -260,6 +261,21 @@ func resourceProfitBricksVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 	if volume.StatusCode > 299 {
 		return fmt.Errorf("An error occured while updating a volume ID %s %s", d.Id(), volume.Response)
 
+	}
+
+	if d.HasChange("server_id") {
+		_, newValue := d.GetChange("server_id")
+		serverID := newValue.(string)
+		volumeAttach := profitbricks.AttachVolume(dcId, serverID, volume.Id)
+		if volumeAttach.StatusCode > 299 {
+			return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverID, volumeAttach.Id, volumeAttach.Response)
+		}
+
+		// Wait, catching any errors
+		_, errState = getStateChangeConf(meta, d, volumeAttach.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+		if errState != nil {
+			return errState
+		}
 	}
 
 	return resourceProfitBricksVolumeRead(d, meta)
