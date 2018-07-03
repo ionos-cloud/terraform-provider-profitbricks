@@ -1,6 +1,6 @@
 ## 1.3.2 (Unreleased)
 
-BUGS:
+BUG FIXES:
 
 * Reattaching a volume after tainting a server ([#33](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/33))
 
@@ -16,7 +16,7 @@ IMPROVEMENT
 
 * Doc sync ([#31](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/31))
 
-BUGS:
+BUG FIXES:
 
 * ICMP type and code had wrong type ([#30](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/30))
 
@@ -26,7 +26,7 @@ IMPROVEMENT
 
 * Adding navigation for data source documentation. ([#29](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/29))
 
-BUGS:
+BUG FIXES:
 
 * Retries attribute is marked as Deprecated instead of Remove. ([#28](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/28))
 
@@ -37,7 +37,7 @@ IMPROVEMENTS:
 * Documentation update ([#26](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/26))
 * ProfitBricks provider support for terraform timeouts ([#25](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/25))
 
-BUGS:
+BUG FIXES:
 
 * Fixes issue with server update affecting LAN assignment ([#24](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/24))
 * Inconsistent interpretation of endpoint ([#25](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/25))
@@ -88,6 +88,7 @@ IMPROVEMENTS:
 * Update `resource_profitbricks_volume` with imageAlias feature ([#11](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/11))
 
 ## 0.1.1 (July 31, 2017)
+
 IMPROVEMENTS: 
 
 * Acceptance test fix ([#1](https://github.com/terraform-providers/terraform-provider-profitbricks/issues/1))
