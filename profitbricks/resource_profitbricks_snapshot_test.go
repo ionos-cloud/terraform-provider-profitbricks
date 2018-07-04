@@ -37,15 +37,20 @@ func TestAccProfitBricksSnapshot_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksSnapshotDestroyCheck(s *terraform.State) error {
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_snapshot" {
 			continue
 		}
 
-		resp := profitbricks.GetSnapshot(rs.Primary.ID)
+		_, err := client.GetSnapshot(rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("Snapshot still exists %s %s", rs.Primary.ID, resp.Response)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Snapshot still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Snapshot %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -54,6 +59,7 @@ func testAccCheckDProfitBricksSnapshotDestroyCheck(s *terraform.State) error {
 
 func testAccCheckProfitBricksSnapshotExists(n string, snapshot *profitbricks.Snapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -64,16 +70,16 @@ func testAccCheckProfitBricksSnapshotExists(n string, snapshot *profitbricks.Sna
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundServer := profitbricks.GetSnapshot(rs.Primary.ID)
+		foundServer, err := client.GetSnapshot(rs.Primary.ID)
 
-		if foundServer.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Snapshot: %s", rs.Primary.ID)
 		}
-		if foundServer.Id != rs.Primary.ID {
+		if foundServer.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		snapshot = &foundServer
+		snapshot = foundServer
 
 		return nil
 	}

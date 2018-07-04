@@ -32,12 +32,12 @@ func dataSourceImage() *schema.Resource {
 }
 
 func dataSourceImageRead(d *schema.ResourceData, meta interface{}) error {
-	profitbricks.SetDepth("5")
+	client := meta.(*profitbricks.Client)
 
-	images := profitbricks.ListImages()
+	images, err := client.ListImages()
 
-	if images.StatusCode > 299 {
-		return fmt.Errorf("An error occured while fetching ProfitBricks locations %s", images.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while fetching ProfitBricks images %s", err)
 	}
 
 	name := d.Get("name").(string)
@@ -96,7 +96,7 @@ func dataSourceImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", results[0].Properties.Name)
 
-	d.SetId(results[0].Id)
+	d.SetId(results[0].ID)
 
 	return nil
 }

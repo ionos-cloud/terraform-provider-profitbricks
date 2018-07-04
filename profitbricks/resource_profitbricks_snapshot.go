@@ -34,14 +34,15 @@ func resourceProfitBricksSnapshot() *schema.Resource {
 }
 
 func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 	volumeId := d.Get("volume_id").(string)
 	name := d.Get("name").(string)
 
-	snapshot := profitbricks.CreateSnapshot(dcId, volumeId, name, "")
+	snapshot, err := client.CreateSnapshot(dcId, volumeId, name, "")
 
-	if snapshot.StatusCode > 299 {
-		return fmt.Errorf("An error occured while creating a snapshot: %s", snapshot.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while creating a snapshot: %s", err)
 	}
 
 	// Wait, catching any errors
@@ -50,25 +51,23 @@ func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}
 		return errState
 	}
 
-	d.SetId(snapshot.Id)
+	d.SetId(snapshot.ID)
 
 	return resourceProfitBricksSnapshotRead(d, meta)
 }
 
 func resourceProfitBricksSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	snapshot := profitbricks.GetSnapshot(d.Id())
+	client := meta.(*profitbricks.Client)
+	snapshot, err := client.GetSnapshot(d.Id())
 
-	if snapshot.StatusCode > 299 {
-		if snapshot.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("Error occured while fetching a snapshot ID %s %s", d.Id(), snapshot.Response)
-	}
-
-	if snapshot.StatusCode > 299 {
-		return fmt.Errorf("An error occured while fetching a snapshot ID %s %s", d.Id(), snapshot.Response)
-
+		return fmt.Errorf("Error occured while fetching a snapshot ID %s %s", d.Id(), err)
 	}
 
 	d.Set("name", snapshot.Properties.Name)
@@ -76,16 +75,17 @@ func resourceProfitBricksSnapshotRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 	volumeId := d.Get("volume_id").(string)
 
-	snapshot := profitbricks.RestoreSnapshot(dcId, volumeId, d.Id())
-	if snapshot.StatusCode > 299 {
-		return fmt.Errorf("An error occured while restoring a snapshot ID %s %d", d.Id(), snapshot.StatusCode)
+	snapshot, err := client.RestoreSnapshot(dcId, volumeId, d.Id())
+	if err != nil {
+		return fmt.Errorf("An error occured while restoring a snapshot ID %s %d", d.Id(), err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, snapshot.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, snapshot.Get("Location"), schema.TimeoutUpdate).WaitForState()
 	if errState != nil {
 		return errState
 	}
@@ -94,26 +94,34 @@ func resourceProfitBricksSnapshotUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	status := profitbricks.GetSnapshot(d.Id())
+	client := meta.(*profitbricks.Client)
+	status, err := client.GetSnapshot(d.Id())
+	if err != nil {
+		return fmt.Errorf("An error occured while fetching a snapshot ID %s %s", d.Id(), err)
+	}
 	for status.Metadata.State != "AVAILABLE" {
 		time.Sleep(30 * time.Second)
-		status = profitbricks.GetSnapshot(d.Id())
+		status, err = client.GetSnapshot(d.Id())
+
+		if err != nil {
+			return fmt.Errorf("An error occured while fetching a snapshot ID %s %s", d.Id(), err)
+		}
 	}
 
 	dcId := d.Get("datacenter_id").(string)
-	dc := profitbricks.GetDatacenter(dcId)
+	dc, _ := client.GetDatacenter(dcId)
 	for dc.Metadata.State != "AVAILABLE" {
 		time.Sleep(30 * time.Second)
-		dc = profitbricks.GetDatacenter(dcId)
+		dc, _ = client.GetDatacenter(dcId)
 	}
 
-	resp := profitbricks.DeleteSnapshot(d.Id())
-	if resp.StatusCode > 299 {
-		return fmt.Errorf("An error occured while deleting a snapshot ID %s %s", d.Id(), string(resp.Body))
+	resp, err := client.DeleteSnapshot(d.Id())
+	if err != nil {
+		return fmt.Errorf("An error occured while deleting a snapshot ID %s %s", d.Id(), err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}

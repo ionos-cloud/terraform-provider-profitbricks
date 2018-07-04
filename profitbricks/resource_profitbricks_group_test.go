@@ -40,11 +40,16 @@ func TestAccProfitBricksGroup_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksGroupDestroyCheck(s *terraform.State) error {
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
-		resp := profitbricks.GetGroup(rs.Primary.ID)
+		_, err := client.GetGroup(rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("group still exists %s %s", rs.Primary.ID, resp.Response)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("group still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Group %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -67,6 +72,7 @@ func testAccCheckProfitBricksGroupAttributes(n string, name string) resource.Tes
 
 func testAccCheckProfitBricksGroupExists(n string, group *profitbricks.Group) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -77,16 +83,16 @@ func testAccCheckProfitBricksGroupExists(n string, group *profitbricks.Group) re
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundgroup := profitbricks.GetGroup(rs.Primary.ID)
+		foundgroup, err := client.GetGroup(rs.Primary.ID)
 
-		if foundgroup.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Group: %s", rs.Primary.ID)
 		}
-		if foundgroup.Id != rs.Primary.ID {
+		if foundgroup.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		group = &foundgroup
+		group = foundgroup
 
 		return nil
 	}

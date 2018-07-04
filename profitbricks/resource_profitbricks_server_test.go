@@ -40,15 +40,20 @@ func TestAccProfitBricksServer_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksServerDestroyCheck(s *terraform.State) error {
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_datacenter" {
 			continue
 		}
 
-		resp := profitbricks.GetServer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		_, err := client.GetServer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("Server still exists %s %s", rs.Primary.ID, resp.Response)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Server still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Server %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -71,6 +76,7 @@ func testAccCheckProfitBricksServerAttributes(n string, name string) resource.Te
 
 func testAccCheckProfitBricksServerExists(n string, server *profitbricks.Server) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -81,16 +87,16 @@ func testAccCheckProfitBricksServerExists(n string, server *profitbricks.Server)
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundServer := profitbricks.GetServer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		foundServer, err := client.GetServer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if foundServer.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Server: %s", rs.Primary.ID)
 		}
-		if foundServer.Id != rs.Primary.ID {
+		if foundServer.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		server = &foundServer
+		server = foundServer
 
 		return nil
 	}

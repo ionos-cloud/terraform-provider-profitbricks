@@ -42,45 +42,49 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 }
 
 func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{}) error {
-	ipblock := profitbricks.IpBlock{
-		Properties: profitbricks.IpBlockProperties{
+	client := meta.(*profitbricks.Client)
+	ipblock := profitbricks.IPBlock{
+		Properties: profitbricks.IPBlockProperties{
 			Size:     d.Get("size").(int),
 			Location: d.Get("location").(string),
 			Name:     d.Get("name").(string),
 		},
 	}
 
-	ipblock = profitbricks.ReserveIpBlock(ipblock)
+	resp, err := client.ReserveIPBlock(ipblock)
 
-	if ipblock.StatusCode > 299 {
-		return fmt.Errorf("An error occured while reserving an ip block: %s", ipblock.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while reserving an ip block: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, ipblock.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(ipblock.Id)
+	d.SetId(resp.ID)
 
 	return resourceProfitBricksIPBlockRead(d, meta)
 }
 
 func resourceProfitBricksIPBlockRead(d *schema.ResourceData, meta interface{}) error {
-	ipblock := profitbricks.GetIpBlock(d.Id())
+	client := meta.(*profitbricks.Client)
+	ipblock, err := client.GetIPBlock(d.Id())
 
-	if ipblock.StatusCode > 299 {
-		if ipblock.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("An error occured while fetching an ip block ID %s %s", d.Id(), ipblock.Response)
+		return fmt.Errorf("An error occured while fetching an ip block ID %s %s", d.Id(), err)
 	}
 
-	log.Printf("[INFO] IPS: %s", strings.Join(ipblock.Properties.Ips, ","))
+	log.Printf("[INFO] IPS: %s", strings.Join(ipblock.Properties.IPs, ","))
 
-	d.Set("ips", ipblock.Properties.Ips)
+	d.Set("ips", ipblock.Properties.IPs)
 	d.Set("location", ipblock.Properties.Location)
 	d.Set("size", ipblock.Properties.Size)
 	d.Set("name", ipblock.Properties.Name)
@@ -89,13 +93,14 @@ func resourceProfitBricksIPBlockRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksIPBlockDelete(d *schema.ResourceData, meta interface{}) error {
-	resp := profitbricks.ReleaseIpBlock(d.Id())
-	if resp.StatusCode > 299 {
-		return fmt.Errorf("An error occured while releasing an ipblock ID: %s %s", d.Id(), string(resp.Body))
+	client := meta.(*profitbricks.Client)
+	resp, err := client.ReleaseIPBlock(d.Id())
+	if err != nil {
+		return fmt.Errorf("An error occured while releasing an ipblock ID: %s %s", d.Id(), err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}

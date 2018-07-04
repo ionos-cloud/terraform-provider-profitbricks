@@ -61,6 +61,7 @@ func resourceProfitBricksNic() *schema.Resource {
 }
 
 func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
 	nic := profitbricks.Nic{
 		Properties: &profitbricks.NicProperties{
 			Lan: d.Get("lan").(int),
@@ -88,40 +89,46 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 		nic.Properties.Nat = raw
 	}
 
-	nic = profitbricks.CreateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), nic)
-	if nic.StatusCode > 299 {
-		return fmt.Errorf("Error occured while creating a nic: %s", nic.Response)
+	resp, err := client.CreateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), nic)
+	if err != nil {
+		return fmt.Errorf("Error occured while creating a nic: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(nic.Id)
+	d.SetId(resp.ID)
 	return resourceProfitBricksNicRead(d, meta)
 }
 
 func resourceProfitBricksNicRead(d *schema.ResourceData, meta interface{}) error {
-	nic := profitbricks.GetNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
-	if nic.StatusCode > 299 {
-		if nic.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	client := meta.(*profitbricks.Client)
+	nic, err := client.GetNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("Error occured while fetching a nic ID %s %s", d.Id(), nic.Response)
+		return fmt.Errorf("Error occured while fetching a nic ID %s %s", d.Id(), err)
 	}
-	log.Printf("[INFO] LAN ON NIC: %d", nic.Properties.Lan)
-	d.Set("dhcp", nic.Properties.Dhcp)
-	d.Set("lan", nic.Properties.Lan)
-	d.Set("name", nic.Properties.Name)
-	d.Set("ips", nic.Properties.Ips)
+	if nic.Properties != nil {
+		log.Printf("[INFO] LAN ON NIC: %d", nic.Properties.Lan)
+		d.Set("dhcp", nic.Properties.Dhcp)
+		d.Set("lan", nic.Properties.Lan)
+		d.Set("name", nic.Properties.Name)
+		d.Set("ips", nic.Properties.Ips)
+	}
 
 	return nil
 }
 
 func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
 	properties := profitbricks.NicProperties{}
 
 	if d.HasChange("name") {
@@ -147,10 +154,10 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.Nat = nat
 	}
 
-	nic := profitbricks.PatchNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id(), properties)
+	nic, err := client.UpdateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id(), properties)
 
-	if nic.StatusCode > 299 {
-		return fmt.Errorf("Error occured while updating a nic: %s", nic.Response)
+	if err != nil {
+		return fmt.Errorf("Error occured while updating a nic: %s", err)
 	}
 
 	// Wait, catching any errors
@@ -163,10 +170,14 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksNicDelete(d *schema.ResourceData, meta interface{}) error {
-	resp := profitbricks.DeleteNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	resp, err := client.DeleteNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
 
+	if err != nil {
+		return fmt.Errorf("An error occured while deleting a nic dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), err)
+	}
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}

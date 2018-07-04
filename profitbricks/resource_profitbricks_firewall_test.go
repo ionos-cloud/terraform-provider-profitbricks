@@ -40,15 +40,20 @@ func TestAccProfitBricksFirewall_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksFirewallDestroyCheck(s *terraform.State) error {
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_firewall" {
 			continue
 		}
 
-		resp := profitbricks.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
+		_, err := client.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("Firewall still exists %s %s", rs.Primary.ID, resp.Response)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Firewall still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Firewall %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -71,6 +76,7 @@ func testAccCheckProfitBricksFirewallAttributes(n string, name string) resource.
 
 func testAccCheckProfitBricksFirewallExists(n string, firewall *profitbricks.FirewallRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -81,16 +87,16 @@ func testAccCheckProfitBricksFirewallExists(n string, firewall *profitbricks.Fir
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundServer := profitbricks.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
+		foundServer, err := client.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
 
-		if foundServer.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Firewall rule: %s", rs.Primary.ID)
 		}
-		if foundServer.Id != rs.Primary.ID {
+		if foundServer.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		firewall = &foundServer
+		firewall = foundServer
 
 		return nil
 	}

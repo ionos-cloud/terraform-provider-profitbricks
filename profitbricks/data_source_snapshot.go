@@ -28,12 +28,12 @@ func dataSourceSnapshot() *schema.Resource {
 }
 
 func dataSourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	profitbricks.SetDepth("5")
+	client := meta.(*profitbricks.Client)
 
-	snapshots := profitbricks.ListSnapshots()
+	snapshots, err := client.ListSnapshots()
 
-	if snapshots.StatusCode > 299 {
-		return fmt.Errorf("An error occured while fetching ProfitBricks locations %s", snapshots.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while fetching ProfitBricks locations %s", err)
 	}
 
 	name := d.Get("name").(string)
@@ -79,7 +79,7 @@ func dataSourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", results[0].Properties.Name)
 
-	d.SetId(results[0].Id)
+	d.SetId(results[0].ID)
 
 	return nil
 }

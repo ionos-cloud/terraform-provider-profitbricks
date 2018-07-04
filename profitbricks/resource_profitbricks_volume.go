@@ -71,6 +71,8 @@ func resourceProfitBricksVolume() *schema.Resource {
 }
 
 func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
+
 	var ssh_keypath []interface{}
 	var image_alias string
 	isSnapshot := false
@@ -97,15 +99,15 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	var image string
 	if image_alias == "" && image_name != "" {
 		if !IsValidUUID(image_name) {
-			image = getImageId(dcId, image_name, d.Get("disk_type").(string))
+			image = getImageId(client, dcId, image_name, d.Get("disk_type").(string))
 			//if no image id was found with that name we look for a matching snapshot
 			if image == "" {
-				image = getSnapshotId(image_name)
+				image = getSnapshotId(client, image_name)
 				if image != "" {
 					isSnapshot = true
 				} else {
-					dc := profitbricks.GetDatacenter(dcId)
-					image_alias = getImageAlias(image_name, dc.Properties.Location)
+					dc, _ := client.GetDatacenter(dcId)
+					image_alias = getImageAlias(client, image_name, dc.Properties.Location)
 				}
 			}
 
@@ -116,11 +118,11 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 				return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 			}
 		} else {
-			img := profitbricks.GetImage(image_name)
-			if img.StatusCode > 299 {
-				img := profitbricks.GetSnapshot(image_name)
-				if img.StatusCode > 299 {
-					return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
+			img, err := client.GetImage(image_name)
+			if err != nil {
+				_, err := client.GetSnapshot(image_name)
+				if err != nil {
+					return fmt.Errorf("Error fetching image/snapshot: %s", err)
 				}
 				isSnapshot = true
 			}
@@ -157,10 +159,10 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if len(publicKeys) != 0 {
-		volume.Properties.SshKeys = publicKeys
+		volume.Properties.SSHKeys = publicKeys
 
 	} else {
-		volume.Properties.SshKeys = nil
+		volume.Properties.SSHKeys = nil
 	}
 
 	if _, ok := d.GetOk("availability_zone"); ok {
@@ -168,46 +170,49 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		volume.Properties.AvailabilityZone = raw
 	}
 
-	volume = profitbricks.CreateVolume(dcId, volume)
+	resp, err := client.CreateVolume(dcId, volume)
 
-	if volume.StatusCode > 299 {
-		return fmt.Errorf("An error occured while creating a volume: %s", volume.Response)
+	if err != nil {
+		return fmt.Errorf("An error occured while creating a volume: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	volume = profitbricks.AttachVolume(dcId, serverId, volume.Id)
-	if volume.StatusCode > 299 {
-		return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverId, volume.Id, volume.Response)
+	resp, err = client.AttachVolume(dcId, serverId, resp.ID)
+	if err != nil {
+		return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverId, volume.ID, err)
 	}
 
 	// Wait, catching any errors
-	_, errState = getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState = getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(volume.Id)
+	d.SetId(resp.ID)
 	d.Set("server_id", serverId)
 
 	return resourceProfitBricksVolumeRead(d, meta)
 }
 
 func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 
-	volume := profitbricks.GetVolume(dcId, d.Id())
+	volume, err := client.GetVolume(dcId, d.Id())
 
-	if volume.StatusCode > 299 {
-		if volume.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil
+			}
 		}
-		return fmt.Errorf("Error occured while fetching a volume ID %s %s", d.Id(), volume.Response)
+		return fmt.Errorf("Error occured while fetching a volume ID %s %s", d.Id(), err)
 	}
 
 	if volume.StatusCode > 299 {
@@ -226,6 +231,7 @@ func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceProfitBricksVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
 	properties := profitbricks.VolumeProperties{}
 	dcId := d.Get("datacenter_id").(string)
 
@@ -250,7 +256,11 @@ func resourceProfitBricksVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 		properties.AvailabilityZone = newValue.(string)
 	}
 
-	volume := profitbricks.PatchVolume(dcId, d.Id(), properties)
+	volume, err := client.UpdateVolume(dcId, d.Id(), properties)
+
+	if err != nil {
+		return fmt.Errorf("An error occured while updating a volume ID %s %s", d.Id(), err)
+	}
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
@@ -266,9 +276,9 @@ func resourceProfitBricksVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("server_id") {
 		_, newValue := d.GetChange("server_id")
 		serverID := newValue.(string)
-		volumeAttach := profitbricks.AttachVolume(dcId, serverID, volume.Id)
-		if volumeAttach.StatusCode > 299 {
-			return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverID, volumeAttach.Id, volumeAttach.Response)
+		volumeAttach, err := client.AttachVolume(dcId, serverID, volume.ID)
+		if err != nil {
+			return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverID, volumeAttach.ID, err)
 		}
 
 		// Wait, catching any errors
@@ -282,16 +292,17 @@ func resourceProfitBricksVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 
-	resp := profitbricks.DeleteVolume(dcId, d.Id())
-	if resp.StatusCode > 299 {
-		return fmt.Errorf("An error occured while deleting a volume ID %s %s", d.Id(), string(resp.Body))
+	resp, err := client.DeleteVolume(dcId, d.Id())
+	if err != nil {
+		return fmt.Errorf("An error occured while deleting a volume ID %s %s", d.Id(), err)
 
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}

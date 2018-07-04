@@ -25,10 +25,12 @@ func dataSourceDataCenter() *schema.Resource {
 }
 
 func dataSourceDataCenterRead(d *schema.ResourceData, meta interface{}) error {
-	datacenters := profitbricks.ListDatacenters()
+	client := meta.(*profitbricks.Client)
 
-	if datacenters.StatusCode > 299 {
-		return fmt.Errorf("An error occured while fetching datacenters %s", datacenters.Response)
+	datacenters, err := client.ListDatacenters()
+
+	if err != nil {
+		return fmt.Errorf("An error occured while fetching datacenters %s", err)
 	}
 
 	name := d.Get("name").(string)
@@ -63,7 +65,7 @@ func dataSourceDataCenterRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("There are no datacenters that match the search criteria")
 	}
 
-	d.SetId(results[0].Id)
+	d.SetId(results[0].ID)
 
 	return nil
 }

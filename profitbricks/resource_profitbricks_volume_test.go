@@ -38,15 +38,20 @@ func TestAccProfitBricksVolume_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksVolumeDestroyCheck(s *terraform.State) error {
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_datacenter" {
 			continue
 		}
 
-		resp := profitbricks.GetVolume(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		_, err := client.GetVolume(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if resp.StatusCode < 299 {
-			return fmt.Errorf("Volume still exists %s %s", rs.Primary.ID, resp.Response)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Volume still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Volume %s %s", rs.Primary.ID, err)
 		}
 	}
 
@@ -55,6 +60,7 @@ func testAccCheckDProfitBricksVolumeDestroyCheck(s *terraform.State) error {
 
 func testAccCheckProfitBricksVolumeExists(n string, volume *profitbricks.Volume) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -65,16 +71,16 @@ func testAccCheckProfitBricksVolumeExists(n string, volume *profitbricks.Volume)
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundServer := profitbricks.GetVolume(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		foundServer, err := client.GetVolume(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if foundServer.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Volume: %s", rs.Primary.ID)
 		}
-		if foundServer.Id != rs.Primary.ID {
+		if foundServer.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		volume = &foundServer
+		volume = foundServer
 
 		return nil
 	}

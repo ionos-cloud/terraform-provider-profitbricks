@@ -36,10 +36,11 @@ func TestAccProfitBricksShare_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksShareDestroyCheck(s *terraform.State) error {
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
-		resp := profitbricks.GetShare(rs.Primary.Attributes["group_id"], rs.Primary.Attributes["resource_id"])
+		resp, err := client.GetShare(rs.Primary.Attributes["group_id"], rs.Primary.Attributes["resource_id"])
 
-		if resp.StatusCode < 299 {
+		if err != nil {
 			return fmt.Errorf("share for resource %s still exists in group %s %s", rs.Primary.Attributes["resource_id"], rs.Primary.Attributes["group_id"], resp.Response)
 		}
 	}
@@ -49,6 +50,7 @@ func testAccCheckDProfitBricksShareDestroyCheck(s *terraform.State) error {
 
 func testAccCheckProfitBricksShareExists(n string, share *profitbricks.Share) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -62,16 +64,16 @@ func testAccCheckProfitBricksShareExists(n string, share *profitbricks.Share) re
 		grp_id := rs.Primary.Attributes["group_id"]
 		resource_id := rs.Primary.Attributes["resource_id"]
 
-		foundshare := profitbricks.GetShare(grp_id, resource_id)
+		foundshare, err := client.GetShare(grp_id, resource_id)
 
-		if foundshare.StatusCode != 200 {
+		if err != nil {
 			return fmt.Errorf("Error occured while fetching Share of resource  %s in group %s", rs.Primary.Attributes["resource_id"], rs.Primary.Attributes["group_id"])
 		}
-		if foundshare.Id != rs.Primary.ID {
+		if foundshare.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
 		}
 
-		share = &foundshare
+		share = foundshare
 
 		return nil
 	}
