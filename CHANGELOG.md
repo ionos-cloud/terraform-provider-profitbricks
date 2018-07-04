@@ -1,8 +1,9 @@
 ## 1.3.3 (Unreleased)
 
-IMPROVEMENT
+IMPROVEMENTS:
 
 * Handle empty endpoint ([#35](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/35))
+* Update to profitbricks-sdk-go  v5.0.1 ([#34](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/34))
 
 ## 1.3.2 (July 03, 2018)
 
