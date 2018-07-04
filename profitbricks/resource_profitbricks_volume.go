@@ -182,18 +182,18 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		return errState
 	}
 
-	resp, err = connection.AttachVolume(dcId, serverId, volume.ID)
+	resp, err = connection.AttachVolume(dcId, serverId, resp.ID)
 	if err != nil {
 		return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverId, volume.ID, err)
 	}
 
 	// Wait, catching any errors
-	_, errState = getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState = getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(volume.ID)
+	d.SetId(resp.ID)
 	d.Set("server_id", serverId)
 
 	return resourceProfitBricksVolumeRead(d, meta)

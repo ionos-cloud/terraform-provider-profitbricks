@@ -48,8 +48,12 @@ func testAccCheckDProfitBricksLanDestroyCheck(s *terraform.State) error {
 
 		_, err := connection.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("LAN still exists %s %s", rs.Primary.ID, err)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("LAN still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching LAN %s %s", rs.Primary.ID, err)
 		}
 	}
 

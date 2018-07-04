@@ -46,8 +46,12 @@ func testAccCheckDProfitBricksVolumeDestroyCheck(s *terraform.State) error {
 
 		_, err := connection.GetVolume(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("Volume still exists %s %s", rs.Primary.ID, err)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Volume still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Volume %s %s", rs.Primary.ID, err)
 		}
 	}
 

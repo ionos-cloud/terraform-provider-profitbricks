@@ -31,13 +31,14 @@ func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
 	resource_id := d.Get("resource_id").(string)
 
 	if resource_type != "" && resource_id != "" {
-		results, err := connection.GetResourceByType(resource_type, resource_id)
+		result, err := connection.GetResourceByType(resource_type, resource_id)
 		if err != nil {
 			return fmt.Errorf("An error occured while fetching resource by type %s", err)
 		}
+		results = append(results, *result)
 
-		d.Set("resource_type", results.PBType)
-		d.Set("resource_id", results.ID)
+		d.Set("resource_type", result.PBType)
+		d.Set("resource_id", result.ID)
 	} else if resource_type != "" {
 		items, err := connection.ListResourcesByType(resource_type)
 		if err != nil {

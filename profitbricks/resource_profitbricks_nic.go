@@ -100,7 +100,7 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 		return errState
 	}
 
-	d.SetId(nic.ID)
+	d.SetId(resp.ID)
 	return resourceProfitBricksNicRead(d, meta)
 }
 
@@ -116,11 +116,13 @@ func resourceProfitBricksNicRead(d *schema.ResourceData, meta interface{}) error
 		}
 		return fmt.Errorf("Error occured while fetching a nic ID %s %s", d.Id(), err)
 	}
-	log.Printf("[INFO] LAN ON NIC: %d", nic.Properties.Lan)
-	d.Set("dhcp", nic.Properties.Dhcp)
-	d.Set("lan", nic.Properties.Lan)
-	d.Set("name", nic.Properties.Name)
-	d.Set("ips", nic.Properties.Ips)
+	if nic.Properties != nil {
+		log.Printf("[INFO] LAN ON NIC: %d", nic.Properties.Lan)
+		d.Set("dhcp", nic.Properties.Dhcp)
+		d.Set("lan", nic.Properties.Lan)
+		d.Set("name", nic.Properties.Name)
+		d.Set("ips", nic.Properties.Ips)
+	}
 
 	return nil
 }

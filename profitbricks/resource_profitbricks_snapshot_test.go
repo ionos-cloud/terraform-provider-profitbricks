@@ -45,8 +45,12 @@ func testAccCheckDProfitBricksSnapshotDestroyCheck(s *terraform.State) error {
 
 		_, err := connection.GetSnapshot(rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("Snapshot still exists %s %s", rs.Primary.ID, err)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Snapshot still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Snapshot %s %s", rs.Primary.ID, err)
 		}
 	}
 

@@ -44,8 +44,12 @@ func testAccCheckDProfitBricksGroupDestroyCheck(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		_, err := connection.GetGroup(rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("group still exists %s %s", rs.Primary.ID, err)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("group still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Group %s %s", rs.Primary.ID, err)
 		}
 	}
 

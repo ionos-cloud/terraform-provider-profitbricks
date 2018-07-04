@@ -75,7 +75,7 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 		return errState
 	}
 
-	d.SetId(lb.ID)
+	d.SetId(resp.ID)
 
 	return resourceProfitBricksLoadbalancerRead(d, meta)
 }

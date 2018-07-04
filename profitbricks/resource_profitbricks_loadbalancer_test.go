@@ -51,8 +51,12 @@ func testAccCheckDProfitBricksLoadbalancerDestroyCheck(s *terraform.State) error
 		if err != nil {
 			_, err := connection.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
 
-			if err != nil {
-				return fmt.Errorf("profitbricks_loadbalancer still exists %s %s", rs.Primary.ID, err)
+			if apiError, ok := err.(profitbricks.ApiError); ok {
+				if apiError.HttpStatusCode() != 404 {
+					return fmt.Errorf("loadbalancer still exists %s %s", rs.Primary.ID, apiError)
+				}
+			} else {
+				return fmt.Errorf("Unable to fetching loadbalancer %s %s", rs.Primary.ID, err)
 			}
 		}
 	}

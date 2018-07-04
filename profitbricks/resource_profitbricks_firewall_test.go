@@ -48,8 +48,12 @@ func testAccCheckDProfitBricksFirewallDestroyCheck(s *terraform.State) error {
 
 		_, err := connection.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("Firewall still exists %s %s", rs.Primary.ID, err)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Firewall still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching Firewall %s %s", rs.Primary.ID, err)
 		}
 	}
 

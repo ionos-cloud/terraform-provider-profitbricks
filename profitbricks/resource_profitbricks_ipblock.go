@@ -58,7 +58,7 @@ func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, ipblock.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}

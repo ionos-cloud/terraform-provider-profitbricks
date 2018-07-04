@@ -47,8 +47,12 @@ func testAccCheckDProfitBricksDatacenterDestroyCheck(s *terraform.State) error {
 
 		_, err := connection.GetDatacenter(rs.Primary.ID)
 
-		if err != nil {
-			return fmt.Errorf("DataCenter still exists %s %s", rs.Primary.ID, err)
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("DataCenter still exists %s %s", rs.Primary.ID, apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetching DataCenter %s %s", rs.Primary.ID, err)
 		}
 	}
 
