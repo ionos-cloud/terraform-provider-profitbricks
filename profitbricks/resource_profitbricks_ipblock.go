@@ -43,7 +43,7 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 
 func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	ipblock := profitbricks.IPBlock{
+	ipblock := &profitbricks.IPBlock{
 		Properties: profitbricks.IPBlockProperties{
 			Size:     d.Get("size").(int),
 			Location: d.Get("location").(string),
@@ -51,19 +51,19 @@ func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	resp, err := client.ReserveIPBlock(ipblock)
+	ipblock, err := client.ReserveIPBlock(*ipblock)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while reserving an ip block: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, ipblock.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(resp.ID)
+	d.SetId(ipblock.ID)
 
 	return resourceProfitBricksIPBlockRead(d, meta)
 }

@@ -86,7 +86,7 @@ func resourceProfitBricksFirewall() *schema.Resource {
 
 func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	fw := profitbricks.FirewallRule{
+	fw := &profitbricks.FirewallRule{
 		Properties: profitbricks.FirewallruleProperties{
 			Protocol: d.Get("protocol").(string),
 		},
@@ -130,19 +130,19 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 		fw.Properties.IcmpCode = &tempIcmpCodee
 	}
 
-	resp, err := client.CreateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), fw)
+	fw, err := client.CreateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), *fw)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while creating a firewall rule: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, fw.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(resp.ID)
+	d.SetId(fw.ID)
 
 	return resourceProfitBricksFirewallRead(d, meta)
 }
@@ -220,14 +220,14 @@ func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}
 		properties.IcmpCode = &tempIcmpCode
 	}
 
-	resp, err := client.UpdateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id(), properties)
+	fw, err := client.UpdateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id(), properties)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while updating a firewall rule ID %s %s", d.Id(), err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, fw.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
 	if errState != nil {
 		return errState
 	}

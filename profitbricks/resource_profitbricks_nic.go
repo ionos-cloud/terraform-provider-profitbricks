@@ -62,7 +62,7 @@ func resourceProfitBricksNic() *schema.Resource {
 
 func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	nic := profitbricks.Nic{
+	nic := &profitbricks.Nic{
 		Properties: &profitbricks.NicProperties{
 			Lan: d.Get("lan").(int),
 		},
@@ -89,18 +89,18 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 		nic.Properties.Nat = raw
 	}
 
-	resp, err := client.CreateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), nic)
+	nic, err := client.CreateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), *nic)
 	if err != nil {
 		return fmt.Errorf("Error occured while creating a nic: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(resp.ID)
+	d.SetId(nic.ID)
 	return resourceProfitBricksNicRead(d, meta)
 }
 

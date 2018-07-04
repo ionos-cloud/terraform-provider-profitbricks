@@ -111,7 +111,12 @@ func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	originalUser, _ := client.GetUser(d.Id())
+	originalUser, err := client.GetUser(d.Id())
+
+	if err != nil {
+		return fmt.Errorf("An error occured while fetching a User ID %s %s", d.Id(), err)
+	}
+
 	userReq := profitbricks.User{
 		Properties: &profitbricks.UserProperties{
 			Administrator: d.Get("administrator").(bool),

@@ -90,9 +90,14 @@ func testAccCheckDProfitBricksLanIPFailoverDestroyCheck(s *terraform.State) erro
 			continue
 		}
 		nicUuid := rs.Primary.Attributes["nicuuid"]
-		resp, _ := client.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
+		lan, err := client.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
+
+		if err != nil {
+			return fmt.Errorf("An error occured while fetching a Lan ID %s %s", rs.Primary.Attributes["lan_id"], err)
+		}
+
 		found := false
-		for _, fo := range *resp.Properties.IPFailover {
+		for _, fo := range *lan.Properties.IPFailover {
 			if fo.NicUUID == nicUuid {
 				found = true
 			}

@@ -109,10 +109,19 @@ func resourceProfitBricksSnapshotDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	dcId := d.Get("datacenter_id").(string)
-	dc, _ := client.GetDatacenter(dcId)
+	dc, err := client.GetDatacenter(dcId)
+
+	if err != nil {
+		return fmt.Errorf("An error occured while fetching a Datacenter ID %s %s", dcId, err)
+	}
+
 	for dc.Metadata.State != "AVAILABLE" {
 		time.Sleep(30 * time.Second)
-		dc, _ = client.GetDatacenter(dcId)
+		dc, err = client.GetDatacenter(dcId)
+
+		if err != nil {
+			return fmt.Errorf("An error occured while fetching a Datacenter ID %s %s", dcId, err)
+		}
 	}
 
 	resp, err := client.DeleteSnapshot(d.Id())
