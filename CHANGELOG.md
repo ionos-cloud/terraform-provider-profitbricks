@@ -1,4 +1,9 @@
 ## 1.3.3 (Unreleased)
+
+IMPROVEMENT
+
+* Handle empty endpoint ([#35](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/35))
+
 ## 1.3.2 (July 03, 2018)
 
 BUG FIXES:
