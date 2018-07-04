@@ -72,8 +72,8 @@ func resourceProfitBricksShareRead(d *schema.ResourceData, meta interface{}) err
 	share, err := connection.GetShare(d.Get("group_id").(string), d.Get("resource_id").(string))
 
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -119,8 +119,8 @@ func resourceProfitBricksShareDelete(d *schema.ResourceData, meta interface{}) e
 		time.Sleep(20 * time.Second)
 		resp, err = connection.DeleteShare(d.Id(), d.Get("resource_id").(string))
 		if err != nil {
-			if err2, ok := err.(profitbricks.ApiError); ok {
-				if err2.HttpStatusCode() != 404 {
+			if apiError, ok := err.(profitbricks.ApiError); ok {
+				if apiError.HttpStatusCode() != 404 {
 					return fmt.Errorf("An error occured while deleting a share %s %s", d.Id(), err)
 				}
 			}

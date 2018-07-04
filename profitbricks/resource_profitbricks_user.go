@@ -92,8 +92,8 @@ func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) erro
 	user, err := connection.GetUser(d.Id())
 
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -163,8 +163,8 @@ func resourceProfitBricksUserDelete(d *schema.ResourceData, meta interface{}) er
 		time.Sleep(20 * time.Second)
 		resp, err = connection.DeleteUser(d.Id())
 		if err != nil {
-			if err2, ok := err.(profitbricks.ApiError); ok {
-				if err2.HttpStatusCode() != 404 {
+			if apiError, ok := err.(profitbricks.ApiError); ok {
+				if apiError.HttpStatusCode() != 404 {
 					return fmt.Errorf("An error occured while deleting a user %s %s", d.Id(), err)
 				}
 			}

@@ -72,8 +72,8 @@ func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error
 	lan, err := connection.GetLan(d.Get("datacenter_id").(string), d.Id())
 
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -124,8 +124,8 @@ func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) err
 		resp, err = connection.DeleteLan(dcId, d.Id())
 
 		if err != nil {
-			if err2, ok := err.(profitbricks.ApiError); ok {
-				if err2.HttpStatusCode() != 404 {
+			if apiError, ok := err.(profitbricks.ApiError); ok {
+				if apiError.HttpStatusCode() != 404 {
 					return fmt.Errorf("An error occured while deleting a lan dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), err)
 				}
 			}

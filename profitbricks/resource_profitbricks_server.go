@@ -536,8 +536,8 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 
 	server, err := connection.GetServer(dcId, serverId)
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}

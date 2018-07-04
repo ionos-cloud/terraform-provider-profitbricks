@@ -206,8 +206,8 @@ func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) er
 	volume, err := connection.GetVolume(dcId, d.Id())
 
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}

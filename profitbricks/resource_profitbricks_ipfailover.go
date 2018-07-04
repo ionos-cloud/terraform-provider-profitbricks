@@ -76,8 +76,8 @@ func resourceProfitBricksLanIPFailoverRead(d *schema.ResourceData, meta interfac
 	lan, err := connection.GetLan(d.Get("datacenter_id").(string), d.Id())
 
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -138,8 +138,8 @@ func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interf
 		resp, err = connection.UpdateLan(dcid, lanid, *properties)
 
 		if err != nil {
-			if err2, ok := err.(profitbricks.ApiError); ok {
-				if err2.HttpStatusCode() != 404 {
+			if apiError, ok := err.(profitbricks.ApiError); ok {
+				if apiError.HttpStatusCode() != 404 {
 					return fmt.Errorf("An error occured while removing a lans ipfailover groups dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), err)
 				}
 			}

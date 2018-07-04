@@ -136,8 +136,8 @@ func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) err
 	group, err := connection.GetGroup(d.Id())
 
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -221,8 +221,8 @@ func resourceProfitBricksGroupDelete(d *schema.ResourceData, meta interface{}) e
 		resp, err = connection.DeleteGroup(d.Id())
 
 		if err != nil {
-			if err2, ok := err.(profitbricks.ApiError); ok {
-				if err2.HttpStatusCode() != 404 {
+			if apiError, ok := err.(profitbricks.ApiError); ok {
+				if apiError.HttpStatusCode() != 404 {
 					return fmt.Errorf("An error occured while deleting a group %s %s", d.Id(), err)
 				}
 			}

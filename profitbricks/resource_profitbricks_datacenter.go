@@ -75,8 +75,8 @@ func resourceProfitBricksDatacenterRead(d *schema.ResourceData, meta interface{}
 	datacenter, err := connection.GetDatacenter(d.Id())
 
 	if err != nil {
-		if err2, ok := err.(profitbricks.ApiError); ok {
-			if err2.HttpStatusCode() == 404 {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
 				d.SetId("")
 				return nil
 			}
