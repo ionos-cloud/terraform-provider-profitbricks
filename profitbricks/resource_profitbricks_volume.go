@@ -106,7 +106,12 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 				if image != "" {
 					isSnapshot = true
 				} else {
-					dc, _ := client.GetDatacenter(dcId)
+					dc, err := client.GetDatacenter(dcId)
+
+					if err != nil {
+						return fmt.Errorf("An error occured while fetching a Datacenter ID %s %s", dcId, err)
+					}
+
 					image_alias = getImageAlias(client, image_name, dc.Properties.Location)
 				}
 			}
@@ -145,7 +150,7 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("You can't pass 'image_password' and/or 'ssh keys' when creating a volume from a snapshot")
 	}
 
-	volume := profitbricks.Volume{
+	volume := &profitbricks.Volume{
 		Properties: profitbricks.VolumeProperties{
 			Name:          d.Get("name").(string),
 			Size:          d.Get("size").(int),
@@ -170,30 +175,30 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		volume.Properties.AvailabilityZone = raw
 	}
 
-	resp, err := client.CreateVolume(dcId, volume)
+	volume, err := client.CreateVolume(dcId, *volume)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while creating a volume: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	resp, err = client.AttachVolume(dcId, serverId, resp.ID)
+	volume, err = client.AttachVolume(dcId, serverId, volume.ID)
 	if err != nil {
 		return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverId, volume.ID, err)
 	}
 
 	// Wait, catching any errors
-	_, errState = getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState = getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(resp.ID)
+	d.SetId(volume.ID)
 	d.Set("server_id", serverId)
 
 	return resourceProfitBricksVolumeRead(d, meta)

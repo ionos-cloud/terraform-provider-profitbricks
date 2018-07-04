@@ -131,11 +131,11 @@ func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interf
 		IPFailover: &[]profitbricks.IPFailover{},
 	}
 
-	resp, err := client.UpdateLan(dcid, lanid, *properties)
+	ipfailover, err := client.UpdateLan(dcid, lanid, *properties)
 	if err != nil {
 		//try again in 90 seconds
 		time.Sleep(90 * time.Second)
-		resp, err = client.UpdateLan(dcid, lanid, *properties)
+		ipfailover, err = client.UpdateLan(dcid, lanid, *properties)
 
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -147,7 +147,7 @@ func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interf
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
+	_, errState := getStateChangeConf(meta, d, ipfailover.Headers.Get("Location"), schema.TimeoutDelete).WaitForState()
 	if errState != nil {
 		return errState
 	}

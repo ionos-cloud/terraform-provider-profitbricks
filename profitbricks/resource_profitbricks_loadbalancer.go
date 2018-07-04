@@ -52,7 +52,7 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 		nic_ids = append(nic_ids, profitbricks.Nic{ID: id.(string)})
 	}
 
-	lb := profitbricks.Loadbalancer{
+	lb := &profitbricks.Loadbalancer{
 		Properties: profitbricks.LoadbalancerProperties{
 			Name: d.Get("name").(string),
 		},
@@ -63,19 +63,19 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	resp, err := client.CreateLoadbalancer(d.Get("datacenter_id").(string), lb)
+	lb, err := client.CreateLoadbalancer(d.Get("datacenter_id").(string), *lb)
 
 	if err != nil {
 		return fmt.Errorf("Error occured while creating a loadbalancer %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, lb.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(resp.ID)
+	d.SetId(lb.ID)
 
 	return resourceProfitBricksLoadbalancerRead(d, meta)
 }

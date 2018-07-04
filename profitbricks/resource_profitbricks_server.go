@@ -641,14 +641,14 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		resp, err := client.UpdateVolume(d.Get("datacenter_id").(string), server.Entities.Volumes.Items[0].ID, properties)
+		volume, err := client.UpdateVolume(d.Get("datacenter_id").(string), server.Entities.Volumes.Items[0].ID, properties)
 
 		if err != nil {
 			return fmt.Errorf("Error patching volume (%s) (%s)", d.Id(), err)
 		}
 
 		// Wait, catching any errors
-		_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+		_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
 		if errState != nil {
 			return errState
 		}
@@ -656,10 +656,10 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 
 	//Nic stuff
 	if d.HasChange("nic") {
-		nic := profitbricks.Nic{}
+		nic := &profitbricks.Nic{}
 		for _, n := range server.Entities.Nics.Items {
 			if n.ID == d.Get("primary_nic").(string) {
-				nic = n
+				nic = &n
 				break
 			}
 		}
@@ -693,7 +693,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		resp, err := client.UpdateNic(d.Get("datacenter_id").(string), server.ID, nic.ID, properties)
+		nic, err := client.UpdateNic(d.Get("datacenter_id").(string), server.ID, nic.ID, properties)
 
 		if err != nil {
 			return fmt.Errorf(
@@ -701,7 +701,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		// Wait, catching any errors
-		_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+		_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
 		if errState != nil {
 			return errState
 		}

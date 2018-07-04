@@ -38,10 +38,10 @@ func TestAccProfitBricksShare_Basic(t *testing.T) {
 func testAccCheckDProfitBricksShareDestroyCheck(s *terraform.State) error {
 	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
-		resp, err := client.GetShare(rs.Primary.Attributes["group_id"], rs.Primary.Attributes["resource_id"])
+		share, err := client.GetShare(rs.Primary.Attributes["group_id"], rs.Primary.Attributes["resource_id"])
 
 		if err != nil {
-			return fmt.Errorf("share for resource %s still exists in group %s %s", rs.Primary.Attributes["resource_id"], rs.Primary.Attributes["group_id"], resp.Response)
+			return fmt.Errorf("share for resource %s still exists in group %s %s", rs.Primary.Attributes["resource_id"], rs.Primary.Attributes["group_id"], share.Response)
 		}
 	}
 

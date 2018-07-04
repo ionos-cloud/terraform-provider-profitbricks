@@ -110,14 +110,14 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Data center is created in %s location. You can not change location of the data center to %s. It requires recreation of the data center.", oldLocation, newLocation)
 	}
 
-	resp, err := client.UpdateDataCenter(d.Id(), obj)
+	dc, err := client.UpdateDataCenter(d.Id(), obj)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while update the data center ID %s %s", d.Id(), err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, dc.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
 	if errState != nil {
 		return errState
 	}
