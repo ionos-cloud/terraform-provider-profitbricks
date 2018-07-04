@@ -48,7 +48,7 @@ func TestAccProfitBricksLanIPFailover_Basic(t *testing.T) {
 
 func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failover *profitbricks.IPFailover) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connection := testAccProvider.Meta().(*profitbricks.Client)
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
 			return fmt.Errorf("Not found: %s", n)
@@ -61,7 +61,7 @@ func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failo
 		lanId := rs.Primary.Attributes["lan_id"]
 		nicUuid := rs.Primary.Attributes["nicuuid"]
 
-		lan, err := connection.GetLan(rs.Primary.Attributes["datacenter_id"], lanId)
+		lan, err := client.GetLan(rs.Primary.Attributes["datacenter_id"], lanId)
 		if err != nil {
 			return fmt.Errorf("Lan %s not found.", lanId)
 		}
@@ -84,13 +84,13 @@ func testAccCheckLanIPFailoverGroupExists(n string, lan *profitbricks.Lan, failo
 }
 
 func testAccCheckDProfitBricksLanIPFailoverDestroyCheck(s *terraform.State) error {
-	connection := testAccProvider.Meta().(*profitbricks.Client)
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_ipfailover" {
 			continue
 		}
 		nicUuid := rs.Primary.Attributes["nicuuid"]
-		resp, _ := connection.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
+		resp, _ := client.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["lan_id"])
 		found := false
 		for _, fo := range *resp.Properties.IPFailover {
 			if fo.NicUUID == nicUuid {
@@ -98,7 +98,7 @@ func testAccCheckDProfitBricksLanIPFailoverDestroyCheck(s *terraform.State) erro
 			}
 		}
 		if found {
-			_, err := connection.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
+			_, err := client.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
 			if err != nil {
 				return fmt.Errorf("IP failover group with nicId %s still exists %s %s, removing datacenter....", nicUuid, rs.Primary.ID, err)
 			}

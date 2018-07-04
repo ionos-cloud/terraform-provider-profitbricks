@@ -39,13 +39,13 @@ func TestAccProfitBricksDataCenter_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksDatacenterDestroyCheck(s *terraform.State) error {
-	connection := testAccProvider.Meta().(*profitbricks.Client)
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_datacenter" {
 			continue
 		}
 
-		_, err := connection.GetDatacenter(rs.Primary.ID)
+		_, err := client.GetDatacenter(rs.Primary.ID)
 
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() != 404 {
@@ -61,7 +61,7 @@ func testAccCheckDProfitBricksDatacenterDestroyCheck(s *terraform.State) error {
 
 func testAccCheckProfitBricksDatacenterExists(n string, datacenter *profitbricks.Datacenter) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connection := testAccProvider.Meta().(*profitbricks.Client)
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -72,7 +72,7 @@ func testAccCheckProfitBricksDatacenterExists(n string, datacenter *profitbricks
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundDC, err := connection.GetDatacenter(rs.Primary.ID)
+		foundDC, err := client.GetDatacenter(rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching DC: %s", rs.Primary.ID)

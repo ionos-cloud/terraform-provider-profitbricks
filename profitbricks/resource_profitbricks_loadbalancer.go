@@ -44,7 +44,7 @@ func resourceProfitBricksLoadbalancer() *schema.Resource {
 }
 
 func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	raw_ids := d.Get("nic_ids").([]interface{})
 	nic_ids := []profitbricks.Nic{}
 
@@ -63,7 +63,7 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	resp, err := connection.CreateLoadbalancer(d.Get("datacenter_id").(string), lb)
+	resp, err := client.CreateLoadbalancer(d.Get("datacenter_id").(string), lb)
 
 	if err != nil {
 		return fmt.Errorf("Error occured while creating a loadbalancer %s", err)
@@ -81,8 +81,8 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceProfitBricksLoadbalancerRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	lb, err := connection.GetLoadbalancer(d.Get("datacenter_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	lb, err := client.GetLoadbalancer(d.Get("datacenter_id").(string), d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -102,7 +102,7 @@ func resourceProfitBricksLoadbalancerRead(d *schema.ResourceData, meta interface
 }
 
 func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	properties := profitbricks.LoadbalancerProperties{}
 	if d.HasChange("name") {
 		_, new := d.GetChange("name")
@@ -124,7 +124,7 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 
 		for _, o := range oldList {
 
-			resp, err := connection.DeleteBalancedNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
+			resp, err := client.DeleteBalancedNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
 			if err != nil {
 				return fmt.Errorf("Error occured while deleting a balanced nic: %s", err)
 			}
@@ -139,7 +139,7 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 		newList := new.([]interface{})
 
 		for _, o := range newList {
-			nic, err := connection.AssociateNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
+			nic, err := client.AssociateNic(d.Get("datacenter_id").(string), d.Id(), o.(string))
 			if err != nil {
 				return fmt.Errorf("Error occured while deleting a balanced nic: %s", err)
 			}
@@ -158,8 +158,8 @@ func resourceProfitBricksLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceProfitBricksLoadbalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	resp, err := connection.DeleteLoadbalancer(d.Get("datacenter_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	resp, err := client.DeleteLoadbalancer(d.Get("datacenter_id").(string), d.Id())
 
 	if err != nil {
 		return fmt.Errorf("Error occured while deleting a loadbalancer: %s", err)

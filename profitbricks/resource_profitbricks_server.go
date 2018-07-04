@@ -229,7 +229,7 @@ func resourceProfitBricksServer() *schema.Resource {
 }
 
 func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 
 	var image_alias string
 	request := profitbricks.Server{
@@ -271,18 +271,18 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 
 			image_name := rawMap["image_name"].(string)
 			if !IsValidUUID(image_name) {
-				image = getImageId(connection, dcId, image_name, rawMap["disk_type"].(string))
+				image = getImageId(client, dcId, image_name, rawMap["disk_type"].(string))
 				//if no image id was found with that name we look for a matching snapshot
 				if image == "" {
-					image = getSnapshotId(connection, image_name)
+					image = getSnapshotId(client, image_name)
 					if image != "" {
 						isSnapshot = true
 					} else {
-						dc, err := connection.GetDatacenter(dcId)
+						dc, err := client.GetDatacenter(dcId)
 						if err != nil {
 							return fmt.Errorf("Error fetching datacenter %s: (%s)", dcId, err)
 						}
-						image_alias = getImageAlias(connection, image_name, dc.Properties.Location)
+						image_alias = getImageAlias(client, image_name, dc.Properties.Location)
 					}
 				}
 				if image == "" && image_alias == "" {
@@ -292,7 +292,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 				}
 			} else {
-				img, err := connection.GetImage(image_name)
+				img, err := client.GetImage(image_name)
 
 				var apiError profitbricks.ApiError
 
@@ -301,7 +301,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 				}
 
 				if apiError.HttpStatusCode() == 404 {
-					img, err := connection.GetSnapshot(image_name)
+					img, err := client.GetSnapshot(image_name)
 
 					if apiError, ok := err.(profitbricks.ApiError); !ok {
 						if apiError.HttpStatusCode() == 404 {
@@ -319,11 +319,11 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					if imagePassword == "" && len(sshkey_path) == 0 {
 						return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 					}
-					image = getImageId(connection, d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
+					image = getImageId(client, d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
 				} else {
-					img, err := connection.GetImage(image_name)
+					img, err := client.GetImage(image_name)
 					if err != nil {
-						img, err := connection.GetSnapshot(image_name)
+						img, err := client.GetSnapshot(image_name)
 						if err != nil {
 							return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
 						}
@@ -495,7 +495,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 	if len(request.Entities.Nics.Items[0].Properties.Ips) == 0 {
 		request.Entities.Nics.Items[0].Properties.Ips = nil
 	}
-	server, err := connection.CreateServer(d.Get("datacenter_id").(string), request)
+	server, err := client.CreateServer(d.Get("datacenter_id").(string), request)
 
 	jsn, _ := json.Marshal(request)
 	log.Println("[DEBUG] Server request", string(jsn))
@@ -513,7 +513,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(server.ID)
-	server, err = connection.GetServer(d.Get("datacenter_id").(string), server.ID)
+	server, err = client.GetServer(d.Get("datacenter_id").(string), server.ID)
 	if err != nil {
 		return fmt.Errorf("Error fetching server: (%s)", err)
 	}
@@ -530,11 +530,11 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 	serverId := d.Id()
 
-	server, err := connection.GetServer(dcId, serverId)
+	server, err := client.GetServer(dcId, serverId)
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() == 404 {
@@ -552,7 +552,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	if primarynic, ok := d.GetOk("primary_nic"); ok {
 		d.Set("primary_nic", primarynic.(string))
 
-		nic, err := connection.GetNic(dcId, serverId, primarynic.(string))
+		nic, err := client.GetNic(dcId, serverId, primarynic.(string))
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching nic %s for server ID %s %s", primarynic.(string), d.Id(), err)
 		}
@@ -591,7 +591,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 
 	request := profitbricks.ServerProperties{}
@@ -616,7 +616,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		_, n := d.GetChange("cpu_family")
 		request.CPUFamily = n.(string)
 	}
-	server, err := connection.UpdateServer(dcId, d.Id(), request)
+	server, err := client.UpdateServer(dcId, d.Id(), request)
 
 	if err != nil {
 		return fmt.Errorf("Error occured while updating server ID %s %s", d.Id(), err)
@@ -641,7 +641,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		resp, err := connection.UpdateVolume(d.Get("datacenter_id").(string), server.Entities.Volumes.Items[0].ID, properties)
+		resp, err := client.UpdateVolume(d.Get("datacenter_id").(string), server.Entities.Volumes.Items[0].ID, properties)
 
 		if err != nil {
 			return fmt.Errorf("Error patching volume (%s) (%s)", d.Id(), err)
@@ -693,7 +693,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		resp, err := connection.UpdateNic(d.Get("datacenter_id").(string), server.ID, nic.ID, properties)
+		resp, err := client.UpdateNic(d.Get("datacenter_id").(string), server.ID, nic.ID, properties)
 
 		if err != nil {
 			return fmt.Errorf(
@@ -711,17 +711,17 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksServerDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 
-	server, err := connection.GetServer(dcId, d.Id())
+	server, err := client.GetServer(dcId, d.Id())
 
 	if err != nil {
 		return fmt.Errorf("Error occured while fetching a server ID %s %s", d.Id(), err)
 	}
 
 	if server.Properties.BootVolume != nil {
-		resp, err := connection.DeleteVolume(dcId, server.Properties.BootVolume.ID)
+		resp, err := client.DeleteVolume(dcId, server.Properties.BootVolume.ID)
 		if err != nil {
 			return fmt.Errorf("Error occured while delete volume %s of server ID %s %s", server.Properties.BootVolume.ID, d.Id(), err)
 		}
@@ -732,7 +732,7 @@ func resourceProfitBricksServerDelete(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	resp, err := connection.DeleteServer(dcId, d.Id())
+	resp, err := client.DeleteServer(dcId, d.Id())
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting a server ID %s %s", d.Id(), err)
 

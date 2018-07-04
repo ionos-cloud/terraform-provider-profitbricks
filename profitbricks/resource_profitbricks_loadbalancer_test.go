@@ -40,16 +40,16 @@ func TestAccProfitBricksLoadbalancer_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksLoadbalancerDestroyCheck(s *terraform.State) error {
-	connection := testAccProvider.Meta().(*profitbricks.Client)
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_loadbalancer" {
 			continue
 		}
 
-		_, err := connection.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		_, err := client.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
 		if err != nil {
-			_, err := connection.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
+			_, err := client.DeleteDatacenter(rs.Primary.Attributes["datacenter_id"])
 
 			if apiError, ok := err.(profitbricks.ApiError); ok {
 				if apiError.HttpStatusCode() != 404 {
@@ -80,7 +80,7 @@ func testAccCheckProfitBricksLoadbalancerAttributes(n string, name string) resou
 
 func testAccCheckProfitBricksLoadbalancerExists(n string, loadbalancer *profitbricks.Loadbalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connection := testAccProvider.Meta().(*profitbricks.Client)
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -91,7 +91,7 @@ func testAccCheckProfitBricksLoadbalancerExists(n string, loadbalancer *profitbr
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundLB, err := connection.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		foundLB, err := client.GetLoadbalancer(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching Loadbalancer: %s", rs.Primary.ID)

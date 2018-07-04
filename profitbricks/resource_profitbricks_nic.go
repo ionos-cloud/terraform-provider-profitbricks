@@ -61,7 +61,7 @@ func resourceProfitBricksNic() *schema.Resource {
 }
 
 func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	nic := profitbricks.Nic{
 		Properties: &profitbricks.NicProperties{
 			Lan: d.Get("lan").(int),
@@ -89,7 +89,7 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 		nic.Properties.Nat = raw
 	}
 
-	resp, err := connection.CreateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), nic)
+	resp, err := client.CreateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), nic)
 	if err != nil {
 		return fmt.Errorf("Error occured while creating a nic: %s", err)
 	}
@@ -105,8 +105,8 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksNicRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	nic, err := connection.GetNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	nic, err := client.GetNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() == 404 {
@@ -128,7 +128,7 @@ func resourceProfitBricksNicRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	properties := profitbricks.NicProperties{}
 
 	if d.HasChange("name") {
@@ -154,7 +154,7 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.Nat = nat
 	}
 
-	nic, err := connection.UpdateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id(), properties)
+	nic, err := client.UpdateNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id(), properties)
 
 	if err != nil {
 		return fmt.Errorf("Error occured while updating a nic: %s", err)
@@ -170,8 +170,8 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksNicDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	resp, err := connection.DeleteNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	resp, err := client.DeleteNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
 
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting a nic dcId %s ID %s %s", d.Get("datacenter_id").(string), d.Id(), err)

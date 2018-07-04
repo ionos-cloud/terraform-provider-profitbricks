@@ -37,13 +37,13 @@ func TestAccProfitBricksSnapshot_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksSnapshotDestroyCheck(s *terraform.State) error {
-	connection := testAccProvider.Meta().(*profitbricks.Client)
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_snapshot" {
 			continue
 		}
 
-		_, err := connection.GetSnapshot(rs.Primary.ID)
+		_, err := client.GetSnapshot(rs.Primary.ID)
 
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() != 404 {
@@ -59,7 +59,7 @@ func testAccCheckDProfitBricksSnapshotDestroyCheck(s *terraform.State) error {
 
 func testAccCheckProfitBricksSnapshotExists(n string, snapshot *profitbricks.Snapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connection := testAccProvider.Meta().(*profitbricks.Client)
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -70,7 +70,7 @@ func testAccCheckProfitBricksSnapshotExists(n string, snapshot *profitbricks.Sna
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundServer, err := connection.GetSnapshot(rs.Primary.ID)
+		foundServer, err := client.GetSnapshot(rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching Snapshot: %s", rs.Primary.ID)

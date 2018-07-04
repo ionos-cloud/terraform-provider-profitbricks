@@ -23,7 +23,7 @@ func dataSourceResource() *schema.Resource {
 }
 
 func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 
 	var results []profitbricks.Resource
 
@@ -31,7 +31,7 @@ func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
 	resource_id := d.Get("resource_id").(string)
 
 	if resource_type != "" && resource_id != "" {
-		result, err := connection.GetResourceByType(resource_type, resource_id)
+		result, err := client.GetResourceByType(resource_type, resource_id)
 		if err != nil {
 			return fmt.Errorf("An error occured while fetching resource by type %s", err)
 		}
@@ -40,7 +40,7 @@ func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("resource_type", result.PBType)
 		d.Set("resource_id", result.ID)
 	} else if resource_type != "" {
-		items, err := connection.ListResourcesByType(resource_type)
+		items, err := client.ListResourcesByType(resource_type)
 		if err != nil {
 			return fmt.Errorf("An error occured while fetching resources by type %s", err)
 		}
@@ -48,7 +48,7 @@ func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
 		results = items.Items
 		d.Set("resource_type", results[0].PBType)
 	} else {
-		items, err := connection.ListResources()
+		items, err := client.ListResources()
 		if err != nil {
 			return fmt.Errorf("An error occured while fetching resources %s", err)
 		}

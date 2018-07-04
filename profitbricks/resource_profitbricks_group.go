@@ -79,7 +79,7 @@ func resourceProfitBricksGroup() *schema.Resource {
 }
 
 func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	request := profitbricks.Group{
 		Properties: profitbricks.GroupProperties{},
 	}
@@ -100,7 +100,7 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	usertoAdd := d.Get("user_id").(string)
 
-	group, err := connection.CreateGroup(request)
+	group, err := client.CreateGroup(request)
 
 	log.Printf("[DEBUG] GROUP ID: %s", group.ID)
 
@@ -118,7 +118,7 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	//add users to group if any is provided
 	if usertoAdd != "" {
-		addedUser, err := connection.AddUserToGroup(d.Id(), usertoAdd)
+		addedUser, err := client.AddUserToGroup(d.Id(), usertoAdd)
 		if err != nil {
 			return fmt.Errorf("An error occured while adding %s user to group ID %s %s", usertoAdd, d.Id(), err)
 		}
@@ -132,8 +132,8 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	group, err := connection.GetGroup(d.Id())
+	client := meta.(*profitbricks.Client)
+	group, err := client.GetGroup(d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -151,7 +151,7 @@ func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("reserve_ip", group.Properties.ReserveIP)
 	d.Set("access_activity_log", group.Properties.AccessActivityLog)
 
-	users, err := connection.ListGroupUsers(d.Id())
+	users, err := client.ListGroupUsers(d.Id())
 	if err != nil {
 		return fmt.Errorf("An error occured while ListGroupUsers %s %s", d.Id(), err)
 	}
@@ -168,7 +168,7 @@ func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	tempCreateDataCenter := d.Get("create_datacenter").(bool)
 	tempCreateSnapshot := d.Get("create_snapshot").(bool)
 	tempReserveIp := d.Get("reserve_ip").(bool)
@@ -186,7 +186,7 @@ func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) e
 	_, newValue := d.GetChange("name")
 	groupReq.Properties.Name = newValue.(string)
 
-	group, err := connection.UpdateGroup(d.Id(), groupReq)
+	group, err := client.UpdateGroup(d.Id(), groupReq)
 	if err != nil {
 		return fmt.Errorf("An error occured while patching a group ID %s %s", d.Id(), err)
 	}
@@ -198,7 +198,7 @@ func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) e
 
 	//add users to group if any is provided
 	if usertoAdd != "" {
-		addedUser, err := connection.AddUserToGroup(d.Id(), usertoAdd)
+		addedUser, err := client.AddUserToGroup(d.Id(), usertoAdd)
 		if err != nil {
 			return fmt.Errorf("An error occured while adding %s user to group ID %s %s", usertoAdd, d.Id(), err)
 		}
@@ -213,12 +213,12 @@ func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	resp, err := connection.DeleteGroup(d.Id())
+	client := meta.(*profitbricks.Client)
+	resp, err := client.DeleteGroup(d.Id())
 	if err != nil {
 		//try again in 20 seconds
 		time.Sleep(20 * time.Second)
-		resp, err = connection.DeleteGroup(d.Id())
+		resp, err = client.DeleteGroup(d.Id())
 
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {

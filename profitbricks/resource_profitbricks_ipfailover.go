@@ -38,7 +38,7 @@ func resourceProfitBricksLanIPFailover() *schema.Resource {
 }
 
 func resourceProfitBricksLanIPFailoverCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcid := d.Get("datacenter_id").(string)
 	lanid := d.Get("lan_id").(string)
 	if lanid == "" {
@@ -55,7 +55,7 @@ func resourceProfitBricksLanIPFailoverCreate(d *schema.ResourceData, meta interf
 		}}
 
 	if properties != nil {
-		lan, err := connection.UpdateLan(dcid, lanid, *properties)
+		lan, err := client.UpdateLan(dcid, lanid, *properties)
 		if err != nil {
 			return fmt.Errorf("An error occured while patching a lans failover group  %s %s", lanid, err)
 		}
@@ -72,8 +72,8 @@ func resourceProfitBricksLanIPFailoverCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceProfitBricksLanIPFailoverRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	lan, err := connection.GetLan(d.Get("datacenter_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	lan, err := client.GetLan(d.Get("datacenter_id").(string), d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -93,7 +93,7 @@ func resourceProfitBricksLanIPFailoverRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceProfitBricksLanIPFailoverUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	properties := &profitbricks.LanProperties{}
 	dcid := d.Get("datacenter_id").(string)
 	lanid := d.Get("lan_id").(string)
@@ -107,7 +107,7 @@ func resourceProfitBricksLanIPFailoverUpdate(d *schema.ResourceData, meta interf
 		}}
 
 	if properties != nil {
-		lan, err := connection.UpdateLan(dcid, lanid, *properties)
+		lan, err := client.UpdateLan(dcid, lanid, *properties)
 		if err != nil {
 			return fmt.Errorf("An error occured while patching a lan ID %s %s", d.Id(), err)
 		}
@@ -122,7 +122,7 @@ func resourceProfitBricksLanIPFailoverUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcid := d.Get("datacenter_id").(string)
 	lanid := d.Get("lan_id").(string)
 
@@ -131,11 +131,11 @@ func resourceProfitBricksLanIPFailoverDelete(d *schema.ResourceData, meta interf
 		IPFailover: &[]profitbricks.IPFailover{},
 	}
 
-	resp, err := connection.UpdateLan(dcid, lanid, *properties)
+	resp, err := client.UpdateLan(dcid, lanid, *properties)
 	if err != nil {
 		//try again in 90 seconds
 		time.Sleep(90 * time.Second)
-		resp, err = connection.UpdateLan(dcid, lanid, *properties)
+		resp, err = client.UpdateLan(dcid, lanid, *properties)
 
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {

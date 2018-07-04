@@ -25,9 +25,9 @@ func dataSourceDataCenter() *schema.Resource {
 }
 
 func dataSourceDataCenterRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 
-	datacenters, err := connection.ListDatacenters()
+	datacenters, err := client.ListDatacenters()
 
 	if err != nil {
 		return fmt.Errorf("An error occured while fetching datacenters %s", err)

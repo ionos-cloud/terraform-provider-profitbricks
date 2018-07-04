@@ -40,13 +40,13 @@ func TestAccProfitBricksFirewall_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksFirewallDestroyCheck(s *terraform.State) error {
-	connection := testAccProvider.Meta().(*profitbricks.Client)
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_firewall" {
 			continue
 		}
 
-		_, err := connection.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
+		_, err := client.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
 
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() != 404 {
@@ -76,7 +76,7 @@ func testAccCheckProfitBricksFirewallAttributes(n string, name string) resource.
 
 func testAccCheckProfitBricksFirewallExists(n string, firewall *profitbricks.FirewallRule) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connection := testAccProvider.Meta().(*profitbricks.Client)
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -87,7 +87,7 @@ func testAccCheckProfitBricksFirewallExists(n string, firewall *profitbricks.Fir
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundServer, err := connection.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
+		foundServer, err := client.GetFirewallRule(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching Firewall rule: %s", rs.Primary.ID)

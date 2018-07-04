@@ -25,9 +25,9 @@ func dataSourceLocation() *schema.Resource {
 }
 
 func dataSourceLocationRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 
-	locations, err := connection.ListLocations()
+	locations, err := client.ListLocations()
 
 	if err != nil {
 		return fmt.Errorf("An error occured while fetching ProfitBricks locations %s", err)

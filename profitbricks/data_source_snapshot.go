@@ -28,9 +28,9 @@ func dataSourceSnapshot() *schema.Resource {
 }
 
 func dataSourceSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 
-	snapshots, err := connection.ListSnapshots()
+	snapshots, err := client.ListSnapshots()
 
 	if err != nil {
 		return fmt.Errorf("An error occured while fetching ProfitBricks locations %s", err)

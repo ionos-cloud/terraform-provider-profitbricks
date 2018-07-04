@@ -47,7 +47,7 @@ func resourceProfitBricksUser() *schema.Resource {
 }
 
 func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	request := profitbricks.User{
 		Properties: &profitbricks.UserProperties{},
 	}
@@ -69,7 +69,7 @@ func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) er
 
 	request.Properties.Administrator = d.Get("administrator").(bool)
 	request.Properties.ForceSecAuth = d.Get("force_sec_auth").(bool)
-	user, err := connection.CreateUser(request)
+	user, err := client.CreateUser(request)
 
 	log.Printf("[DEBUG] USER ID: %s", user.ID)
 
@@ -88,8 +88,8 @@ func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	user, err := connection.GetUser(d.Id())
+	client := meta.(*profitbricks.Client)
+	user, err := client.GetUser(d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -110,8 +110,8 @@ func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	originalUser, _ := connection.GetUser(d.Id())
+	client := meta.(*profitbricks.Client)
+	originalUser, _ := client.GetUser(d.Id())
 	userReq := profitbricks.User{
 		Properties: &profitbricks.UserProperties{
 			Administrator: d.Get("administrator").(bool),
@@ -141,7 +141,7 @@ func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) er
 		userReq.Properties.Email = originalUser.Properties.Email
 	}
 
-	user, err := connection.UpdateUser(d.Id(), userReq)
+	user, err := client.UpdateUser(d.Id(), userReq)
 	if err != nil {
 		return fmt.Errorf("An error occured while patching a user ID %s %s", d.Id(), err)
 	}
@@ -156,12 +156,12 @@ func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceProfitBricksUserDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	resp, err := connection.DeleteUser(d.Id())
+	client := meta.(*profitbricks.Client)
+	resp, err := client.DeleteUser(d.Id())
 	if err != nil {
 		//try again in 20 seconds
 		time.Sleep(20 * time.Second)
-		resp, err = connection.DeleteUser(d.Id())
+		resp, err = client.DeleteUser(d.Id())
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {
 				if apiError.HttpStatusCode() != 404 {

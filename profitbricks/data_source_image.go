@@ -32,9 +32,9 @@ func dataSourceImage() *schema.Resource {
 }
 
 func dataSourceImageRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 
-	images, err := connection.ListImages()
+	images, err := client.ListImages()
 
 	if err != nil {
 		return fmt.Errorf("An error occured while fetching ProfitBricks images %s", err)

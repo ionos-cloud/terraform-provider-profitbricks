@@ -42,7 +42,7 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 }
 
 func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	ipblock := profitbricks.IPBlock{
 		Properties: profitbricks.IPBlockProperties{
 			Size:     d.Get("size").(int),
@@ -51,7 +51,7 @@ func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	resp, err := connection.ReserveIPBlock(ipblock)
+	resp, err := client.ReserveIPBlock(ipblock)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while reserving an ip block: %s", err)
@@ -69,8 +69,8 @@ func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceProfitBricksIPBlockRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	ipblock, err := connection.GetIPBlock(d.Id())
+	client := meta.(*profitbricks.Client)
+	ipblock, err := client.GetIPBlock(d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -93,8 +93,8 @@ func resourceProfitBricksIPBlockRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksIPBlockDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	resp, err := connection.ReleaseIPBlock(d.Id())
+	client := meta.(*profitbricks.Client)
+	resp, err := client.ReleaseIPBlock(d.Id())
 	if err != nil {
 		return fmt.Errorf("An error occured while releasing an ipblock ID: %s %s", d.Id(), err)
 	}

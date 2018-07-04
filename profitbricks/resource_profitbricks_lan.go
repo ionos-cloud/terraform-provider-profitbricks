@@ -36,7 +36,7 @@ func resourceProfitBricksLan() *schema.Resource {
 }
 
 func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	request := profitbricks.Lan{
 		Properties: profitbricks.LanProperties{
 			Public: d.Get("public").(bool),
@@ -48,7 +48,7 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 		request.Properties.Name = d.Get("name").(string)
 	}
 
-	lan, err := connection.CreateLan(d.Get("datacenter_id").(string), request)
+	lan, err := client.CreateLan(d.Get("datacenter_id").(string), request)
 
 	log.Printf("[DEBUG] LAN ID: %s", lan.ID)
 	log.Printf("[DEBUG] LAN RESPONSE: %s", lan.Response)
@@ -68,8 +68,8 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	lan, err := connection.GetLan(d.Get("datacenter_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	lan, err := client.GetLan(d.Get("datacenter_id").(string), d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -89,7 +89,7 @@ func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	properties := &profitbricks.LanProperties{}
 	newValue := d.Get("public")
 	properties.Public = newValue.(bool)
@@ -99,7 +99,7 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if properties != nil {
-		lan, err := connection.UpdateLan(d.Get("datacenter_id").(string), d.Id(), *properties)
+		lan, err := client.UpdateLan(d.Get("datacenter_id").(string), d.Id(), *properties)
 		if err != nil {
 			return fmt.Errorf("An error occured while patching a lan ID %s %s", d.Id(), err)
 		}
@@ -115,13 +115,13 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
-	resp, err := connection.DeleteLan(dcId, d.Id())
+	resp, err := client.DeleteLan(dcId, d.Id())
 	if err != nil {
 		//try again in 120 seconds
 		time.Sleep(120 * time.Second)
-		resp, err = connection.DeleteLan(dcId, d.Id())
+		resp, err = client.DeleteLan(dcId, d.Id())
 
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {

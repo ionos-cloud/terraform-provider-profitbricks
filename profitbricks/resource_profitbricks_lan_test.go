@@ -40,13 +40,13 @@ func TestAccProfitBricksLan_Basic(t *testing.T) {
 }
 
 func testAccCheckDProfitBricksLanDestroyCheck(s *terraform.State) error {
-	connection := testAccProvider.Meta().(*profitbricks.Client)
+	client := testAccProvider.Meta().(*profitbricks.Client)
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "profitbricks_datacenter" {
 			continue
 		}
 
-		_, err := connection.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		_, err := client.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() != 404 {
@@ -76,7 +76,7 @@ func testAccCheckProfitBricksLanAttributes(n string, name string) resource.TestC
 
 func testAccCheckProfitBricksLanExists(n string, lan *profitbricks.Lan) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		connection := testAccProvider.Meta().(*profitbricks.Client)
+		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
 
 		if !ok {
@@ -87,7 +87,7 @@ func testAccCheckProfitBricksLanExists(n string, lan *profitbricks.Lan) resource
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundLan, err := connection.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
+		foundLan, err := client.GetLan(rs.Primary.Attributes["datacenter_id"], rs.Primary.ID)
 
 		if err != nil {
 			return fmt.Errorf("Error occured while fetching Server: %s", rs.Primary.ID)

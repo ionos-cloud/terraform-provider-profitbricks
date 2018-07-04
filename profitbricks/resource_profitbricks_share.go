@@ -39,7 +39,7 @@ func resourceProfitBricksShare() *schema.Resource {
 }
 
 func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	request := profitbricks.Share{
 		Properties: profitbricks.ShareProperties{},
 	}
@@ -49,7 +49,7 @@ func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) e
 	tempEditPrivilege := d.Get("share_privilege").(bool)
 	request.Properties.EditPrivilege = &tempEditPrivilege
 
-	share, err := connection.AddShare(d.Get("group_id").(string), d.Get("resource_id").(string), request)
+	share, err := client.AddShare(d.Get("group_id").(string), d.Get("resource_id").(string), request)
 
 	log.Printf("[DEBUG] SHARE ID: %s", share.ID)
 
@@ -68,8 +68,8 @@ func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksShareRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	share, err := connection.GetShare(d.Get("group_id").(string), d.Get("resource_id").(string))
+	client := meta.(*profitbricks.Client)
+	share, err := client.GetShare(d.Get("group_id").(string), d.Get("resource_id").(string))
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -87,7 +87,7 @@ func resourceProfitBricksShareRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksShareUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	tempSharePrivilege := d.Get("share_privilege").(bool)
 	tempEditPrivilege := d.Get("edit_privilege").(bool)
 	shareReq := profitbricks.Share{
@@ -97,7 +97,7 @@ func resourceProfitBricksShareUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	share, err := connection.UpdateShare(d.Get("group_id").(string), d.Get("resource_id").(string), shareReq)
+	share, err := client.UpdateShare(d.Get("group_id").(string), d.Get("resource_id").(string), shareReq)
 	if err != nil {
 		return fmt.Errorf("An error occured while patching a share ID %s %s", d.Id(), err)
 	}
@@ -112,12 +112,12 @@ func resourceProfitBricksShareUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksShareDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	resp, err := connection.DeleteShare(d.Id(), d.Get("resource_id").(string))
+	client := meta.(*profitbricks.Client)
+	resp, err := client.DeleteShare(d.Id(), d.Get("resource_id").(string))
 	if err != nil {
 		//try again in 20 seconds
 		time.Sleep(20 * time.Second)
-		resp, err = connection.DeleteShare(d.Id(), d.Get("resource_id").(string))
+		resp, err = client.DeleteShare(d.Id(), d.Get("resource_id").(string))
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {
 				if apiError.HttpStatusCode() != 404 {

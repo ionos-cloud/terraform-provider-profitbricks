@@ -34,12 +34,12 @@ func resourceProfitBricksSnapshot() *schema.Resource {
 }
 
 func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 	volumeId := d.Get("volume_id").(string)
 	name := d.Get("name").(string)
 
-	snapshot, err := connection.CreateSnapshot(dcId, volumeId, name, "")
+	snapshot, err := client.CreateSnapshot(dcId, volumeId, name, "")
 
 	if err != nil {
 		return fmt.Errorf("An error occured while creating a snapshot: %s", err)
@@ -57,8 +57,8 @@ func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	snapshot, err := connection.GetSnapshot(d.Id())
+	client := meta.(*profitbricks.Client)
+	snapshot, err := client.GetSnapshot(d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -75,11 +75,11 @@ func resourceProfitBricksSnapshotRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
 	volumeId := d.Get("volume_id").(string)
 
-	snapshot, err := connection.RestoreSnapshot(dcId, volumeId, d.Id())
+	snapshot, err := client.RestoreSnapshot(dcId, volumeId, d.Id())
 	if err != nil {
 		return fmt.Errorf("An error occured while restoring a snapshot ID %s %d", d.Id(), err)
 	}
@@ -94,14 +94,14 @@ func resourceProfitBricksSnapshotUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	status, err := connection.GetSnapshot(d.Id())
+	client := meta.(*profitbricks.Client)
+	status, err := client.GetSnapshot(d.Id())
 	if err != nil {
 		return fmt.Errorf("An error occured while fetching a snapshot ID %s %s", d.Id(), err)
 	}
 	for status.Metadata.State != "AVAILABLE" {
 		time.Sleep(30 * time.Second)
-		status, err = connection.GetSnapshot(d.Id())
+		status, err = client.GetSnapshot(d.Id())
 
 		if err != nil {
 			return fmt.Errorf("An error occured while fetching a snapshot ID %s %s", d.Id(), err)
@@ -109,13 +109,13 @@ func resourceProfitBricksSnapshotDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	dcId := d.Get("datacenter_id").(string)
-	dc, _ := connection.GetDatacenter(dcId)
+	dc, _ := client.GetDatacenter(dcId)
 	for dc.Metadata.State != "AVAILABLE" {
 		time.Sleep(30 * time.Second)
-		dc, _ = connection.GetDatacenter(dcId)
+		dc, _ = client.GetDatacenter(dcId)
 	}
 
-	resp, err := connection.DeleteSnapshot(d.Id())
+	resp, err := client.DeleteSnapshot(d.Id())
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting a snapshot ID %s %s", d.Id(), err)
 	}

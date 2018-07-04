@@ -85,7 +85,7 @@ func resourceProfitBricksFirewall() *schema.Resource {
 }
 
 func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	fw := profitbricks.FirewallRule{
 		Properties: profitbricks.FirewallruleProperties{
 			Protocol: d.Get("protocol").(string),
@@ -130,7 +130,7 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 		fw.Properties.IcmpCode = &tempIcmpCodee
 	}
 
-	resp, err := connection.CreateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), fw)
+	resp, err := client.CreateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), fw)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while creating a firewall rule: %s", err)
@@ -148,8 +148,8 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	fw, err := connection.GetFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	fw, err := client.GetFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -176,7 +176,7 @@ func resourceProfitBricksFirewallRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
+	client := meta.(*profitbricks.Client)
 	properties := profitbricks.FirewallruleProperties{}
 
 	if d.HasChange("name") {
@@ -220,7 +220,7 @@ func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}
 		properties.IcmpCode = &tempIcmpCode
 	}
 
-	resp, err := connection.UpdateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id(), properties)
+	resp, err := client.UpdateFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id(), properties)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while updating a firewall rule ID %s %s", d.Id(), err)
@@ -236,8 +236,8 @@ func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksFirewallDelete(d *schema.ResourceData, meta interface{}) error {
-	connection := meta.(*profitbricks.Client)
-	resp, err := connection.DeleteFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id())
+	client := meta.(*profitbricks.Client)
+	resp, err := client.DeleteFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id())
 
 	if err != nil {
 		return fmt.Errorf("An error occured while deleting a firewall rule ID %s %s", d.Id(), err)
