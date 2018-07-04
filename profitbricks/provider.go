@@ -88,8 +88,9 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 // cleanURL makes sure trailing slash does not corrupte the state
 func cleanURL(url string) string {
-	if url[len(url)-1] == '/' {
-		url = url[:len(url)-1]
+	length := len(url)
+	if length > 1 && url[length-1] == '/' {
+		url = url[:length-1]
 	}
 
 	return url
