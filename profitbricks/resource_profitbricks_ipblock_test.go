@@ -28,6 +28,14 @@ func TestAccProfitBricksIPBlock_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("profitbricks_ipblock.webserver_ip", "location", location),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckProfitbricksIPBlockConfig_update, location),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckProfitBricksIPBlockExists("profitbricks_ipblock.webserver_ip", &ipblock),
+					testAccCheckProfitBricksIPBlockAttributes("profitbricks_ipblock.webserver_ip", location),
+					resource.TestCheckResourceAttr("profitbricks_ipblock.webserver_ip", "name", "updated"),
+				),
+			},
 		},
 	})
 }
@@ -100,4 +108,11 @@ resource "profitbricks_ipblock" "webserver_ip" {
   location = "%s"
   size = 1
   name = "ipblock TF test"
+}`
+
+const testAccCheckProfitbricksIPBlockConfig_update = `
+resource "profitbricks_ipblock" "webserver_ip" {
+  location = "%s"
+  size = 1
+  name = "updated"
 }`

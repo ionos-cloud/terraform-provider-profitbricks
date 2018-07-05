@@ -13,12 +13,12 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceProfitBricksIPBlockCreate,
 		Read:   resourceProfitBricksIPBlockRead,
+		Update: resourceProfitBricksIPBlockUpdate,
 		Delete: resourceProfitBricksIPBlockDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"location": {
 				Type:     schema.TypeString,
@@ -90,6 +90,24 @@ func resourceProfitBricksIPBlockRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", ipblock.Properties.Name)
 
 	return nil
+}
+func resourceProfitBricksIPBlockUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
+	request := profitbricks.IPBlockProperties{}
+
+	if d.HasChange("name") {
+		_, n := d.GetChange("name")
+		request.Name = n.(string)
+	}
+
+	_, err := client.UpdateIPBlock(d.Id(), request)
+
+	if err != nil {
+		return fmt.Errorf("An error occured while updating an ip block ID %s %s", d.Id(), err)
+	}
+
+	return nil
+
 }
 
 func resourceProfitBricksIPBlockDelete(d *schema.ResourceData, meta interface{}) error {
