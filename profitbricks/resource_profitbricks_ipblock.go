@@ -13,12 +13,12 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceProfitBricksIPBlockCreate,
 		Read:   resourceProfitBricksIPBlockRead,
+		Update: resourceProfitBricksIPBlockUpdate,
 		Delete: resourceProfitBricksIPBlockDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"location": {
 				Type:     schema.TypeString,
@@ -43,7 +43,7 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 
 func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	ipblock := profitbricks.IPBlock{
+	ipblock := &profitbricks.IPBlock{
 		Properties: profitbricks.IPBlockProperties{
 			Size:     d.Get("size").(int),
 			Location: d.Get("location").(string),
@@ -51,19 +51,19 @@ func resourceProfitBricksIPBlockCreate(d *schema.ResourceData, meta interface{})
 		},
 	}
 
-	resp, err := client.ReserveIPBlock(ipblock)
+	ipblock, err := client.ReserveIPBlock(*ipblock)
 
 	if err != nil {
 		return fmt.Errorf("An error occured while reserving an ip block: %s", err)
 	}
 
 	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	_, errState := getStateChangeConf(meta, d, ipblock.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
 		return errState
 	}
 
-	d.SetId(resp.ID)
+	d.SetId(ipblock.ID)
 
 	return resourceProfitBricksIPBlockRead(d, meta)
 }
@@ -90,6 +90,24 @@ func resourceProfitBricksIPBlockRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", ipblock.Properties.Name)
 
 	return nil
+}
+func resourceProfitBricksIPBlockUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*profitbricks.Client)
+	request := profitbricks.IPBlockProperties{}
+
+	if d.HasChange("name") {
+		_, n := d.GetChange("name")
+		request.Name = n.(string)
+	}
+
+	_, err := client.UpdateIPBlock(d.Id(), request)
+
+	if err != nil {
+		return fmt.Errorf("An error occured while updating an ip block ID %s %s", d.Id(), err)
+	}
+
+	return nil
+
 }
 
 func resourceProfitBricksIPBlockDelete(d *schema.ResourceData, meta interface{}) error {
