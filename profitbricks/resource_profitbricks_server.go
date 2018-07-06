@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -19,6 +18,9 @@ func resourceProfitBricksServer() *schema.Resource {
 		Read:   resourceProfitBricksServerRead,
 		Update: resourceProfitBricksServerUpdate,
 		Delete: resourceProfitBricksServerDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceProfitBricksServerImport,
+		},
 		Schema: map[string]*schema.Schema{
 
 			//Server parameters
@@ -58,7 +60,7 @@ func resourceProfitBricksServer() *schema.Resource {
 			},
 			"boot_image": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"primary_nic": {
 				Type:     schema.TypeString,
@@ -73,15 +75,20 @@ func resourceProfitBricksServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"ssh_key_path": {
+				Type:     schema.TypeList,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+			},
+			"admin_pass": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"volume": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"image_name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
 						"size": {
 							Type:     schema.TypeInt,
 							Required: true,
@@ -90,17 +97,8 @@ func resourceProfitBricksServer() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"image_password": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
 						"licence_type": {
 							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"ssh_key_path": {
-							Type:     schema.TypeList,
-							Elem:     &schema.Schema{Type: schema.TypeString},
 							Optional: true,
 						},
 						"bus": {
@@ -153,73 +151,6 @@ func resourceProfitBricksServer() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
-						"firewall": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-
-									"protocol": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"source_mac": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"source_ip": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"target_ip": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"ip": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"ips": {
-										Type:     schema.TypeList,
-										Elem:     &schema.Schema{Type: schema.TypeString},
-										Optional: true,
-									},
-									"port_range_start": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											if v.(int) < 1 && v.(int) > 65534 {
-												errors = append(errors, fmt.Errorf("Port start range must be between 1 and 65534"))
-											}
-											return
-										},
-									},
-
-									"port_range_end": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-											if v.(int) < 1 && v.(int) > 65534 {
-												errors = append(errors, fmt.Errorf("Port end range must be between 1 and 65534"))
-											}
-											return
-										},
-									},
-									"icmp_type": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"icmp_code": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
 					},
 				},
 			},
@@ -263,14 +194,10 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			var sshkey_path []interface{}
 			var image, licenceType, availabilityZone string
 
-			if rawMap["image_password"] != nil {
-				imagePassword = rawMap["image_password"].(string)
-			}
-			if rawMap["ssh_key_path"] != nil {
-				sshkey_path = rawMap["ssh_key_path"].([]interface{})
-			}
+			imagePassword = d.Get("admin_pass").(string)
+			sshkey_path = d.Get("ssh_key_path").([]interface{})
 
-			image_name := rawMap["image_name"].(string)
+			image_name := d.Get("boot_image").(string)
 			if !IsValidUUID(image_name) {
 				img, err := getImage(client, dcId, image_name, rawMap["disk_type"].(string))
 				if err != nil {
@@ -298,7 +225,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
 				}
 				if imagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false && img.Properties.Public {
-					return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
+					return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
 				}
 			} else {
 				img, err := client.GetImage(image_name)
@@ -326,7 +253,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 				}
 				if img.Properties.Public == true && isSnapshot == false {
 					if imagePassword == "" && len(sshkey_path) == 0 {
-						return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
+						return fmt.Errorf("Either 'admin_pass' or 'ssh_key_path' must be provided.")
 					}
 					img, err := getImage(client, d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
 					if err != nil {
@@ -346,7 +273,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					}
 					if img.Properties.Public == true && isSnapshot == false {
 						if imagePassword == "" && len(sshkey_path) == 0 {
-							return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
+							return fmt.Errorf("Either 'admin_pass' or 'ssh_key_path' must be provided.")
 						}
 						image = image_name
 					} else {
@@ -444,66 +371,6 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					nic,
 				},
 			}
-
-			if rawMap["firewall"] != nil {
-				rawFw := rawMap["firewall"].(*schema.Set).List()
-				for _, rraw := range rawFw {
-					fwRaw := rraw.(map[string]interface{})
-					log.Println("[DEBUG] fwRaw", fwRaw["protocol"])
-
-					firewall := profitbricks.FirewallRule{
-						Properties: profitbricks.FirewallruleProperties{
-							Protocol: fwRaw["protocol"].(string),
-						},
-					}
-
-					if fwRaw["name"] != nil {
-						firewall.Properties.Name = fwRaw["name"].(string)
-					}
-					if fwRaw["source_mac"] != "" {
-						tempSourceMac := fwRaw["source_mac"].(string)
-						firewall.Properties.SourceMac = &tempSourceMac
-					}
-					if fwRaw["source_ip"] != "" {
-						tempSourceIp := fwRaw["source_ip"].(string)
-						firewall.Properties.SourceIP = &tempSourceIp
-					}
-					if fwRaw["target_ip"] != "" {
-						tempTargetIp := fwRaw["target_ip"].(string)
-						firewall.Properties.TargetIP = &tempTargetIp
-					}
-					if fwRaw["port_range_start"] != nil {
-						tempPortRangeStart := fwRaw["port_range_start"].(int)
-						firewall.Properties.PortRangeStart = &tempPortRangeStart
-					}
-					if fwRaw["port_range_end"] != nil {
-						tempPortRangeStart := fwRaw["port_range_end"].(int)
-						firewall.Properties.PortRangeEnd = &tempPortRangeStart
-					}
-					if fwRaw["icmp_type"] != nil {
-						tempIcmpType := fwRaw["icmp_type"].(string)
-						if tempIcmpType != "" {
-							i, _ := strconv.Atoi(tempIcmpType)
-							firewall.Properties.IcmpType = &i
-						}
-					}
-					if fwRaw["icmp_code"] != nil {
-						tempIcmpCode := fwRaw["icmp_type"].(string)
-						if tempIcmpCode != "" {
-							i, _ := strconv.Atoi(tempIcmpCode)
-							firewall.Properties.IcmpCode = &i
-						}
-					}
-
-					request.Entities.Nics.Items[0].Entities = &profitbricks.NicEntities{
-						FirewallRules: &profitbricks.FirewallRules{
-							Items: []profitbricks.FirewallRule{
-								firewall,
-							},
-						},
-					}
-				}
-			}
 		}
 	}
 
@@ -563,6 +430,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("cores", server.Properties.Cores)
 	d.Set("ram", server.Properties.RAM)
 	d.Set("availability_zone", server.Properties.AvailabilityZone)
+	d.Set("cpu_family", server.Properties.CPUFamily)
 
 	if primarynic, ok := d.GetOk("primary_nic"); ok {
 		d.Set("primary_nic", primarynic.(string))
@@ -576,29 +444,41 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 			d.Set("primary_ip", nic.Properties.Ips[0])
 		}
 
-		if nRaw, ok := d.GetOk("nic"); ok {
-			log.Printf("[DEBUG] parsing nic")
+		network := map[string]interface{}{
+			"lan":             nic.Properties.Lan,
+			"name":            nic.Properties.Name,
+			"dhcp":            *nic.Properties.Dhcp,
+			"nat":             nic.Properties.Nat,
+			"firewall_active": nic.Properties.FirewallActive,
+			"ips":             nic.Properties.Ips,
+		}
+		networks := []map[string]interface{}{network}
 
-			nicRaw := nRaw.(*schema.Set).List()
-
-			for _, raw := range nicRaw {
-
-				rawMap := raw.(map[string]interface{})
-
-				rawMap["lan"] = nic.Properties.Lan
-				rawMap["name"] = nic.Properties.Name
-				rawMap["dhcp"] = nic.Properties.Dhcp
-				rawMap["nat"] = nic.Properties.Nat
-				rawMap["firewall_active"] = nic.Properties.FirewallActive
-				rawMap["ips"] = nic.Properties.Ips
-			}
-			d.Set("nic", nicRaw)
+		if err := d.Set("nic", networks); err != nil {
+			return fmt.Errorf("[DEBUG] Error saving nic to state for ProfitBricks server (%s): %s", d.Id(), err)
 		}
 	}
 
 	if server.Properties.BootVolume != nil {
 		d.Set("boot_volume", server.Properties.BootVolume.ID)
+
+		volumeObj, err := client.GetAttachedVolume(dcId, serverId, server.Properties.BootVolume.ID)
+		if err != nil {
+			return fmt.Errorf("Error occured while fetching attached volume %s from server ID %s %s", server.Properties.BootVolume.ID, serverId, err)
+		}
+
+		volumeItem := map[string]interface{}{
+			"name":      volumeObj.Properties.Name,
+			"disk_type": volumeObj.Properties.Type,
+			"size":      volumeObj.Properties.Size,
+		}
+
+		volumesList := []map[string]interface{}{volumeItem}
+		if err := d.Set("volume", volumesList); err != nil {
+			return fmt.Errorf("[DEBUG] Error saving volume to state for ProfitBricks server (%s): %s", d.Id(), err)
+		}
 	}
+
 	if server.Properties.BootCdrom != nil {
 		d.Set("boot_cdrom", server.Properties.BootCdrom.ID)
 	}
