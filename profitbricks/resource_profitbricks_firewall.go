@@ -14,6 +14,9 @@ func resourceProfitBricksFirewall() *schema.Resource {
 		Read:   resourceProfitBricksFirewallRead,
 		Update: resourceProfitBricksFirewallUpdate,
 		Delete: resourceProfitBricksFirewallDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceProfitBricksFirewallImport,
+		},
 		Schema: map[string]*schema.Schema{
 
 			"name": {
