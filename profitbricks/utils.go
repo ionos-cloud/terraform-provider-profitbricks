@@ -33,3 +33,15 @@ func resourceProfitBricksFirewallImport(d *schema.ResourceData, meta interface{}
 	return []*schema.ResourceData{d}, nil
 }
 
+func resourceProfitBricksNicImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 3 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("Invalid import id %q. Expecting {datacenter}/{server}/{nic}", d.Id())
+	}
+
+	d.Set("datacenter_id", parts[0])
+	d.Set("server_id", parts[1])
+	d.SetId(parts[2])
+
+	return []*schema.ResourceData{d}, nil
+}
