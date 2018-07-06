@@ -30,11 +30,11 @@ func TestAccProfitBricksNic_ImportBasic(t *testing.T) {
 	})
 }
 
-func testAccProfitBricksNicImportStateId(s *terraform.State) (string, error){
+func testAccProfitBricksNicImportStateId(s *terraform.State) (string, error) {
 	var importID string = ""
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "profitbricks_nic" && rs.Primary.ID != "database_nic"{
+		if rs.Type != "profitbricks_nic" && rs.Primary.ID != "database_nic" {
 			continue
 		}
 

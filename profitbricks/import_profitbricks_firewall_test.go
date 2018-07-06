@@ -30,7 +30,7 @@ func TestAccProfitBricksFirewall_ImportBasic(t *testing.T) {
 	})
 }
 
-func testAccProfitBricksFirewallImportStateId(s *terraform.State) (string, error){
+func testAccProfitBricksFirewallImportStateId(s *terraform.State) (string, error) {
 	var importID string = ""
 
 	for _, rs := range s.RootModule().Resources {

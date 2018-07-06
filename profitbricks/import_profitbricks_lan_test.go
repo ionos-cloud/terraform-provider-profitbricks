@@ -30,7 +30,7 @@ func TestAccProfitBricksLan_ImportBasic(t *testing.T) {
 	})
 }
 
-func testAccProfitBricksLanImportStateId(s *terraform.State) (string, error){
+func testAccProfitBricksLanImportStateId(s *terraform.State) (string, error) {
 	var importID string = ""
 
 	for _, rs := range s.RootModule().Resources {

@@ -21,17 +21,17 @@ func TestAccProfitBricksServer_ImportBasic(t *testing.T) {
 			},
 
 			resource.TestStep{
-				ResourceName:      "profitbricks_server.webserver",
-				ImportStateIdFunc: testAccProfitBricksServerImportStateId,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            "profitbricks_server.webserver",
+				ImportStateIdFunc:       testAccProfitBricksServerImportStateId,
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"admin_pass", "boot_image"},
 			},
 		},
 	})
 }
 
-func testAccProfitBricksServerImportStateId(s *terraform.State) (string, error){
+func testAccProfitBricksServerImportStateId(s *terraform.State) (string, error) {
 	var importID string = ""
 
 	for _, rs := range s.RootModule().Resources {
