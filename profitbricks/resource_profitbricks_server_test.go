@@ -159,7 +159,7 @@ resource "profitbricks_server" "webserver" {
   volume {
     name = "system"
     size = 5
-    disk_type = "HDD"
+    disk_type = "SSD"
 }
   nic {
     lan = "${profitbricks_lan.webserver_lan.id}"
