@@ -516,6 +516,11 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("Error occured while updating server ID %s %s", d.Id(), err)
 	}
+
+	_, errState := getStateChangeConf(meta, d, server.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
+	}
 	//Volume stuff
 	if d.HasChange("volume") {
 		_, new := d.GetChange("volume")
