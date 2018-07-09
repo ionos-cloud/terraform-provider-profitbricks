@@ -25,7 +25,7 @@ func TestAccProfitBricksServer_ImportBasic(t *testing.T) {
 				ImportStateIdFunc:       testAccProfitBricksServerImportStateId,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"admin_pass", "boot_image"},
+				ImportStateVerifyIgnore: []string{"image_password", "boot_image"},
 			},
 		},
 	})

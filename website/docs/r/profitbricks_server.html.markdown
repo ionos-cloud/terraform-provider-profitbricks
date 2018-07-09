@@ -22,7 +22,7 @@ resource "profitbricks_server" "example" {
   ram               = 1024
   availability_zone = "ZONE_1"
   cpu_family        = "AMD_OPTERON"
-  admin_pass        = "test1234"
+  image_password    = "test1234"
   ssh_key_path      = "${var.private_key_path}"
   boot_image        = "${var.ubuntu}"
 
@@ -57,6 +57,6 @@ resource "profitbricks_server" "example" {
 * `boot_image` - [string] The image or snapshot UUID. May also be an image alias. It is required if `licence_type` is not provided.
 * `primary_nic` - (Computed) The associated NIC.
 * `primary_ip` - (Computed) The associated IP address.
-* `admin_pass` - (Computed) The associated IP address.
+* `image_password` - (Computed) The associated IP address.
 * `ssh_key_path` -  (Required)[list] List of paths to files containing a public SSH key that will be injected into ProfitBricks provided Linux images. Required for ProfitBricks Linux images. Required if `image_password` is not provided.
 * `image_password` - [string] Required if `sshkey_path` is not provided.

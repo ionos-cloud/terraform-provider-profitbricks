@@ -120,7 +120,7 @@ resource "profitbricks_server" "webserver" {
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
 	boot_image = "ubuntu-16.04"
-	admin_pass = "K3tTj8G14a3EgKyNeeiY"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5
@@ -163,7 +163,7 @@ resource "profitbricks_server" "webserver" {
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
 	boot_image = "ubuntu-16.04"
-	admin_pass = "K3tTj8G14a3EgKyNeeiY"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5

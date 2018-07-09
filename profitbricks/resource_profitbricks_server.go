@@ -80,7 +80,7 @@ func resourceProfitBricksServer() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
-			"admin_pass": {
+			"image_password": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -194,7 +194,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			var sshkey_path []interface{}
 			var image, licenceType, availabilityZone string
 
-			imagePassword = d.Get("admin_pass").(string)
+			imagePassword = d.Get("image_password").(string)
 			sshkey_path = d.Get("ssh_key_path").([]interface{})
 
 			image_name := d.Get("boot_image").(string)
@@ -253,7 +253,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 				}
 				if img.Properties.Public == true && isSnapshot == false {
 					if imagePassword == "" && len(sshkey_path) == 0 {
-						return fmt.Errorf("Either 'admin_pass' or 'ssh_key_path' must be provided.")
+						return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
 					}
 					img, err := getImage(client, d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
 					if err != nil {
@@ -273,7 +273,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 					}
 					if img.Properties.Public == true && isSnapshot == false {
 						if imagePassword == "" && len(sshkey_path) == 0 {
-							return fmt.Errorf("Either 'admin_pass' or 'ssh_key_path' must be provided.")
+							return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
 						}
 						image = image_name
 					} else {
