@@ -61,7 +61,7 @@ func resourceProfitBricksServer() *schema.Resource {
 			},
 			"boot_image": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 			"primary_nic": {
 				Type:     schema.TypeString,
@@ -80,20 +80,17 @@ func resourceProfitBricksServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"ssh_key_path": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
-			"image_password": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 			"volume": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"image_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
 						"size": {
 							Type:     schema.TypeInt,
 							Required: true,
@@ -102,13 +99,24 @@ func resourceProfitBricksServer() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"image_password": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"licence_type": {
 							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"ssh_key_path": {
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 							Optional: true,
 						},
 						"bus": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"name": {
 							Type:     schema.TypeString,
@@ -117,6 +125,7 @@ func resourceProfitBricksServer() *schema.Resource {
 						"availability_zone": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -270,158 +279,160 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			request.Properties.CPUFamily = v.(string)
 		}
 	}
-	if vRaw, ok := d.GetOk("volume"); ok {
 
-		volumeRaw := vRaw.(*schema.Set).List()
+	volume := profitbricks.VolumeProperties{
+		Size: d.Get("volume.0.size").(int),
+		Type: d.Get("volume.0.disk_type").(string),
+	}
 
-		for _, raw := range volumeRaw {
-			rawMap := raw.(map[string]interface{})
-			var imagePassword string
-			//Can be one file or a list of files
-			var sshkey_path []interface{}
-			var image, licenceType, availabilityZone string
+	if v, ok := d.GetOk("volume.0.image_password"); ok {
+		volume.ImagePassword = v.(string)
+	}
 
-			imagePassword = d.Get("image_password").(string)
-			sshkey_path = d.Get("ssh_key_path").([]interface{})
+	if v, ok := d.GetOk("volume.0.licence_type"); ok {
+		volume.LicenceType = v.(string)
+	}
 
-			image_name := d.Get("boot_image").(string)
-			if !IsValidUUID(image_name) {
-				img, err := getImage(client, dcId, image_name, rawMap["disk_type"].(string))
+	if v, ok := d.GetOk("volume.0.availability_zone"); ok {
+		volume.AvailabilityZone = v.(string)
+	}
+
+	if v, ok := d.GetOk("volume.0.name"); ok {
+		volume.Name = v.(string)
+	}
+
+	if v, ok := d.GetOk("volume.0.bus"); ok {
+		volume.Bus = v.(string)
+	}
+
+	if v, ok := d.GetOk("volume.0.image_password"); ok {
+		volume.ImagePassword = v.(string)
+	}
+
+	var sshkey_path []interface{}
+
+	if v, ok := d.GetOk("volume.0.ssh_key_path"); ok {
+		sshkey_path = v.([]interface{})
+	}
+
+	var image string
+
+	image_name := d.Get("volume.0.image_name").(string)
+	if !IsValidUUID(image_name) {
+		img, err := getImage(client, dcId, image_name, volume.Type)
+		if err != nil {
+			return err
+		}
+		if img != nil {
+			image = img.ID
+		}
+		//if no image id was found with that name we look for a matching snapshot
+		if image == "" {
+			image = getSnapshotId(client, image_name)
+			if image != "" {
+				isSnapshot = true
+			} else {
+				dc, err := client.GetDatacenter(dcId)
 				if err != nil {
-					return err
+					return fmt.Errorf("Error fetching datacenter %s: (%s)", dcId, err)
 				}
-
-				if img != nil {
-					image = img.ID
-				}
-
-				//if no image id was found with that name we look for a matching snapshot
-				if image == "" {
-					image = getSnapshotId(client, image_name)
-					if image != "" {
-						isSnapshot = true
-					} else {
-						dc, err := client.GetDatacenter(dcId)
-						if err != nil {
-							return fmt.Errorf("Error fetching datacenter %s: (%s)", dcId, err)
-						}
-						image_alias = getImageAlias(client, image_name, dc.Properties.Location)
-					}
-				}
-				if image == "" && image_alias == "" {
-					return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
-				}
-				if imagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false && img.Properties.Public {
-					return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
-				}
-			} else {
-				img, err := client.GetImage(image_name)
-
-				var apiError profitbricks.ApiError
-
-				if apiError, ok = err.(profitbricks.ApiError); !ok {
-					return fmt.Errorf("Error fetching image %s: (%s)", image_name, err)
-				}
-
-				if apiError.HttpStatusCode() == 404 {
-					img, err := client.GetSnapshot(image_name)
-
-					if apiError, ok := err.(profitbricks.ApiError); !ok {
-						if apiError.HttpStatusCode() == 404 {
-							return fmt.Errorf("image/snapshot: %s Not Found", img.Response)
-						}
-					}
-
-					isSnapshot = true
-				} else {
-					if err != nil {
-						return fmt.Errorf("Error fetching image/snapshot: %s", err)
-					}
-				}
-				if img.Properties.Public == true && isSnapshot == false {
-					if imagePassword == "" && len(sshkey_path) == 0 {
-						return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
-					}
-					img, err := getImage(client, d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
-					if err != nil {
-						return err
-					}
-					if img != nil {
-						image = img.ID
-					}
-				} else {
-					img, err := client.GetImage(image_name)
-					if err != nil {
-						img, err := client.GetSnapshot(image_name)
-						if err != nil {
-							return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
-						}
-						isSnapshot = true
-					}
-					if img.Properties.Public == true && isSnapshot == false {
-						if imagePassword == "" && len(sshkey_path) == 0 {
-							return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
-						}
-						image = image_name
-					} else {
-						image = image_name
-					}
-				}
-			}
-
-			if rawMap["licence_type"] != nil {
-				licenceType = rawMap["licence_type"].(string)
-			}
-
-			var publicKeys []string
-			if len(sshkey_path) != 0 {
-				for _, path := range sshkey_path {
-					log.Printf("[DEBUG] Reading file %s", path)
-					publicKey, err := readPublicKey(path.(string))
-					if err != nil {
-						return fmt.Errorf("Error fetching sshkey from file (%s) %s", path, err.Error())
-					}
-					publicKeys = append(publicKeys, publicKey)
-				}
-			}
-			if rawMap["availability_zone"] != nil {
-				availabilityZone = rawMap["availability_zone"].(string)
-			}
-			if image == "" && licenceType == "" && image_alias == "" && !isSnapshot {
-				return fmt.Errorf("Either 'image', 'licenceType', or 'imageAlias' must be set.")
-			}
-
-			if isSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
-				return fmt.Errorf("Passwords/SSH keys  are not supported for snapshots.")
-			}
-
-			request.Entities = &profitbricks.ServerEntities{
-				Volumes: &profitbricks.Volumes{
-					Items: []profitbricks.Volume{
-						{
-							Properties: profitbricks.VolumeProperties{
-								Name:             rawMap["name"].(string),
-								Size:             rawMap["size"].(int),
-								Type:             rawMap["disk_type"].(string),
-								ImagePassword:    imagePassword,
-								Image:            image,
-								ImageAlias:       image_alias,
-								Bus:              rawMap["bus"].(string),
-								LicenceType:      licenceType,
-								AvailabilityZone: availabilityZone,
-							},
-						},
-					},
-				},
-			}
-
-			if len(publicKeys) == 0 {
-				request.Entities.Volumes.Items[0].Properties.SSHKeys = nil
-			} else {
-				request.Entities.Volumes.Items[0].Properties.SSHKeys = publicKeys
+				image_alias = getImageAlias(client, image_name, dc.Properties.Location)
 			}
 		}
+		if image == "" && image_alias == "" {
+			return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
+		}
+		if volume.ImagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false && img.Properties.Public {
+			return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
+		}
+	} else {
+		img, err := client.GetImage(image_name)
 
+		apiError, ok := err.(profitbricks.ApiError)
+		if !ok {
+			return fmt.Errorf("Error fetching image %s: (%s)", image_name, err)
+		}
+
+		if apiError.HttpStatusCode() == 404 {
+			img, err := client.GetSnapshot(image_name)
+
+			if apiError, ok := err.(profitbricks.ApiError); !ok {
+				if apiError.HttpStatusCode() == 404 {
+					return fmt.Errorf("image/snapshot: %s Not Found", img.Response)
+				}
+			}
+
+			isSnapshot = true
+		} else {
+			if err != nil {
+				return fmt.Errorf("Error fetching image/snapshot: %s", err)
+			}
+		}
+		if img.Properties.Public == true && isSnapshot == false {
+			if volume.ImagePassword == "" && len(sshkey_path) == 0 {
+				return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
+			}
+			img, err := getImage(client, d.Get("datacenter_id").(string), image_name, volume.Type)
+			if err != nil {
+				return err
+			}
+			if img != nil {
+				image = img.ID
+			}
+		} else {
+			img, err := client.GetImage(image_name)
+			if err != nil {
+				img, err := client.GetSnapshot(image_name)
+				if err != nil {
+					return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
+				}
+				isSnapshot = true
+			}
+			if img.Properties.Public == true && isSnapshot == false {
+				if volume.ImagePassword == "" && len(sshkey_path) == 0 {
+					return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
+				}
+				image = image_name
+			} else {
+				image = image_name
+			}
+		}
+	}
+
+	if len(sshkey_path) != 0 {
+		var publicKeys []string
+		for _, path := range sshkey_path {
+			log.Printf("[DEBUG] Reading file %s", path)
+			publicKey, err := readPublicKey(path.(string))
+			if err != nil {
+				return fmt.Errorf("Error fetching sshkey from file (%s) %s", path, err.Error())
+			}
+			publicKeys = append(publicKeys, publicKey)
+		}
+		if len(publicKeys) > 0 {
+			volume.SSHKeys = publicKeys
+		}
+	}
+
+	if image == "" && volume.LicenceType == "" && image_alias == "" && !isSnapshot {
+		return fmt.Errorf("Either 'image', 'licenceType', or 'imageAlias' must be set.")
+	}
+
+	if isSnapshot == true && (volume.ImagePassword != "" || len(sshkey_path) > 0) {
+		return fmt.Errorf("Passwords/SSH keys are not supported for snapshots.")
+	}
+
+	volume.ImageAlias = image_alias
+	volume.Image = image
+
+	request.Entities = &profitbricks.ServerEntities{
+		Volumes: &profitbricks.Volumes{
+			Items: []profitbricks.Volume{
+				{
+					Properties: volume,
+				},
+			},
+		},
 	}
 
 	if _, ok := d.GetOk("nic"); ok {
@@ -665,15 +676,25 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 		}
 
 		volumeItem := map[string]interface{}{
-			"name":      volumeObj.Properties.Name,
-			"disk_type": volumeObj.Properties.Type,
-			"size":      volumeObj.Properties.Size,
+			"name":              volumeObj.Properties.Name,
+			"disk_type":         volumeObj.Properties.Type,
+			"size":              volumeObj.Properties.Size,
+			"licence_type":      volumeObj.Properties.LicenceType,
+			"bus":               volumeObj.Properties.Bus,
+			"availability_zone": volumeObj.Properties.AvailabilityZone,
+			"image_name":        volumeObj.Properties.Image,
 		}
+		/*old, _ := d.GetChange("volume.0.image_password")
+		volumeItem["image_password"] = old
+
+		old, _ = d.GetChange("volume.0.image_name")
+		volumeItem["image_name"] = old*/
 
 		volumesList := []map[string]interface{}{volumeItem}
 		if err := d.Set("volume", volumesList); err != nil {
 			return fmt.Errorf("[DEBUG] Error saving volume to state for ProfitBricks server (%s): %s", d.Id(), err)
 		}
+
 	}
 
 	if server.Properties.BootCdrom != nil {
@@ -720,22 +741,18 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	//Volume stuff
 	if d.HasChange("volume") {
-		_, new := d.GetChange("volume")
-
-		newVolume := new.(*schema.Set).List()
 		properties := profitbricks.VolumeProperties{}
 
-		for _, raw := range newVolume {
-			rawMap := raw.(map[string]interface{})
-			if rawMap["name"] != nil {
-				properties.Name = rawMap["name"].(string)
-			}
-			if rawMap["size"] != nil {
-				properties.Size = rawMap["size"].(int)
-			}
-			if rawMap["bus"] != nil {
-				properties.Bus = rawMap["bus"].(string)
-			}
+		if v, ok := d.GetOk("volume.0.name"); ok {
+			properties.Name = v.(string)
+		}
+
+		if v, ok := d.GetOk("volume.0.size"); ok {
+			properties.Size = v.(int)
+		}
+
+		if v, ok := d.GetOk("volume.0.bus"); ok {
+			properties.Bus = v.(string)
 		}
 
 		volume, err := client.UpdateVolume(d.Get("datacenter_id").(string), server.Entities.Volumes.Items[0].ID, properties)
