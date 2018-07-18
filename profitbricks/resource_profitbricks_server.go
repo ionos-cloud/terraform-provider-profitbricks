@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -70,6 +71,10 @@ func resourceProfitBricksServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"firewallrule_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"datacenter_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -117,8 +122,9 @@ func resourceProfitBricksServer() *schema.Resource {
 				},
 			},
 			"nic": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"lan": {
@@ -137,6 +143,12 @@ func resourceProfitBricksServer() *schema.Resource {
 						"ip": {
 							Type:     schema.TypeString,
 							Optional: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if new == "" {
+									return true
+								}
+								return false
+							},
 						},
 						"ips": {
 							Type:     schema.TypeList,
@@ -150,6 +162,81 @@ func resourceProfitBricksServer() *schema.Resource {
 						"firewall_active": {
 							Type:     schema.TypeBool,
 							Optional: true,
+						},
+						"firewall": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"protocol": {
+										Type:     schema.TypeString,
+										Required: true,
+										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+											if strings.ToLower(old) == strings.ToLower(new) {
+												return true
+											}
+											return false
+										},
+									},
+									"source_mac": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"source_ip": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"target_ip": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"ip": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+									},
+									"ips": {
+										Type:     schema.TypeList,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+										Optional: true,
+									},
+									"port_range_start": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+											if v.(int) < 1 && v.(int) > 65534 {
+												errors = append(errors, fmt.Errorf("Port start range must be between 1 and 65534"))
+											}
+											return
+										},
+									},
+
+									"port_range_end": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
+											if v.(int) < 1 && v.(int) > 65534 {
+												errors = append(errors, fmt.Errorf("Port end range must be between 1 and 65534"))
+											}
+											return
+										},
+									},
+									"icmp_type": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"icmp_code": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -337,38 +424,96 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 
 	}
 
-	if nRaw, ok := d.GetOk("nic"); ok {
-		nicRaw := nRaw.(*schema.Set).List()
+	if _, ok := d.GetOk("nic"); ok {
+		nic := profitbricks.Nic{Properties: &profitbricks.NicProperties{
+			Lan: d.Get("nic.0.lan").(int),
+		}}
 
-		for _, raw := range nicRaw {
-			rawMap := raw.(map[string]interface{})
-			nic := profitbricks.Nic{Properties: &profitbricks.NicProperties{}}
-			if rawMap["lan"] != nil {
-				nic.Properties.Lan = rawMap["lan"].(int)
+		if v, ok := d.GetOk("nic.0.name"); ok {
+			nic.Properties.Name = v.(string)
+		}
+
+		if v, ok := d.GetOk("nic.0.dhcp"); ok {
+			val := v.(bool)
+			nic.Properties.Dhcp = &val
+		}
+
+		if v, ok := d.GetOk("nic.0.firewall_active"); ok {
+			nic.Properties.FirewallActive = v.(bool)
+		}
+
+		if v, ok := d.GetOk("nic.0.ip"); ok {
+			ips := strings.Split(v.(string), ",")
+			if len(ips) > 0 {
+				nic.Properties.Ips = ips
 			}
-			if rawMap["name"] != nil {
-				nic.Properties.Name = rawMap["name"].(string)
+		}
+
+		if v, ok := d.GetOk("nic.0.nat"); ok {
+			nic.Properties.Nat = v.(bool)
+		}
+
+		request.Entities.Nics = &profitbricks.Nics{
+			Items: []profitbricks.Nic{
+				nic,
+			},
+		}
+
+		if _, ok := d.GetOk("nic.0.firewall"); ok {
+			firewall := profitbricks.FirewallRule{
+				Properties: profitbricks.FirewallruleProperties{
+					Protocol: d.Get("nic.0.firewall.0.protocol").(string),
+				},
 			}
-			if rawMap["dhcp"] != nil {
-				val := rawMap["dhcp"].(bool)
-				nic.Properties.Dhcp = &val
+
+			if v, ok := d.GetOk("nic.0.firewall.0.name"); ok {
+				firewall.Properties.Name = v.(string)
 			}
-			if rawMap["firewall_active"] != nil {
-				nic.Properties.FirewallActive = rawMap["firewall_active"].(bool)
+
+			if v, ok := d.GetOk("nic.0.firewall.0.source_mac"); ok {
+				val := v.(string)
+				firewall.Properties.SourceMac = &val
 			}
-			if rawMap["ip"] != nil {
-				rawIps := rawMap["ip"].(string)
-				ips := strings.Split(rawIps, ",")
-				if rawIps != "" {
-					nic.Properties.Ips = ips
+
+			if v, ok := d.GetOk("nic.0.firewall.0.source_ip"); ok {
+				val := v.(string)
+				firewall.Properties.SourceIP = &val
+			}
+
+			if v, ok := d.GetOk("nic.0.firewall.0.target_ip"); ok {
+				val := v.(string)
+				firewall.Properties.TargetIP = &val
+			}
+
+			if v, ok := d.GetOk("nic.0.firewall.0.port_range_start"); ok {
+				val := v.(int)
+				firewall.Properties.PortRangeStart = &val
+			}
+
+			if v, ok := d.GetOk("nic.0.firewall.0.port_range_end"); ok {
+				val := v.(int)
+				firewall.Properties.PortRangeEnd = &val
+			}
+
+			if v, ok := d.GetOk("nic.0.firewall.0.icmp_type"); ok {
+				tempIcmpType := v.(string)
+				if tempIcmpType != "" {
+					i, _ := strconv.Atoi(tempIcmpType)
+					firewall.Properties.IcmpType = &i
 				}
 			}
-			if rawMap["nat"] != nil {
-				nic.Properties.Nat = rawMap["nat"].(bool)
+			if v, ok := d.GetOk("nic.0.firewall.0.icmp_code"); ok {
+				tempIcmpCode := v.(string)
+				if tempIcmpCode != "" {
+					i, _ := strconv.Atoi(tempIcmpCode)
+					firewall.Properties.IcmpCode = &i
+				}
 			}
-			request.Entities.Nics = &profitbricks.Nics{
-				Items: []profitbricks.Nic{
-					nic,
+			request.Entities.Nics.Items[0].Entities = &profitbricks.NicEntities{
+				FirewallRules: &profitbricks.FirewallRules{
+					Items: []profitbricks.FirewallRule{
+						firewall,
+					},
 				},
 			}
 		}
@@ -398,6 +543,12 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 	server, err = client.GetServer(d.Get("datacenter_id").(string), server.ID)
 	if err != nil {
 		return fmt.Errorf("Error fetching server: (%s)", err)
+	}
+
+	firewallRules, err := client.ListFirewallRules(d.Get("datacenter_id").(string), server.ID, server.Entities.Nics.Items[0].ID)
+
+	if len(firewallRules.Items) > 0 {
+		d.Set("firewallrule_id", firewallRules.Items[0].ID)
 	}
 
 	d.Set("primary_nic", server.Entities.Nics.Items[0].ID)
@@ -452,10 +603,56 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 			"firewall_active": nic.Properties.FirewallActive,
 			"ips":             nic.Properties.Ips,
 		}
-		networks := []map[string]interface{}{network}
 
+		if len(nic.Properties.Ips) > 0 {
+			network["ip"] = nic.Properties.Ips[0]
+		}
+
+		if firewall_id, ok := d.GetOk("firewallrule_id"); ok {
+			firewall, err := client.GetFirewallRule(dcId, serverId, primarynic.(string), firewall_id.(string))
+			if err != nil {
+				return fmt.Errorf("Error occured while fetching firewallrule %s for server ID %s %s", firewall_id.(string), serverId, err)
+			}
+
+			fw := map[string]interface{}{
+				"protocol": firewall.Properties.Protocol,
+				"name":     firewall.Properties.Name,
+			}
+
+			if firewall.Properties.SourceMac != nil {
+				fw["source_mac"] = *firewall.Properties.SourceMac
+			}
+
+			if firewall.Properties.SourceIP != nil {
+				fw["source_ip"] = *firewall.Properties.SourceIP
+			}
+
+			if firewall.Properties.TargetIP != nil {
+				fw["target_ip"] = *firewall.Properties.TargetIP
+			}
+
+			if firewall.Properties.PortRangeStart != nil {
+				fw["port_range_start"] = *firewall.Properties.PortRangeStart
+			}
+
+			if firewall.Properties.PortRangeEnd != nil {
+				fw["port_range_end"] = *firewall.Properties.PortRangeEnd
+			}
+
+			if firewall.Properties.IcmpType != nil {
+				fw["icmp_type"] = *firewall.Properties.IcmpType
+			}
+
+			if firewall.Properties.IcmpCode != nil {
+				fw["icmp_code"] = *firewall.Properties.IcmpCode
+			}
+
+			network["firewall"] = []map[string]interface{}{fw}
+		}
+
+		networks := []map[string]interface{}{network}
 		if err := d.Set("nic", networks); err != nil {
-			return fmt.Errorf("[DEBUG] Error saving nic to state for ProfitBricks server (%s): %s", d.Id(), err)
+			return fmt.Errorf("[ERROR] unable saving nic to state ProfitBricks Server (%s): %s", serverId, err)
 		}
 	}
 
@@ -563,34 +760,29 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 				break
 			}
 		}
-		_, new := d.GetChange("nic")
 
-		newNic := new.(*schema.Set).List()
-		properties := profitbricks.NicProperties{}
+		properties := profitbricks.NicProperties{
+			Lan: d.Get("nic.0.lan").(int),
+		}
 
-		for _, raw := range newNic {
-			rawMap := raw.(map[string]interface{})
-			if rawMap["name"] != nil {
-				properties.Name = rawMap["name"].(string)
-			}
-			if rawMap["ip"] != nil {
-				rawIps := rawMap["ip"].(string)
-				ips := strings.Split(rawIps, ",")
+		if v, ok := d.GetOk("nic.0.name"); ok {
+			properties.Name = v.(string)
+		}
 
-				if rawIps != "" {
-					nic.Properties.Ips = ips
-				}
+		if v, ok := d.GetOk("nic.0.ip"); ok {
+			ips := strings.Split(v.(string), ",")
+			if len(ips) > 0 {
+				nic.Properties.Ips = ips
 			}
-			if rawMap["lan"] != nil {
-				properties.Lan = rawMap["lan"].(int)
-			}
-			if rawMap["dhcp"] != nil {
-				val := rawMap["dhcp"].(bool)
-				properties.Dhcp = &val
-			}
-			if rawMap["nat"] != nil {
-				properties.Nat = rawMap["nat"].(bool)
-			}
+		}
+
+		if v, ok := d.GetOk("nic.0.dhcp"); ok {
+			val := v.(bool)
+			properties.Dhcp = &val
+		}
+
+		if v, ok := d.GetOk("nic.0.nat"); ok {
+			properties.Nat = v.(bool)
 		}
 
 		nic, err := client.UpdateNic(d.Get("datacenter_id").(string), server.ID, nic.ID, properties)
