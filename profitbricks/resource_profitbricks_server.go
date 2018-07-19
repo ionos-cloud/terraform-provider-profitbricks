@@ -80,6 +80,26 @@ func resourceProfitBricksServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"image_password": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				Computed:      true,
+				ConflictsWith: []string{"volume.0.image_password"},
+			},
+			"image_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"volume.0.image_name"},
+			},
+			"ssh_key_path": {
+				Type:          schema.TypeList,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"volume.0.ssh_key_path"},
+				Optional:      true,
+				Computed:      true,
+			},
 			"volume": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -88,8 +108,16 @@ func resourceProfitBricksServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"image_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"image_name"},
+							Deprecated:    "pleae use image_name",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if d.Get("image_name").(string) == new {
+									return true
+								}
+								return false
+							},
 						},
 						"size": {
 							Type:     schema.TypeInt,
@@ -100,8 +128,16 @@ func resourceProfitBricksServer() *schema.Resource {
 							Required: true,
 						},
 						"image_password": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							Deprecated:    "pleae use image_password",
+							ConflictsWith: []string{"image_password"},
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if d.Get("image_password").(string) == new {
+									return true
+								}
+								return false
+							},
 						},
 						"licence_type": {
 							Type:     schema.TypeString,
@@ -109,9 +145,26 @@ func resourceProfitBricksServer() *schema.Resource {
 							Computed: true,
 						},
 						"ssh_key_path": {
-							Type:     schema.TypeList,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Optional: true,
+							Type:       schema.TypeList,
+							Elem:       &schema.Schema{Type: schema.TypeString},
+							Optional:   true,
+							Deprecated: "please use ssh_key_path",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if k == "volume.0.ssh_key_path.#" {
+									if d.Get("ssh_key_path.#") == new {
+										return true
+									}
+								}
+
+								ssh_key_path := d.Get("volume.0.ssh_key_path").([]interface{})
+								old_ssh_key_path := d.Get("ssh_key_path").([]interface{})
+
+								if len(diffSlice(convertSlice(ssh_key_path), convertSlice(old_ssh_key_path))) == 0 {
+									return true
+								}
+
+								return false
+							},
 						},
 						"bus": {
 							Type:     schema.TypeString,
@@ -125,6 +178,11 @@ func resourceProfitBricksServer() *schema.Resource {
 						"availability_zone": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
+						},
+						"image_aliases": {
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 							Computed: true,
 						},
 					},
@@ -287,6 +345,11 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 
 	if v, ok := d.GetOk("volume.0.image_password"); ok {
 		volume.ImagePassword = v.(string)
+		d.Set("image_password", v.(string))
+	}
+
+	if v, ok := d.GetOk("image_password"); ok {
+		volume.ImagePassword = v.(string)
 	}
 
 	if v, ok := d.GetOk("volume.0.licence_type"); ok {
@@ -305,19 +368,28 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 		volume.Bus = v.(string)
 	}
 
-	if v, ok := d.GetOk("volume.0.image_password"); ok {
-		volume.ImagePassword = v.(string)
-	}
-
 	var sshkey_path []interface{}
 
 	if v, ok := d.GetOk("volume.0.ssh_key_path"); ok {
 		sshkey_path = v.([]interface{})
+		d.Set("ssh_key_path", v.([]interface{}))
+	} else if v, ok := d.GetOk("ssh_key_path"); ok {
+		sshkey_path = v.([]interface{})
+		d.Set("ssh_key_path", v.([]interface{}))
+	} else {
+		d.Set("ssh_key_path", [][]string{})
 	}
 
-	var image string
+	var image, image_name string
+	if v, ok := d.GetOk("volume.0.image_name"); ok {
+		image_name = v.(string)
+		d.Set("image_name", v.(string))
+	} else if v, ok := d.GetOk("image_name"); ok {
+		image_name = v.(string)
+	} else {
+		return fmt.Errorf("Either 'image_name' or 'volume.0.image_name' must be provided.")
+	}
 
-	image_name := d.Get("volume.0.image_name").(string)
 	if !IsValidUUID(image_name) {
 		img, err := getImage(client, dcId, image_name, volume.Type)
 		if err != nil {
@@ -682,13 +754,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 			"licence_type":      volumeObj.Properties.LicenceType,
 			"bus":               volumeObj.Properties.Bus,
 			"availability_zone": volumeObj.Properties.AvailabilityZone,
-			"image_name":        volumeObj.Properties.Image,
 		}
-		/*old, _ := d.GetChange("volume.0.image_password")
-		volumeItem["image_password"] = old
-
-		old, _ = d.GetChange("volume.0.image_name")
-		volumeItem["image_name"] = old*/
 
 		volumesList := []map[string]interface{}{volumeItem}
 		if err := d.Set("volume", volumesList); err != nil {
