@@ -29,7 +29,7 @@ func TestAccProfitBricksServer_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckProfitbricksServerConfig_basicnew, serverName),
+				Config: fmt.Sprintf(testAccCheckProfitbricksServerConfig_basicdep, serverName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksServerExists("profitbricks_server.webserver", &server),
 					testAccCheckProfitBricksServerAttributes("profitbricks_server.webserver", serverName),
@@ -129,9 +129,9 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name ="ubuntu:latest"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
-		image_name ="ubuntu:latest"
-		image_password = "K3tTj8G14a3EgKyNeeiY"
     name = "system"
     size = 5
     disk_type = "SSD"
@@ -140,13 +140,19 @@ resource "profitbricks_server" "webserver" {
     lan = "${profitbricks_lan.webserver_lan.id}"
     dhcp = true
     firewall_active = true
+		firewall {
+      protocol = "TCP"
+      name = "SSH"
+      port_range_start = 22
+      port_range_end = 22
+    }
   }
 }`
 
-const testAccCheckProfitbricksServerConfig_basicnew = `
+const testAccCheckProfitbricksServerConfig_basicdep = `
 resource "profitbricks_datacenter" "foobar" {
 	name       = "server-test"
-	location = "us/las"Computed:      true,
+	location = "us/las"
 }
 
 resource "profitbricks_lan" "webserver_lan" {
@@ -162,17 +168,23 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
-	image_name ="ubuntu:latest"
-	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
+		image_name ="ubuntu:latest"
+		image_password = "K3tTj8G14a3EgKyNeeiY"
     name = "system"
     size = 5
     disk_type = "SSD"
-}
+  }
   nic {
     lan = "${profitbricks_lan.webserver_lan.id}"
     dhcp = true
     firewall_active = true
+		firewall {
+      protocol = "TCP"
+      name = "SSH"
+      port_range_start = 22
+      port_range_end = 22
+    }
   }
 }`
 
@@ -195,9 +207,9 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name = "ubuntu:latest"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
-		image_name = "ubuntu:latest"
-		image_password = "K3tTj8G14a3EgKyNeeiY"
     name = "system"
     size = 5
     disk_type = "SSD"
@@ -206,5 +218,11 @@ resource "profitbricks_server" "webserver" {
     lan = "${profitbricks_lan.webserver_lan.id}"
     dhcp = true
     firewall_active = true
+		firewall {
+      protocol = "TCP"
+      name = "SSH"
+      port_range_start = 22
+      port_range_end = 22
+    }
   }
 }`
