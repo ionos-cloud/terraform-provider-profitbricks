@@ -144,18 +144,26 @@ func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func getImageId(client *profitbricks.Client, dcId string, imageName string, imageType string) string {
+<<<<<<< HEAD
+func getImageID(client *profitbricks.Client, dcId string, imageName string, imageType string) (*profitbricks.Image, error) {
 	if imageName == "" {
-		return ""
+		return nil, fmt.Errorf("imageName not suplied")
+=======
+func getImageId(client *profitbricks.Client, dcId string, imageName string, imageType string) *profitbricks.Image {
+	if imageName == "" {
+		return nil
+>>>>>>> 2b3fa13... Allowing usage of private images when provisioning a server
 	}
 	dc, err := client.GetDatacenter(dcId)
 	if err != nil {
 		log.Print(fmt.Errorf("Error while fetching a data center ID %s %s", dcId, err))
+		return nil, err
 	}
 
 	images, err := client.ListImages()
 	if err != nil {
 		log.Print(fmt.Errorf("Error while fetching the list of images %s", err))
+		return nil, err
 	}
 
 	if len(images.Items) > 0 {
@@ -168,12 +176,20 @@ func getImageId(client *profitbricks.Client, dcId string, imageName string, imag
 			if imageType == "SSD" {
 				imageType = "HDD"
 			}
-			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) && i.Properties.ImageType == imageType && i.Properties.Location == dc.Properties.Location && i.Properties.Public == true {
-				return i.ID
+			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) && i.Properties.ImageType == imageType && i.Properties.Location == dc.Properties.Location {
+<<<<<<< HEAD
+				return &i, err
 			}
 		}
 	}
-	return ""
+	return nil, err
+=======
+				return &i
+			}
+		}
+	}
+	return nil
+>>>>>>> 2b3fa13... Allowing usage of private images when provisioning a server
 }
 
 func getSnapshotId(client *profitbricks.Client, snapshotName string) string {
