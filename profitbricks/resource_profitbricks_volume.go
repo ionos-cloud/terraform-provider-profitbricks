@@ -99,14 +99,10 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	var image string
 	if image_alias == "" && image_name != "" {
 		if !IsValidUUID(image_name) {
-<<<<<<< HEAD
 			img, err := getImageID(client, dcId, image_name, d.Get("disk_type").(string))
 			if err != nil {
 				return err
 			}
-=======
-			img := getImageId(client, dcId, image_name, d.Get("disk_type").(string))
->>>>>>> 2b3fa13... Allowing usage of private images when provisioning a server
 			image = img.ID
 			//if no image id was found with that name we look for a matching snapshot
 			if image == "" {
