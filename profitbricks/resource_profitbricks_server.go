@@ -111,7 +111,7 @@ func resourceProfitBricksServer() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							ConflictsWith: []string{"image_name"},
-							Deprecated:    "pleae use image_name",
+							Deprecated:    "Please use image_name under server level",
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								if d.Get("image_name").(string) == new {
 									return true
@@ -130,7 +130,7 @@ func resourceProfitBricksServer() *schema.Resource {
 						"image_password": {
 							Type:          schema.TypeString,
 							Optional:      true,
-							Deprecated:    "pleae use image_password",
+							Deprecated:    "Please use image_password under server level",
 							ConflictsWith: []string{"image_password"},
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								if d.Get("image_password").(string) == new {
@@ -148,7 +148,7 @@ func resourceProfitBricksServer() *schema.Resource {
 							Type:       schema.TypeList,
 							Elem:       &schema.Schema{Type: schema.TypeString},
 							Optional:   true,
-							Deprecated: "please use ssh_key_path",
+							Deprecated: "Please use ssh_key_path under server level",
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								if k == "volume.0.ssh_key_path.#" {
 									if d.Get("ssh_key_path.#") == new {
