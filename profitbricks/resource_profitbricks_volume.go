@@ -99,7 +99,11 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	var image string
 	if image_alias == "" && image_name != "" {
 		if !IsValidUUID(image_name) {
-			image = getImageId(client, dcId, image_name, d.Get("disk_type").(string))
+			img, err := getImageID(client, dcId, image_name, d.Get("disk_type").(string))
+			if err != nil {
+				return err
+			}
+			image = img.ID
 			//if no image id was found with that name we look for a matching snapshot
 			if image == "" {
 				image = getSnapshotId(client, image_name)
@@ -119,7 +123,7 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 			if image == "" && image_alias == "" {
 				return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
 			}
-			if imagePassword == "" && len(ssh_keypath) == 0 && isSnapshot == false {
+			if imagePassword == "" && len(ssh_keypath) == 0 && isSnapshot == false && img.Properties.Public {
 				return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
 			}
 		} else {
