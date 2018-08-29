@@ -1,4 +1,9 @@
 ## 1.3.4 (Unreleased)
+
+IMPROVEMENTS:
+
+* Allowing usage of private images when provisioning a server ([#39](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/39))
+
 ## 1.3.3 (August 09, 2018)
 
 IMPROVEMENTS:
