@@ -21,13 +21,15 @@ func resourceProfitBricksResourceImport(d *schema.ResourceData, meta interface{}
 
 func resourceProfitBricksServerImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	parts := strings.Split(d.Id(), "/")
-	if len(parts) != 3 || parts[0] == "" || parts[1] == "" {
+	if len(parts) > 4 || len(parts) < 3 || parts[0] == "" || parts[1] == "" {
 		return nil, fmt.Errorf("Invalid import id %q. Expecting {datacenter}/{server}/{primary_nic} or {datacenter}/{server}/{primary_nic}/{firewall}", d.Id())
 	}
 
 	d.Set("datacenter_id", parts[0])
 	d.Set("primary_nic", parts[2])
-	d.Set("firewall_id", parts[3])
+	if len(parts) > 3 {
+		d.Set("firewallrule_id", parts[3])
+	}
 	d.SetId(parts[1])
 
 	return []*schema.ResourceData{d}, nil
