@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * Allowing usage of private images when provisioning a server ([#39](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/39))
 * Fix for image property when using image alias ([#40](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/40))
+* Force recreation of a resource when parents is changed ([#41](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/41))
 
 
 ## 1.3.3 (August 09, 2018)
