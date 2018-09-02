@@ -59,10 +59,12 @@ func resourceProfitBricksVolume() *schema.Resource {
 			"server_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"datacenter_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 

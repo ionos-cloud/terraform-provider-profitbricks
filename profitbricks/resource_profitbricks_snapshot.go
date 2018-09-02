@@ -22,10 +22,12 @@ func resourceProfitBricksSnapshot() *schema.Resource {
 			"volume_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"datacenter_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 

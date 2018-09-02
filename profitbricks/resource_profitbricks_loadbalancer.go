@@ -31,6 +31,7 @@ func resourceProfitBricksLoadbalancer() *schema.Resource {
 			"datacenter_id": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"nic_ids": &schema.Schema{
 				Type:     schema.TypeList,

@@ -71,6 +71,7 @@ func resourceProfitBricksServer() *schema.Resource {
 			"datacenter_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"volume": {
 				Type:     schema.TypeSet,
