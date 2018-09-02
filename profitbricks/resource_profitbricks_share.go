@@ -27,10 +27,12 @@ func resourceProfitBricksShare() *schema.Resource {
 			"group_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"resource_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 
