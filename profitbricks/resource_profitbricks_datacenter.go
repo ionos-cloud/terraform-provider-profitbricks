@@ -144,7 +144,7 @@ func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func getImageID(client *profitbricks.Client, dcId string, imageName string, imageType string) (*profitbricks.Image, error) {
+func getImage(client *profitbricks.Client, dcId string, imageName string, imageType string) (*profitbricks.Image, error) {
 	if imageName == "" {
 		return nil, fmt.Errorf("imageName not suplied")
 	}
