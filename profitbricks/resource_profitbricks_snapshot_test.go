@@ -104,7 +104,7 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
-	boot_image = "debian:9"
+	image_name = "debian:9"
 	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
@@ -144,7 +144,7 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
-	boot_image = "debian:9"
+	image_name = "debian:9"
 	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
