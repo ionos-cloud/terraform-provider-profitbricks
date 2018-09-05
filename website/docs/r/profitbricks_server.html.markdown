@@ -60,3 +60,13 @@ resource "profitbricks_server" "example" {
 * `image_password` - (Computed) The associated IP address.
 * `ssh_key_path` -  (Required)[list] List of paths to files containing a public SSH key that will be injected into ProfitBricks provided Linux images. Required for ProfitBricks Linux images. Required if `image_password` is not provided.
 * `image_password` - [string] Required if `sshkey_path` is not provided.
+
+## Import
+
+Resource Server can be imported using the `resource id`, e.g.
+
+```shell
+terraform import profitbricks_server.myserver {datacenter uuid}/{server uuid}/{primary_nic uuid}
+# or
+terraform import profitbricks_server.myserver {datacenter uuid}/{server uuid}/{primary_nic uuid}/{firewall uuid}
+```

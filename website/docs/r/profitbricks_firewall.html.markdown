@@ -38,3 +38,12 @@ resource "profitbricks_firewall" "example" {
 * `port_range_end` - (Optional)[string] Defines the end range of the allowed port (from 1 to 65534) if the protocol TCP or UDP is chosen.
 * `icmp_type` - (Optional)[string] Defines the allowed type (from 0 to 254) if the protocol ICMP is chosen.
 * `icmp_code` - (Optional)[string] Defines the allowed code (from 0 to 254) if protocol ICMP is chosen.
+
+
+## Import
+
+Resource Firewall can be imported using the `resource id`, e.g.
+
+```shell
+terraform import profitbricks_firewall.myfwrule {datacenter uuid}/{server uuid}/{nic uuid}/{firewall uuid}
+```
