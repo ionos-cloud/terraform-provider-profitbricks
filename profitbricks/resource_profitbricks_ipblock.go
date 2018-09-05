@@ -15,6 +15,9 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 		Read:   resourceProfitBricksIPBlockRead,
 		Update: resourceProfitBricksIPBlockUpdate,
 		Delete: resourceProfitBricksIPBlockDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,

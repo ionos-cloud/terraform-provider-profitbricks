@@ -19,6 +19,9 @@ func resourceProfitBricksServer() *schema.Resource {
 		Read:   resourceProfitBricksServerRead,
 		Update: resourceProfitBricksServerUpdate,
 		Delete: resourceProfitBricksServerDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceProfitBricksServerImport,
+		},
 		Schema: map[string]*schema.Schema{
 
 			//Server parameters
@@ -68,19 +71,53 @@ func resourceProfitBricksServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"firewallrule_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"datacenter_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+			"image_password": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				Computed:      true,
+				ConflictsWith: []string{"volume.0.image_password"},
+			},
+			"image_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"volume.0.image_name"},
+			},
+			"ssh_key_path": {
+				Type:          schema.TypeList,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				ConflictsWith: []string{"volume.0.ssh_key_path"},
+				Optional:      true,
+				Computed:      true,
+			},
 			"volume": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"image_name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"image_name"},
+							Deprecated:    "Please use image_name under server level",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if d.Get("image_name").(string) == new {
+									return true
+								}
+								return false
+							},
 						},
 						"size": {
 							Type:     schema.TypeInt,
@@ -91,21 +128,48 @@ func resourceProfitBricksServer() *schema.Resource {
 							Required: true,
 						},
 						"image_password": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							Deprecated:    "Please use image_password under server level",
+							ConflictsWith: []string{"image_password"},
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if d.Get("image_password").(string) == new {
+									return true
+								}
+								return false
+							},
 						},
 						"licence_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"ssh_key_path": {
-							Type:     schema.TypeList,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Optional: true,
+							Type:       schema.TypeList,
+							Elem:       &schema.Schema{Type: schema.TypeString},
+							Optional:   true,
+							Deprecated: "Please use ssh_key_path under server level",
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if k == "volume.0.ssh_key_path.#" {
+									if d.Get("ssh_key_path.#") == new {
+										return true
+									}
+								}
+
+								ssh_key_path := d.Get("volume.0.ssh_key_path").([]interface{})
+								old_ssh_key_path := d.Get("ssh_key_path").([]interface{})
+
+								if len(diffSlice(convertSlice(ssh_key_path), convertSlice(old_ssh_key_path))) == 0 {
+									return true
+								}
+
+								return false
+							},
 						},
 						"bus": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"name": {
 							Type:     schema.TypeString,
@@ -114,13 +178,20 @@ func resourceProfitBricksServer() *schema.Resource {
 						"availability_zone": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
+						},
+						"image_aliases": {
+							Type:     schema.TypeList,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
 						},
 					},
 				},
 			},
 			"nic": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"lan": {
@@ -139,6 +210,12 @@ func resourceProfitBricksServer() *schema.Resource {
 						"ip": {
 							Type:     schema.TypeString,
 							Optional: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								if new == "" {
+									return true
+								}
+								return false
+							},
 						},
 						"ips": {
 							Type:     schema.TypeList,
@@ -154,8 +231,9 @@ func resourceProfitBricksServer() *schema.Resource {
 							Optional: true,
 						},
 						"firewall": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -166,6 +244,12 @@ func resourceProfitBricksServer() *schema.Resource {
 									"protocol": {
 										Type:     schema.TypeString,
 										Required: true,
+										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+											if strings.ToLower(old) == strings.ToLower(new) {
+												return true
+											}
+											return false
+										},
 									},
 									"source_mac": {
 										Type:     schema.TypeString,
@@ -182,6 +266,7 @@ func resourceProfitBricksServer() *schema.Resource {
 									"ip": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Computed: true,
 									},
 									"ips": {
 										Type:     schema.TypeList,
@@ -252,257 +337,267 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			request.Properties.CPUFamily = v.(string)
 		}
 	}
-	if vRaw, ok := d.GetOk("volume"); ok {
 
-		volumeRaw := vRaw.(*schema.Set).List()
+	volume := profitbricks.VolumeProperties{
+		Size: d.Get("volume.0.size").(int),
+		Type: d.Get("volume.0.disk_type").(string),
+	}
 
-		for _, raw := range volumeRaw {
-			rawMap := raw.(map[string]interface{})
-			var imagePassword string
-			//Can be one file or a list of files
-			var sshkey_path []interface{}
-			var image, licenceType, availabilityZone string
+	if v, ok := d.GetOk("volume.0.image_password"); ok {
+		volume.ImagePassword = v.(string)
+		d.Set("image_password", v.(string))
+	}
 
-			if rawMap["image_password"] != nil {
-				imagePassword = rawMap["image_password"].(string)
-			}
-			if rawMap["ssh_key_path"] != nil {
-				sshkey_path = rawMap["ssh_key_path"].([]interface{})
-			}
+	if v, ok := d.GetOk("image_password"); ok {
+		volume.ImagePassword = v.(string)
+	}
 
-			image_name := rawMap["image_name"].(string)
-			if !IsValidUUID(image_name) {
-				img, err := getImage(client, dcId, image_name, rawMap["disk_type"].(string))
+	if v, ok := d.GetOk("volume.0.licence_type"); ok {
+		volume.LicenceType = v.(string)
+	}
+
+	if v, ok := d.GetOk("volume.0.availability_zone"); ok {
+		volume.AvailabilityZone = v.(string)
+	}
+
+	if v, ok := d.GetOk("volume.0.name"); ok {
+		volume.Name = v.(string)
+	}
+
+	if v, ok := d.GetOk("volume.0.bus"); ok {
+		volume.Bus = v.(string)
+	}
+
+	var sshkey_path []interface{}
+
+	if v, ok := d.GetOk("volume.0.ssh_key_path"); ok {
+		sshkey_path = v.([]interface{})
+		d.Set("ssh_key_path", v.([]interface{}))
+	} else if v, ok := d.GetOk("ssh_key_path"); ok {
+		sshkey_path = v.([]interface{})
+		d.Set("ssh_key_path", v.([]interface{}))
+	} else {
+		d.Set("ssh_key_path", [][]string{})
+	}
+
+	var image, image_name string
+	if v, ok := d.GetOk("volume.0.image_name"); ok {
+		image_name = v.(string)
+		d.Set("image_name", v.(string))
+	} else if v, ok := d.GetOk("image_name"); ok {
+		image_name = v.(string)
+	} else {
+		return fmt.Errorf("Either 'image_name' or 'volume.0.image_name' must be provided.")
+	}
+
+	if !IsValidUUID(image_name) {
+		img, err := getImage(client, dcId, image_name, volume.Type)
+		if err != nil {
+			return err
+		}
+		if img != nil {
+			image = img.ID
+		}
+		//if no image id was found with that name we look for a matching snapshot
+		if image == "" {
+			image = getSnapshotId(client, image_name)
+			if image != "" {
+				isSnapshot = true
+			} else {
+				dc, err := client.GetDatacenter(dcId)
 				if err != nil {
-					return err
+					return fmt.Errorf("Error fetching datacenter %s: (%s)", dcId, err)
 				}
+				image_alias = getImageAlias(client, image_name, dc.Properties.Location)
+			}
+		}
+		if image == "" && image_alias == "" {
+			return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
+		}
+		if volume.ImagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false && img.Properties.Public {
+			return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
+		}
+	} else {
+		img, err := client.GetImage(image_name)
 
-				if img != nil {
-					image = img.ID
-				}
+		apiError, ok := err.(profitbricks.ApiError)
+		if !ok {
+			return fmt.Errorf("Error fetching image %s: (%s)", image_name, err)
+		}
 
-				//if no image id was found with that name we look for a matching snapshot
-				if image == "" {
-					image = getSnapshotId(client, image_name)
-					if image != "" {
-						isSnapshot = true
-					} else {
-						dc, err := client.GetDatacenter(dcId)
-						if err != nil {
-							return fmt.Errorf("Error fetching datacenter %s: (%s)", dcId, err)
-						}
-						image_alias = getImageAlias(client, image_name, dc.Properties.Location)
-					}
-				}
-				if image == "" && image_alias == "" {
-					return fmt.Errorf("Could not find an image/imagealias/snapshot that matches %s ", image_name)
-				}
-				if imagePassword == "" && len(sshkey_path) == 0 && isSnapshot == false && img.Properties.Public {
-					return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
-				}
-			} else {
-				img, err := client.GetImage(image_name)
+		if apiError.HttpStatusCode() == 404 {
+			img, err := client.GetSnapshot(image_name)
 
-				var apiError profitbricks.ApiError
-
-				if apiError, ok = err.(profitbricks.ApiError); !ok {
-					return fmt.Errorf("Error fetching image %s: (%s)", image_name, err)
-				}
-
+			if apiError, ok := err.(profitbricks.ApiError); !ok {
 				if apiError.HttpStatusCode() == 404 {
-					img, err := client.GetSnapshot(image_name)
-
-					if apiError, ok := err.(profitbricks.ApiError); !ok {
-						if apiError.HttpStatusCode() == 404 {
-							return fmt.Errorf("image/snapshot: %s Not Found", img.Response)
-						}
-					}
-
-					isSnapshot = true
-				} else {
-					if err != nil {
-						return fmt.Errorf("Error fetching image/snapshot: %s", err)
-					}
-				}
-				if img.Properties.Public == true && isSnapshot == false {
-					if imagePassword == "" && len(sshkey_path) == 0 {
-						return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
-					}
-					img, err := getImage(client, d.Get("datacenter_id").(string), image_name, rawMap["disk_type"].(string))
-					if err != nil {
-						return err
-					}
-					if img != nil {
-						image = img.ID
-					}
-				} else {
-					img, err := client.GetImage(image_name)
-					if err != nil {
-						img, err := client.GetSnapshot(image_name)
-						if err != nil {
-							return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
-						}
-						isSnapshot = true
-					}
-					if img.Properties.Public == true && isSnapshot == false {
-						if imagePassword == "" && len(sshkey_path) == 0 {
-							return fmt.Errorf("Either 'image_password' or 'sshkey' must be provided.")
-						}
-						image = image_name
-					} else {
-						image = image_name
-					}
+					return fmt.Errorf("image/snapshot: %s Not Found", img.Response)
 				}
 			}
 
-			if rawMap["licence_type"] != nil {
-				licenceType = rawMap["licence_type"].(string)
+			isSnapshot = true
+		} else {
+			if err != nil {
+				return fmt.Errorf("Error fetching image/snapshot: %s", err)
 			}
-
-			var publicKeys []string
-			if len(sshkey_path) != 0 {
-				for _, path := range sshkey_path {
-					log.Printf("[DEBUG] Reading file %s", path)
-					publicKey, err := readPublicKey(path.(string))
-					if err != nil {
-						return fmt.Errorf("Error fetching sshkey from file (%s) %s", path, err.Error())
-					}
-					publicKeys = append(publicKeys, publicKey)
+		}
+		if img.Properties.Public == true && isSnapshot == false {
+			if volume.ImagePassword == "" && len(sshkey_path) == 0 {
+				return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
+			}
+			img, err := getImage(client, d.Get("datacenter_id").(string), image_name, volume.Type)
+			if err != nil {
+				return err
+			}
+			if img != nil {
+				image = img.ID
+			}
+		} else {
+			img, err := client.GetImage(image_name)
+			if err != nil {
+				img, err := client.GetSnapshot(image_name)
+				if err != nil {
+					return fmt.Errorf("Error fetching image/snapshot: %s", img.Response)
 				}
+				isSnapshot = true
 			}
-			if rawMap["availability_zone"] != nil {
-				availabilityZone = rawMap["availability_zone"].(string)
-			}
-			if image == "" && licenceType == "" && image_alias == "" && !isSnapshot {
-				return fmt.Errorf("Either 'image', 'licenceType', or 'imageAlias' must be set.")
-			}
-
-			if isSnapshot == true && (imagePassword != "" || len(publicKeys) > 0) {
-				return fmt.Errorf("Passwords/SSH keys  are not supported for snapshots.")
-			}
-
-			request.Entities = &profitbricks.ServerEntities{
-				Volumes: &profitbricks.Volumes{
-					Items: []profitbricks.Volume{
-						{
-							Properties: profitbricks.VolumeProperties{
-								Name:             rawMap["name"].(string),
-								Size:             rawMap["size"].(int),
-								Type:             rawMap["disk_type"].(string),
-								ImagePassword:    imagePassword,
-								Image:            image,
-								ImageAlias:       image_alias,
-								Bus:              rawMap["bus"].(string),
-								LicenceType:      licenceType,
-								AvailabilityZone: availabilityZone,
-							},
-						},
-					},
-				},
-			}
-
-			if len(publicKeys) == 0 {
-				request.Entities.Volumes.Items[0].Properties.SSHKeys = nil
+			if img.Properties.Public == true && isSnapshot == false {
+				if volume.ImagePassword == "" && len(sshkey_path) == 0 {
+					return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
+				}
+				image = image_name
 			} else {
-				request.Entities.Volumes.Items[0].Properties.SSHKeys = publicKeys
+				image = image_name
+			}
+		}
+	}
+
+	if len(sshkey_path) != 0 {
+		var publicKeys []string
+		for _, path := range sshkey_path {
+			log.Printf("[DEBUG] Reading file %s", path)
+			publicKey, err := readPublicKey(path.(string))
+			if err != nil {
+				return fmt.Errorf("Error fetching sshkey from file (%s) %s", path, err.Error())
+			}
+			publicKeys = append(publicKeys, publicKey)
+		}
+		if len(publicKeys) > 0 {
+			volume.SSHKeys = publicKeys
+		}
+	}
+
+	if image == "" && volume.LicenceType == "" && image_alias == "" && !isSnapshot {
+		return fmt.Errorf("Either 'image', 'licenceType', or 'imageAlias' must be set.")
+	}
+
+	if isSnapshot == true && (volume.ImagePassword != "" || len(sshkey_path) > 0) {
+		return fmt.Errorf("Passwords/SSH keys are not supported for snapshots.")
+	}
+
+	volume.ImageAlias = image_alias
+	volume.Image = image
+
+	request.Entities = &profitbricks.ServerEntities{
+		Volumes: &profitbricks.Volumes{
+			Items: []profitbricks.Volume{
+				{
+					Properties: volume,
+				},
+			},
+		},
+	}
+
+	if _, ok := d.GetOk("nic"); ok {
+		nic := profitbricks.Nic{Properties: &profitbricks.NicProperties{
+			Lan: d.Get("nic.0.lan").(int),
+		}}
+
+		if v, ok := d.GetOk("nic.0.name"); ok {
+			nic.Properties.Name = v.(string)
+		}
+
+		if v, ok := d.GetOk("nic.0.dhcp"); ok {
+			val := v.(bool)
+			nic.Properties.Dhcp = &val
+		}
+
+		if v, ok := d.GetOk("nic.0.firewall_active"); ok {
+			nic.Properties.FirewallActive = v.(bool)
+		}
+
+		if v, ok := d.GetOk("nic.0.ip"); ok {
+			ips := strings.Split(v.(string), ",")
+			if len(ips) > 0 {
+				nic.Properties.Ips = ips
 			}
 		}
 
-	}
+		if v, ok := d.GetOk("nic.0.nat"); ok {
+			nic.Properties.Nat = v.(bool)
+		}
 
-	if nRaw, ok := d.GetOk("nic"); ok {
-		nicRaw := nRaw.(*schema.Set).List()
+		request.Entities.Nics = &profitbricks.Nics{
+			Items: []profitbricks.Nic{
+				nic,
+			},
+		}
 
-		for _, raw := range nicRaw {
-			rawMap := raw.(map[string]interface{})
-			nic := profitbricks.Nic{Properties: &profitbricks.NicProperties{}}
-			if rawMap["lan"] != nil {
-				nic.Properties.Lan = rawMap["lan"].(int)
-			}
-			if rawMap["name"] != nil {
-				nic.Properties.Name = rawMap["name"].(string)
-			}
-			if rawMap["dhcp"] != nil {
-				val := rawMap["dhcp"].(bool)
-				nic.Properties.Dhcp = &val
-			}
-			if rawMap["firewall_active"] != nil {
-				nic.Properties.FirewallActive = rawMap["firewall_active"].(bool)
-			}
-			if rawMap["ip"] != nil {
-				rawIps := rawMap["ip"].(string)
-				ips := strings.Split(rawIps, ",")
-				if rawIps != "" {
-					nic.Properties.Ips = ips
-				}
-			}
-			if rawMap["nat"] != nil {
-				nic.Properties.Nat = rawMap["nat"].(bool)
-			}
-			request.Entities.Nics = &profitbricks.Nics{
-				Items: []profitbricks.Nic{
-					nic,
+		if _, ok := d.GetOk("nic.0.firewall"); ok {
+			firewall := profitbricks.FirewallRule{
+				Properties: profitbricks.FirewallruleProperties{
+					Protocol: d.Get("nic.0.firewall.0.protocol").(string),
 				},
 			}
 
-			if rawMap["firewall"] != nil {
-				rawFw := rawMap["firewall"].(*schema.Set).List()
-				for _, rraw := range rawFw {
-					fwRaw := rraw.(map[string]interface{})
-					log.Println("[DEBUG] fwRaw", fwRaw["protocol"])
+			if v, ok := d.GetOk("nic.0.firewall.0.name"); ok {
+				firewall.Properties.Name = v.(string)
+			}
 
-					firewall := profitbricks.FirewallRule{
-						Properties: profitbricks.FirewallruleProperties{
-							Protocol: fwRaw["protocol"].(string),
-						},
-					}
+			if v, ok := d.GetOk("nic.0.firewall.0.source_mac"); ok {
+				val := v.(string)
+				firewall.Properties.SourceMac = &val
+			}
 
-					if fwRaw["name"] != nil {
-						firewall.Properties.Name = fwRaw["name"].(string)
-					}
-					if fwRaw["source_mac"] != "" {
-						tempSourceMac := fwRaw["source_mac"].(string)
-						firewall.Properties.SourceMac = &tempSourceMac
-					}
-					if fwRaw["source_ip"] != "" {
-						tempSourceIp := fwRaw["source_ip"].(string)
-						firewall.Properties.SourceIP = &tempSourceIp
-					}
-					if fwRaw["target_ip"] != "" {
-						tempTargetIp := fwRaw["target_ip"].(string)
-						firewall.Properties.TargetIP = &tempTargetIp
-					}
-					if fwRaw["port_range_start"] != nil {
-						tempPortRangeStart := fwRaw["port_range_start"].(int)
-						firewall.Properties.PortRangeStart = &tempPortRangeStart
-					}
-					if fwRaw["port_range_end"] != nil {
-						tempPortRangeStart := fwRaw["port_range_end"].(int)
-						firewall.Properties.PortRangeEnd = &tempPortRangeStart
-					}
-					if fwRaw["icmp_type"] != nil {
-						tempIcmpType := fwRaw["icmp_type"].(string)
-						if tempIcmpType != "" {
-							i, _ := strconv.Atoi(tempIcmpType)
-							firewall.Properties.IcmpType = &i
-						}
-					}
-					if fwRaw["icmp_code"] != nil {
-						tempIcmpCode := fwRaw["icmp_type"].(string)
-						if tempIcmpCode != "" {
-							i, _ := strconv.Atoi(tempIcmpCode)
-							firewall.Properties.IcmpCode = &i
-						}
-					}
+			if v, ok := d.GetOk("nic.0.firewall.0.source_ip"); ok {
+				val := v.(string)
+				firewall.Properties.SourceIP = &val
+			}
 
-					request.Entities.Nics.Items[0].Entities = &profitbricks.NicEntities{
-						FirewallRules: &profitbricks.FirewallRules{
-							Items: []profitbricks.FirewallRule{
-								firewall,
-							},
-						},
-					}
+			if v, ok := d.GetOk("nic.0.firewall.0.target_ip"); ok {
+				val := v.(string)
+				firewall.Properties.TargetIP = &val
+			}
+
+			if v, ok := d.GetOk("nic.0.firewall.0.port_range_start"); ok {
+				val := v.(int)
+				firewall.Properties.PortRangeStart = &val
+			}
+
+			if v, ok := d.GetOk("nic.0.firewall.0.port_range_end"); ok {
+				val := v.(int)
+				firewall.Properties.PortRangeEnd = &val
+			}
+
+			if v, ok := d.GetOk("nic.0.firewall.0.icmp_type"); ok {
+				tempIcmpType := v.(string)
+				if tempIcmpType != "" {
+					i, _ := strconv.Atoi(tempIcmpType)
+					firewall.Properties.IcmpType = &i
 				}
+			}
+			if v, ok := d.GetOk("nic.0.firewall.0.icmp_code"); ok {
+				tempIcmpCode := v.(string)
+				if tempIcmpCode != "" {
+					i, _ := strconv.Atoi(tempIcmpCode)
+					firewall.Properties.IcmpCode = &i
+				}
+			}
+			request.Entities.Nics.Items[0].Entities = &profitbricks.NicEntities{
+				FirewallRules: &profitbricks.FirewallRules{
+					Items: []profitbricks.FirewallRule{
+						firewall,
+					},
+				},
 			}
 		}
 	}
@@ -531,6 +626,12 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 	server, err = client.GetServer(d.Get("datacenter_id").(string), server.ID)
 	if err != nil {
 		return fmt.Errorf("Error fetching server: (%s)", err)
+	}
+
+	firewallRules, err := client.ListFirewallRules(d.Get("datacenter_id").(string), server.ID, server.Entities.Nics.Items[0].ID)
+
+	if len(firewallRules.Items) > 0 {
+		d.Set("firewallrule_id", firewallRules.Items[0].ID)
 	}
 
 	d.Set("primary_nic", server.Entities.Nics.Items[0].ID)
@@ -563,6 +664,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("cores", server.Properties.Cores)
 	d.Set("ram", server.Properties.RAM)
 	d.Set("availability_zone", server.Properties.AvailabilityZone)
+	d.Set("cpu_family", server.Properties.CPUFamily)
 
 	if primarynic, ok := d.GetOk("primary_nic"); ok {
 		d.Set("primary_nic", primarynic.(string))
@@ -576,29 +678,91 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 			d.Set("primary_ip", nic.Properties.Ips[0])
 		}
 
-		if nRaw, ok := d.GetOk("nic"); ok {
-			log.Printf("[DEBUG] parsing nic")
+		network := map[string]interface{}{
+			"lan":             nic.Properties.Lan,
+			"name":            nic.Properties.Name,
+			"dhcp":            *nic.Properties.Dhcp,
+			"nat":             nic.Properties.Nat,
+			"firewall_active": nic.Properties.FirewallActive,
+			"ips":             nic.Properties.Ips,
+		}
 
-			nicRaw := nRaw.(*schema.Set).List()
+		if len(nic.Properties.Ips) > 0 {
+			network["ip"] = nic.Properties.Ips[0]
+		}
 
-			for _, raw := range nicRaw {
-
-				rawMap := raw.(map[string]interface{})
-
-				rawMap["lan"] = nic.Properties.Lan
-				rawMap["name"] = nic.Properties.Name
-				rawMap["dhcp"] = nic.Properties.Dhcp
-				rawMap["nat"] = nic.Properties.Nat
-				rawMap["firewall_active"] = nic.Properties.FirewallActive
-				rawMap["ips"] = nic.Properties.Ips
+		if firewall_id, ok := d.GetOk("firewallrule_id"); ok {
+			firewall, err := client.GetFirewallRule(dcId, serverId, primarynic.(string), firewall_id.(string))
+			if err != nil {
+				return fmt.Errorf("Error occured while fetching firewallrule %s for server ID %s %s", firewall_id.(string), serverId, err)
 			}
-			d.Set("nic", nicRaw)
+
+			fw := map[string]interface{}{
+				"protocol": firewall.Properties.Protocol,
+				"name":     firewall.Properties.Name,
+			}
+
+			if firewall.Properties.SourceMac != nil {
+				fw["source_mac"] = *firewall.Properties.SourceMac
+			}
+
+			if firewall.Properties.SourceIP != nil {
+				fw["source_ip"] = *firewall.Properties.SourceIP
+			}
+
+			if firewall.Properties.TargetIP != nil {
+				fw["target_ip"] = *firewall.Properties.TargetIP
+			}
+
+			if firewall.Properties.PortRangeStart != nil {
+				fw["port_range_start"] = *firewall.Properties.PortRangeStart
+			}
+
+			if firewall.Properties.PortRangeEnd != nil {
+				fw["port_range_end"] = *firewall.Properties.PortRangeEnd
+			}
+
+			if firewall.Properties.IcmpType != nil {
+				fw["icmp_type"] = *firewall.Properties.IcmpType
+			}
+
+			if firewall.Properties.IcmpCode != nil {
+				fw["icmp_code"] = *firewall.Properties.IcmpCode
+			}
+
+			network["firewall"] = []map[string]interface{}{fw}
+		}
+
+		networks := []map[string]interface{}{network}
+		if err := d.Set("nic", networks); err != nil {
+			return fmt.Errorf("[ERROR] unable saving nic to state ProfitBricks Server (%s): %s", serverId, err)
 		}
 	}
 
 	if server.Properties.BootVolume != nil {
 		d.Set("boot_volume", server.Properties.BootVolume.ID)
+
+		volumeObj, err := client.GetAttachedVolume(dcId, serverId, server.Properties.BootVolume.ID)
+		if err != nil {
+			return fmt.Errorf("Error occured while fetching attached volume %s from server ID %s %s", server.Properties.BootVolume.ID, serverId, err)
+		}
+
+		volumeItem := map[string]interface{}{
+			"name":              volumeObj.Properties.Name,
+			"disk_type":         volumeObj.Properties.Type,
+			"size":              volumeObj.Properties.Size,
+			"licence_type":      volumeObj.Properties.LicenceType,
+			"bus":               volumeObj.Properties.Bus,
+			"availability_zone": volumeObj.Properties.AvailabilityZone,
+		}
+
+		volumesList := []map[string]interface{}{volumeItem}
+		if err := d.Set("volume", volumesList); err != nil {
+			return fmt.Errorf("[DEBUG] Error saving volume to state for ProfitBricks server (%s): %s", d.Id(), err)
+		}
+
 	}
+
 	if server.Properties.BootCdrom != nil {
 		d.Set("boot_cdrom", server.Properties.BootCdrom.ID)
 	}
@@ -636,24 +800,25 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("Error occured while updating server ID %s %s", d.Id(), err)
 	}
+
+	_, errState := getStateChangeConf(meta, d, server.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
+	if errState != nil {
+		return errState
+	}
 	//Volume stuff
 	if d.HasChange("volume") {
-		_, new := d.GetChange("volume")
-
-		newVolume := new.(*schema.Set).List()
 		properties := profitbricks.VolumeProperties{}
 
-		for _, raw := range newVolume {
-			rawMap := raw.(map[string]interface{})
-			if rawMap["name"] != nil {
-				properties.Name = rawMap["name"].(string)
-			}
-			if rawMap["size"] != nil {
-				properties.Size = rawMap["size"].(int)
-			}
-			if rawMap["bus"] != nil {
-				properties.Bus = rawMap["bus"].(string)
-			}
+		if v, ok := d.GetOk("volume.0.name"); ok {
+			properties.Name = v.(string)
+		}
+
+		if v, ok := d.GetOk("volume.0.size"); ok {
+			properties.Size = v.(int)
+		}
+
+		if v, ok := d.GetOk("volume.0.bus"); ok {
+			properties.Bus = v.(string)
 		}
 
 		volume, err := client.UpdateVolume(d.Get("datacenter_id").(string), server.Entities.Volumes.Items[0].ID, properties)
@@ -678,34 +843,29 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 				break
 			}
 		}
-		_, new := d.GetChange("nic")
 
-		newNic := new.(*schema.Set).List()
-		properties := profitbricks.NicProperties{}
+		properties := profitbricks.NicProperties{
+			Lan: d.Get("nic.0.lan").(int),
+		}
 
-		for _, raw := range newNic {
-			rawMap := raw.(map[string]interface{})
-			if rawMap["name"] != nil {
-				properties.Name = rawMap["name"].(string)
-			}
-			if rawMap["ip"] != nil {
-				rawIps := rawMap["ip"].(string)
-				ips := strings.Split(rawIps, ",")
+		if v, ok := d.GetOk("nic.0.name"); ok {
+			properties.Name = v.(string)
+		}
 
-				if rawIps != "" {
-					nic.Properties.Ips = ips
-				}
+		if v, ok := d.GetOk("nic.0.ip"); ok {
+			ips := strings.Split(v.(string), ",")
+			if len(ips) > 0 {
+				nic.Properties.Ips = ips
 			}
-			if rawMap["lan"] != nil {
-				properties.Lan = rawMap["lan"].(int)
-			}
-			if rawMap["dhcp"] != nil {
-				val := rawMap["dhcp"].(bool)
-				properties.Dhcp = &val
-			}
-			if rawMap["nat"] != nil {
-				properties.Nat = rawMap["nat"].(bool)
-			}
+		}
+
+		if v, ok := d.GetOk("nic.0.dhcp"); ok {
+			val := v.(bool)
+			properties.Dhcp = &val
+		}
+
+		if v, ok := d.GetOk("nic.0.nat"); ok {
+			properties.Nat = v.(bool)
 		}
 
 		nic, err := client.UpdateNic(d.Get("datacenter_id").(string), server.ID, nic.ID, properties)

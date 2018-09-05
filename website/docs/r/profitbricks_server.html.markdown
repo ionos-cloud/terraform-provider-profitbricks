@@ -22,14 +22,14 @@ resource "profitbricks_server" "example" {
   ram               = 1024
   availability_zone = "ZONE_1"
   cpu_family        = "AMD_OPTERON"
+  image_password    = "test1234"
+  ssh_key_path      = "${var.private_key_path}"
+  boot_image        = "${var.ubuntu}"
 
   volume {
     name           = "new"
-    image_name     = "${var.ubuntu}"
     size           = 5
     disk_type      = "SSD"
-    ssh_key_path   = "${var.private_key_path}"
-    image_password = "test1234"
   }
 
   nic {
@@ -37,13 +37,6 @@ resource "profitbricks_server" "example" {
     dhcp            = true
     ip              = "${profitbricks_ipblock.example.ip}"
     firewall_active = true
-
-    firewall {
-      protocol         = "TCP"
-      name             = "SSH"
-      port_range_start = 22
-      port_range_end   = 22
-    }
   }
 }
 ```
@@ -59,9 +52,21 @@ resource "profitbricks_server" "example" {
 * `cpu_family` - (Optional)[string] Sets the CPU type. "AMD_OPTERON" or "INTEL_XEON". Defaults to "AMD_OPTERON".
 * `volume` -  (Required) See the Volume section.
 * `nic` - (Required) See the NIC section.
-* `firewall` - (Optional) See the Firewall Rules section.
 * `boot_volume` - (Computed) The associated boot volume.
 * `boot_cdrom` - (Computed) The associated boot drive, if any.
-* `boot_image` - (Computed) The associated boot image.
+* `boot_image` - [string] The image or snapshot UUID. May also be an image alias. It is required if `licence_type` is not provided.
 * `primary_nic` - (Computed) The associated NIC.
 * `primary_ip` - (Computed) The associated IP address.
+* `image_password` - (Computed) The associated IP address.
+* `ssh_key_path` -  (Required)[list] List of paths to files containing a public SSH key that will be injected into ProfitBricks provided Linux images. Required for ProfitBricks Linux images. Required if `image_password` is not provided.
+* `image_password` - [string] Required if `sshkey_path` is not provided.
+
+## Import
+
+Resource Server can be imported using the `resource id`, e.g.
+
+```shell
+terraform import profitbricks_server.myserver {datacenter uuid}/{server uuid}/{primary_nic uuid}
+# or
+terraform import profitbricks_server.myserver {datacenter uuid}/{server uuid}/{primary_nic uuid}/{firewall uuid}
+```

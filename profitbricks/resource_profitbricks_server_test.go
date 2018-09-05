@@ -29,6 +29,14 @@ func TestAccProfitBricksServer_Basic(t *testing.T) {
 				),
 			},
 			{
+				Config: fmt.Sprintf(testAccCheckProfitbricksServerConfig_basicdep, serverName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckProfitBricksServerExists("profitbricks_server.webserver", &server),
+					testAccCheckProfitBricksServerAttributes("profitbricks_server.webserver", serverName),
+					resource.TestCheckResourceAttr("profitbricks_server.webserver", "name", serverName),
+				),
+			},
+			{
 				Config: testAccCheckProfitbricksServerConfig_update,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksServerAttributes("profitbricks_server.webserver", "updated"),
@@ -121,18 +129,57 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name ="ubuntu:latest"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5
     disk_type = "SSD"
-    image_name ="ubuntu:latest"
-    image_password = "K3tTj8G14a3EgKyNeeiY"
 }
   nic {
     lan = "${profitbricks_lan.webserver_lan.id}"
     dhcp = true
     firewall_active = true
-    firewall {
+		firewall {
+      protocol = "TCP"
+      name = "SSH"
+      port_range_start = 22
+      port_range_end = 22
+    }
+  }
+}`
+
+const testAccCheckProfitbricksServerConfig_basicdep = `
+resource "profitbricks_datacenter" "foobar" {
+	name       = "server-test"
+	location = "us/las"
+}
+
+resource "profitbricks_lan" "webserver_lan" {
+  datacenter_id = "${profitbricks_datacenter.foobar.id}"
+  public = true
+  name = "public"
+}
+
+resource "profitbricks_server" "webserver" {
+  name = "%s"
+  datacenter_id = "${profitbricks_datacenter.foobar.id}"
+  cores = 1
+  ram = 1024
+  availability_zone = "ZONE_1"
+  cpu_family = "AMD_OPTERON"
+  volume {
+		image_name ="ubuntu:latest"
+		image_password = "K3tTj8G14a3EgKyNeeiY"
+    name = "system"
+    size = 5
+    disk_type = "SSD"
+  }
+  nic {
+    lan = "${profitbricks_lan.webserver_lan.id}"
+    dhcp = true
+    firewall_active = true
+		firewall {
       protocol = "TCP"
       name = "SSH"
       port_range_start = 22
@@ -160,18 +207,18 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name = "ubuntu:latest"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5
-    disk_type = "HDD"
-    image_name ="ubuntu:latest"
-    image_password = "K3tTj8G14a3EgKyNeeiY"
+    disk_type = "SSD"
 }
   nic {
     lan = "${profitbricks_lan.webserver_lan.id}"
     dhcp = true
     firewall_active = true
-    firewall {
+		firewall {
       protocol = "TCP"
       name = "SSH"
       port_range_start = 22

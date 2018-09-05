@@ -15,6 +15,9 @@ func resourceProfitBricksNic() *schema.Resource {
 		Read:   resourceProfitBricksNicRead,
 		Update: resourceProfitBricksNicUpdate,
 		Delete: resourceProfitBricksNicDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceProfitBricksNicImport,
+		},
 		Schema: map[string]*schema.Schema{
 
 			"lan": {
@@ -124,6 +127,7 @@ func resourceProfitBricksNicRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("lan", nic.Properties.Lan)
 		d.Set("name", nic.Properties.Name)
 		d.Set("ips", nic.Properties.Ips)
+		d.Set("firewall_active", nic.Properties.FirewallActive)
 	}
 
 	return nil

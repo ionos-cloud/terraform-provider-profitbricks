@@ -24,3 +24,11 @@ resource "profitbricks_ipblock" "example" {
 * `location` - (Required)[string] The regional location for this IP Block: us/las, us/ewr, de/fra, de/fkb.
 * `size` - (Required)[integer] The number of IP addresses to reserve for this block.
 * `ips` - (Computed)[integer] The list of IP addresses associated with this block.
+
+## Import
+
+Resource Ipblock can be imported using the `resource id`, e.g.
+
+```shell
+terraform import profitbricks_ipblock.myipblock {ipblock uuid}
+```

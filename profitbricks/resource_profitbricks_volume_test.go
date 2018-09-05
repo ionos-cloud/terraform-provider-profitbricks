@@ -105,23 +105,17 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name = "ubuntu:14.04"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5
     disk_type = "HDD"
-    image_name = "ubuntu:14.04"
-    image_password = "K3tTj8G14a3EgKyNeeiY"
-}
+  }
   nic {
     lan = "${profitbricks_lan.webserver_lan.id}"
     dhcp = true
     firewall_active = true
-    firewall {
-      protocol = "TCP"
-      name = "SSH"
-      port_range_start = 22
-      port_range_end = 22
-    }
   }
 }
 
@@ -155,23 +149,17 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name = "ubuntu:14.04"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5
     disk_type = "HDD"
-    image_name = "ubuntu:14.04"
-    image_password = "K3tTj8G14a3EgKyNeeiY"
 }
   nic {
     lan = "${profitbricks_lan.webserver_lan.id}"
     dhcp = true
     firewall_active = true
-    firewall {
-      protocol = "TCP"
-      name = "SSH"
-      port_range_start = 22
-      port_range_end = 22
-    }
   }
 }
 

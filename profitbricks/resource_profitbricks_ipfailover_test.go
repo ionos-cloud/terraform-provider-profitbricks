@@ -138,13 +138,13 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name = "centos:latest"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5
     disk_type = "SSD"
-    image_name="centos:latest"
-    image_password = "K3tTj8G14a3EgKyNeeiY"
-}
+  }
   nic {
     lan = "${profitbricks_lan.webserver_lan1.id}"
     dhcp = true
@@ -184,13 +184,13 @@ resource "profitbricks_server" "webserver" {
   ram = 1024
   availability_zone = "ZONE_1"
   cpu_family = "AMD_OPTERON"
+	image_name = "centos:latest"
+	image_password = "K3tTj8G14a3EgKyNeeiY"
   volume {
     name = "system"
     size = 5
     disk_type = "SSD"
-    image_name="centos:latest"
-    image_password = "K3tTj8G14a3EgKyNeeiY"
-}
+  }
   nic {
     lan = "1"
     dhcp = true
