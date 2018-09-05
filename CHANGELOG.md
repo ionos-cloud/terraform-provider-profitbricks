@@ -1,4 +1,8 @@
-## 1.3.4 (Unreleased)
+## 1.4.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* Add importer to server, nic, lan, dc, ipblock and firewall resources ([#38](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/38))
 
 IMPROVEMENTS:
 
