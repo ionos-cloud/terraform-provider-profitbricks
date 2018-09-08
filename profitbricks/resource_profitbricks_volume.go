@@ -59,7 +59,6 @@ func resourceProfitBricksVolume() *schema.Resource {
 			"server_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"datacenter_id": {
 				Type:     schema.TypeString,
@@ -215,6 +214,8 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
+	serverID := d.Get("server_id").(string)
+	volumeID := d.Id()
 
 	volume, err := client.GetVolume(dcId, d.Id())
 
@@ -231,6 +232,11 @@ func resourceProfitBricksVolumeRead(d *schema.ResourceData, meta interface{}) er
 	if volume.StatusCode > 299 {
 		return fmt.Errorf("An error occured while fetching a volume ID %s %s", d.Id(), volume.Response)
 
+	}
+
+	_, err = client.GetAttachedVolume(dcId, serverID, volumeID)
+	if err != nil {
+		d.Set("server_id", "")
 	}
 
 	d.Set("name", volume.Properties.Name)
