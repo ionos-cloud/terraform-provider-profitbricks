@@ -103,7 +103,6 @@ func resourceProfitBricksServer() *schema.Resource {
 			"volume": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -741,26 +740,27 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 
 	if server.Properties.BootVolume != nil {
 		d.Set("boot_volume", server.Properties.BootVolume.ID)
-
 		volumeObj, err := client.GetAttachedVolume(dcId, serverId, server.Properties.BootVolume.ID)
-		if err != nil {
-			return fmt.Errorf("Error occured while fetching attached volume %s from server ID %s %s", server.Properties.BootVolume.ID, serverId, err)
-		}
+		if err == nil {
+			volumeItem := map[string]interface{}{
+				"name":              volumeObj.Properties.Name,
+				"disk_type":         volumeObj.Properties.Type,
+				"size":              volumeObj.Properties.Size,
+				"licence_type":      volumeObj.Properties.LicenceType,
+				"bus":               volumeObj.Properties.Bus,
+				"availability_zone": volumeObj.Properties.AvailabilityZone,
+			}
 
-		volumeItem := map[string]interface{}{
-			"name":              volumeObj.Properties.Name,
-			"disk_type":         volumeObj.Properties.Type,
-			"size":              volumeObj.Properties.Size,
-			"licence_type":      volumeObj.Properties.LicenceType,
-			"bus":               volumeObj.Properties.Bus,
-			"availability_zone": volumeObj.Properties.AvailabilityZone,
+			volumesList := []map[string]interface{}{volumeItem}
+			if err := d.Set("volume", volumesList); err != nil {
+				return fmt.Errorf("[DEBUG] Error saving volume to state for ProfitBricks server (%s): %s", d.Id(), err)
+			}
 		}
+	}
 
-		volumesList := []map[string]interface{}{volumeItem}
-		if err := d.Set("volume", volumesList); err != nil {
-			return fmt.Errorf("[DEBUG] Error saving volume to state for ProfitBricks server (%s): %s", d.Id(), err)
-		}
-
+	_, err = client.GetAttachedVolume(dcId, d.Id(), d.Get("boot_volume").(string))
+	if err != nil {
+		d.Set("volume", nil)
 	}
 
 	if server.Properties.BootCdrom != nil {
@@ -807,6 +807,23 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	//Volume stuff
 	if d.HasChange("volume") {
+		boot_volume := d.Get("boot_volume").(string)
+		_, err = client.GetAttachedVolume(dcId, d.Id(), boot_volume)
+
+		if err != nil {
+
+			volumeAttach, err := client.AttachVolume(dcId, d.Id(), boot_volume)
+			if err != nil {
+				return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, d.Id(), boot_volume, err)
+			}
+
+			// Wait, catching any errors
+			_, errState = getStateChangeConf(meta, d, volumeAttach.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+			if errState != nil {
+				return errState
+			}
+		}
+
 		properties := profitbricks.VolumeProperties{}
 
 		if v, ok := d.GetOk("volume.0.name"); ok {
@@ -821,7 +838,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			properties.Bus = v.(string)
 		}
 
-		volume, err := client.UpdateVolume(d.Get("datacenter_id").(string), server.Entities.Volumes.Items[0].ID, properties)
+		volume, err := client.UpdateVolume(d.Get("datacenter_id").(string), boot_volume, properties)
 
 		if err != nil {
 			return fmt.Errorf("Error patching volume (%s) (%s)", d.Id(), err)
