@@ -15,25 +15,25 @@ func resourceProfitBricksLoadbalancer() *schema.Resource {
 		Delete: resourceProfitBricksLoadbalancerDelete,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"ip": &schema.Schema{
+			"ip": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"dhcp": &schema.Schema{
+			"dhcp": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"datacenter_id": &schema.Schema{
+			"datacenter_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
-			"nic_ids": &schema.Schema{
+			"nic_ids": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},

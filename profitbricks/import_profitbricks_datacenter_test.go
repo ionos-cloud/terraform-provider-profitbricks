@@ -14,11 +14,11 @@ func TestAccProfitBricksDataCenter_ImportBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksDatacenterDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitBricksDatacenterConfig_basic, resourceName),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      fmt.Sprintf("profitbricks_datacenter.foobar"),
 				ImportState:       true,
 				ImportStateVerify: true,

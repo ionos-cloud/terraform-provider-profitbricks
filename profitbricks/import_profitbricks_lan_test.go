@@ -16,11 +16,11 @@ func TestAccProfitBricksLan_ImportBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksLanDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksLanConfig_basic, lanName),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      "profitbricks_lan.webserver_lan",
 				ImportStateIdFunc: testAccProfitBricksLanImportStateId,
 				ImportState:       true,
