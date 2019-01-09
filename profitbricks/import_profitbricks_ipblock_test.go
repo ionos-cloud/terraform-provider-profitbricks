@@ -15,11 +15,11 @@ func TestAccProfitBricksIPBlock_ImportBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksIPBlockDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksIPBlockConfig_basic, location),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      "profitbricks_ipblock.webserver_ip",
 				ImportState:       true,
 				ImportStateVerify: true,

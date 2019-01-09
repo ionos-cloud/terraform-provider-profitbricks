@@ -16,11 +16,11 @@ func TestAccProfitBricksNic_ImportBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksNicDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksNicConfig_basic, volumeName),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      "profitbricks_nic.database_nic",
 				ImportStateIdFunc: testAccProfitBricksNicImportStateId,
 				ImportState:       true,

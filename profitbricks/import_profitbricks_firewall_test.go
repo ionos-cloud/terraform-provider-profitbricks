@@ -16,11 +16,11 @@ func TestAccProfitBricksFirewall_ImportBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksFirewallDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksFirewallConfig_basic, firewallName),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:      "profitbricks_firewall.webserver_http",
 				ImportStateIdFunc: testAccProfitBricksFirewallImportStateId,
 				ImportState:       true,

@@ -50,7 +50,7 @@ func resourceProfitBricksLanIPFailoverCreate(d *schema.ResourceData, meta interf
 	properties := &profitbricks.LanProperties{}
 
 	properties.IPFailover = &[]profitbricks.IPFailover{
-		profitbricks.IPFailover{
+		{
 			IP:      ip,
 			NicUUID: nicUuid,
 		}}
@@ -102,7 +102,7 @@ func resourceProfitBricksLanIPFailoverUpdate(d *schema.ResourceData, meta interf
 	nicUuid := d.Get("nicuuid").(string)
 
 	properties.IPFailover = &[]profitbricks.IPFailover{
-		profitbricks.IPFailover{
+		{
 			IP:      ip,
 			NicUUID: nicUuid,
 		}}

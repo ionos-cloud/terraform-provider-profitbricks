@@ -16,11 +16,11 @@ func TestAccProfitBricksServer_ImportBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDProfitBricksServerDestroyCheck,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: fmt.Sprintf(testAccCheckProfitbricksServerConfig_basic, resourceName),
 			},
 
-			resource.TestStep{
+			{
 				ResourceName:            "profitbricks_server.webserver",
 				ImportStateIdFunc:       testAccProfitBricksServerImportStateId,
 				ImportState:             true,
