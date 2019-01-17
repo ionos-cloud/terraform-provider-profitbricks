@@ -41,6 +41,9 @@ func getDatacenter(client *profitbricks.Client, d *schema.ResourceData) (*profit
 	if locationOk {
 		location = t.(string)
 	}
+	if !idOk && !nameOk && !locationOk {
+		return nil, fmt.Errorf("either id, location or name must be set")
+	}
 	if idOk {
 		dc, err := client.GetDatacenter(id.(string))
 		if err != nil {
