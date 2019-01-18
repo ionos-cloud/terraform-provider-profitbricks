@@ -784,12 +784,10 @@
 			"revisionTime": "2018-04-13T09:18:13Z"
 		},
 		{
-			"checksumSHA1": "NUA10ZEhnawSPfTQiLMInYUMXKQ=",
+			"checksumSHA1": "lwgIvJtQM3c0K6WdpEgB3k06ZF8=",
 			"path": "github.com/profitbricks/profitbricks-sdk-go",
-			"revision": "7b96ba54985dd7ab7c944105c76dc6b35152a3c2",
-			"revisionTime": "2018-07-03T14:07:10Z",
-			"version": "v5.0.1",
-			"versionExact": "v5.0.1"
+			"revision": "b1b7a68089d7e903c6762076338fd230b31c9bf1",
+			"revisionTime": "2019-01-07T10:33:16Z"
 		},
 		{
 			"checksumSHA1": "u5s2PZ7fzCOqQX7bVPf9IJ+qNLQ=",

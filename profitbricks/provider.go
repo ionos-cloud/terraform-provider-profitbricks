@@ -15,16 +15,25 @@ func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"username": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("PROFITBRICKS_USERNAME", nil),
-				Description: "ProfitBricks username for API operations.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc("PROFITBRICKS_USERNAME", nil),
+				Description:   "ProfitBricks username for API operations. If token is provided, token is prefered",
+				ConflictsWith: []string{"token"},
 			},
 			"password": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("PROFITBRICKS_PASSWORD", nil),
-				Description: "ProfitBricks password for API operations.",
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc("PROFITBRICKS_PASSWORD", nil),
+				Description:   "ProfitBricks password for API operations. If token is provided, token is prefered",
+				ConflictsWith: []string{"token"},
+			},
+			"token": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				DefaultFunc:   schema.EnvDefaultFunc("PROFITBRICKS_TOKEN", ""),
+				Description:   "Profitbricks bearer token for API operations.",
+				ConflictsWith: []string{"username", "password"},
 			},
 			"endpoint": {
 				Type:        schema.TypeString,
@@ -68,19 +77,30 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
-	if _, ok := d.GetOk("username"); !ok {
-		return nil, fmt.Errorf("ProfitBricks username has not been provided")
-	}
+	username, usernameOk := d.GetOk("username")
+	password, passwordOk := d.GetOk("password")
+	token, _ := d.GetOk("token")
 
-	if _, ok := d.GetOk("password"); !ok {
-		return nil, fmt.Errorf("ProfitBricks password has not been provided")
+	if token == "" {
+		if !usernameOk {
+			return nil, fmt.Errorf("Neither ProfitBricks token, nor ProfitBricks username has been provided")
+		}
+
+		if !passwordOk {
+			return nil, fmt.Errorf("Neither ProfitBricks token, nor ProfitBricks password has been provided")
+		}
+	} else {
+		if usernameOk || passwordOk {
+			return nil, fmt.Errorf("Only provide ProfitBricks token OR ProfitBricks username/password.")
+		}
 	}
 
 	config := Config{
-		Username: d.Get("username").(string),
-		Password: d.Get("password").(string),
+		Username: username.(string),
+		Password: password.(string),
 		Endpoint: cleanURL(d.Get("endpoint").(string)),
 		Retries:  d.Get("retries").(int),
+		Token:    token.(string),
 	}
 
 	return config.Client()

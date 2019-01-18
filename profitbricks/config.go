@@ -10,11 +10,17 @@ type Config struct {
 	Password string
 	Endpoint string
 	Retries  int
+	Token    string
 }
 
 // Client() returns a new client for accessing ProfitBricks.
 func (c *Config) Client() (*profitbricks.Client, error) {
-	client := profitbricks.NewClient(c.Username, c.Password)
+	var client *profitbricks.Client
+	if c.Token != "" {
+		client = profitbricks.NewClientbyToken(c.Token)
+	} else {
+		client = profitbricks.NewClient(c.Username, c.Password)
+	}
 	client.SetUserAgent(terraform.UserAgentString())
 	client.SetDepth(5)
 

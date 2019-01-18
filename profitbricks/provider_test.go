@@ -29,11 +29,17 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("PROFITBRICKS_USERNAME"); v == "" {
-		t.Fatal("PROFITBRICKS_USERNAME must be set for acceptance tests")
-	}
+	pbUsername := os.Getenv("PROFITBRICKS_USERNAME")
+	pbPassword := os.Getenv("PROFITBRICKS_PASSWORD")
+	pbToken := os.Getenv("PROFITBRICKS_TOKEN")
+	if pbToken == "" {
+		if pbUsername == "" || pbPassword == "" {
+			t.Fatal("PROFITBRICKS_USERNAME/PROFITBRICKS_PASSWORD or PROFITBRICKS_TOKEN must be set for acceptance tests")
+		}
+	} else {
+		if pbUsername != "" || pbPassword != "" {
+			t.Fatal("PROFITBRICKS_USERNAME/PROFITBRICKS_PASSWORD or PROFITBRICKS_TOKEN must be set for acceptance tests")
+		}
 
-	if v := os.Getenv("PROFITBRICKS_PASSWORD"); v == "" {
-		t.Fatal("PROFITBRICKS_PASSWORD must be set for acceptance tests")
 	}
 }
