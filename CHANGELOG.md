@@ -1,4 +1,9 @@
-## 1.5.0 (Unreleased)
+## 1.4.1 (Unreleased)
+
+ENHANCEMENTS:
+
+* Add parameter check for datacenter resource ([45](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/45))
+
 ## 1.4.0 (September 11, 2018)
 
 ENHANCEMENTS:
