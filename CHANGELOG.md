@@ -1,4 +1,4 @@
-## 1.4.1 (Unreleased)
+## 1.4.1 (January 21, 2019)
 
 ENHANCEMENTS:
 
