@@ -1,4 +1,9 @@
 ## 1.4.2 (Unreleased)
+
+BUG FIXES:
+
+* Fix conflicting auth token default value ([#47](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/47))
+
 ## 1.4.1 (January 21, 2019)
 
 ENHANCEMENTS:
