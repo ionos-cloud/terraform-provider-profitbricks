@@ -18,20 +18,20 @@ func Provider() terraform.ResourceProvider {
 				Type:          schema.TypeString,
 				Optional:      true,
 				DefaultFunc:   schema.EnvDefaultFunc("PROFITBRICKS_USERNAME", nil),
-				Description:   "ProfitBricks username for API operations. If token is provided, token is prefered",
+				Description:   "ProfitBricks username for API operations. If token is provided, token is preferred",
 				ConflictsWith: []string{"token"},
 			},
 			"password": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				DefaultFunc:   schema.EnvDefaultFunc("PROFITBRICKS_PASSWORD", nil),
-				Description:   "ProfitBricks password for API operations. If token is provided, token is prefered",
+				Description:   "ProfitBricks password for API operations. If token is provided, token is preferred",
 				ConflictsWith: []string{"token"},
 			},
 			"token": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				DefaultFunc:   schema.EnvDefaultFunc("PROFITBRICKS_TOKEN", ""),
+				DefaultFunc:   schema.EnvDefaultFunc("PROFITBRICKS_TOKEN", nil),
 				Description:   "Profitbricks bearer token for API operations.",
 				ConflictsWith: []string{"username", "password"},
 			},
@@ -79,9 +79,9 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 
 	username, usernameOk := d.GetOk("username")
 	password, passwordOk := d.GetOk("password")
-	token, _ := d.GetOk("token")
+	token, tokenOk := d.GetOk("token")
 
-	if token == "" {
+	if !tokenOk {
 		if !usernameOk {
 			return nil, fmt.Errorf("Neither ProfitBricks token, nor ProfitBricks username has been provided")
 		}
