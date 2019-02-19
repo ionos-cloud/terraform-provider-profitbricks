@@ -23,8 +23,7 @@ func resourceProfitBricksServer() *schema.Resource {
 			State: resourceProfitBricksServerImport,
 		},
 		Schema: map[string]*schema.Schema{
-
-			//Server parameters
+			// Server parameters
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -397,7 +396,7 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 		if img != nil {
 			image = img.ID
 		}
-		//if no image id was found with that name we look for a matching snapshot
+		// if no image id was found with that name we look for a matching snapshot
 		if image == "" {
 			image = getSnapshotId(client, image_name)
 			if image != "" {
@@ -515,14 +514,9 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			nic.Properties.Name = v.(string)
 		}
 
-		if v, ok := d.GetOk("nic.0.dhcp"); ok {
-			val := v.(bool)
-			nic.Properties.Dhcp = &val
-		}
-
-		if v, ok := d.GetOk("nic.0.firewall_active"); ok {
-			nic.Properties.FirewallActive = v.(bool)
-		}
+		nic.Properties.Dhcp = boolAddr(d.Get("nic.0.dhcp").(bool))
+		nic.Properties.FirewallActive = boolAddr(d.Get("nic.0.firewall_active").(bool))
+		nic.Properties.Nat = boolAddr(d.Get("nic.0.nat").(bool))
 
 		if v, ok := d.GetOk("nic.0.ip"); ok {
 			ips := strings.Split(v.(string), ",")
@@ -531,15 +525,14 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		if v, ok := d.GetOk("nic.0.nat"); ok {
-			nic.Properties.Nat = v.(bool)
-		}
-
+		log.Printf("[DEBUG] dhcp nic before%t", *nic.Properties.Dhcp)
 		request.Entities.Nics = &profitbricks.Nics{
 			Items: []profitbricks.Nic{
 				nic,
 			},
 		}
+		log.Printf("[DEBUG] dhcp nic after %t", *nic.Properties.Dhcp)
+		log.Printf("[DEBUG] dhcp %t", *request.Entities.Nics.Items[0].Properties.Dhcp)
 
 		if _, ok := d.GetOk("nic.0.firewall"); ok {
 			firewall := profitbricks.FirewallRule{
@@ -604,7 +597,10 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 	if len(request.Entities.Nics.Items[0].Properties.Ips) == 0 {
 		request.Entities.Nics.Items[0].Properties.Ips = nil
 	}
+
 	server, err := client.CreateServer(d.Get("datacenter_id").(string), request)
+
+	log.Printf("[DEBUG] dhcp %t", *request.Entities.Nics.Items[0].Properties.Dhcp)
 
 	jsn, _ := json.Marshal(request)
 	log.Println("[DEBUG] Server request", string(jsn))
@@ -644,6 +640,61 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceProfitBricksServerRead(d, meta)
 }
 
+func GetFirewallResource(d *schema.ResourceData, path string) profitbricks.FirewallRule {
+
+	firewall := profitbricks.FirewallRule{
+		Properties: profitbricks.FirewallruleProperties{},
+	}
+	if v, ok := d.GetOk(path + ".protocol"); ok {
+		firewall.Properties.Protocol = v.(string)
+	}
+
+	if v, ok := d.GetOk(path + ".name"); ok {
+		firewall.Properties.Name = v.(string)
+	}
+
+	if v, ok := d.GetOk(path + ".source_mac"); ok {
+		val := v.(string)
+		firewall.Properties.SourceMac = &val
+	}
+
+	if v, ok := d.GetOk(path + ".source_ip"); ok {
+		val := v.(string)
+		firewall.Properties.SourceIP = &val
+	}
+
+	if v, ok := d.GetOk(path + ".target_ip"); ok {
+		val := v.(string)
+		firewall.Properties.TargetIP = &val
+	}
+
+	if v, ok := d.GetOk(path + ".port_range_start"); ok {
+		val := v.(int)
+		firewall.Properties.PortRangeStart = &val
+	}
+
+	if v, ok := d.GetOk(path + ".port_range_end"); ok {
+		val := v.(int)
+		firewall.Properties.PortRangeEnd = &val
+	}
+
+	if v, ok := d.GetOk(path + ".icmp_type"); ok {
+		tempIcmpType := v.(string)
+		if tempIcmpType != "" {
+			i, _ := strconv.Atoi(tempIcmpType)
+			firewall.Properties.IcmpType = &i
+		}
+	}
+	if v, ok := d.GetOk(path + ".icmp_code"); ok {
+		tempIcmpCode := v.(string)
+		if tempIcmpCode != "" {
+			i, _ := strconv.Atoi(tempIcmpCode)
+			firewall.Properties.IcmpCode = &i
+		}
+	}
+	return firewall
+}
+
 func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
@@ -681,8 +732,8 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 			"lan":             nic.Properties.Lan,
 			"name":            nic.Properties.Name,
 			"dhcp":            *nic.Properties.Dhcp,
-			"nat":             nic.Properties.Nat,
-			"firewall_active": nic.Properties.FirewallActive,
+			"nat":             *nic.Properties.Nat,
+			"firewall_active": *nic.Properties.FirewallActive,
 			"ips":             nic.Properties.Ips,
 		}
 
@@ -769,6 +820,10 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
+func boolAddr(b bool) *bool {
+	return &b
+}
+
 func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
 	dcId := d.Get("datacenter_id").(string)
@@ -805,7 +860,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 	if errState != nil {
 		return errState
 	}
-	//Volume stuff
+	// Volume stuff
 	if d.HasChange("volume") {
 		boot_volume := d.Get("boot_volume").(string)
 		_, err = client.GetAttachedVolume(dcId, d.Id(), boot_volume)
@@ -851,7 +906,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	//Nic stuff
+	// Nic stuff
 	if d.HasChange("nic") {
 		nic := &profitbricks.Nic{}
 		for _, n := range server.Entities.Nics.Items {
@@ -876,17 +931,25 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 
-		if v, ok := d.GetOk("nic.0.dhcp"); ok {
-			val := v.(bool)
-			properties.Dhcp = &val
-		}
+		properties.Dhcp = boolAddr(d.Get("nic.0.dhcp").(bool))
 
-		if v, ok := d.GetOk("nic.0.nat"); ok {
-			properties.Nat = v.(bool)
-		}
+		properties.Nat = boolAddr(d.Get("nic.0.nat").(bool))
+		properties.FirewallActive = boolAddr(d.Get("nic.0.firewall_active").(bool))
 
+		if d.HasChange("nic.0.firewall") {
+
+			firewall := GetFirewallResource(d, "nic.0.firewall")
+			nic.Entities = &profitbricks.NicEntities{
+				FirewallRules: &profitbricks.FirewallRules{
+					Items: []profitbricks.FirewallRule{
+						firewall,
+					},
+				},
+			}
+		}
+		mProp, _ := json.Marshal(properties)
+		log.Printf("[DEBUG] Updating props: %s", string(mProp))
 		nic, err := client.UpdateNic(d.Get("datacenter_id").(string), server.ID, nic.ID, properties)
-
 		if err != nil {
 			return fmt.Errorf(
 				"Error updating nic (%s)", err)
@@ -897,6 +960,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		if errState != nil {
 			return errState
 		}
+
 	}
 
 	return resourceProfitBricksServerRead(d, meta)
@@ -940,7 +1004,7 @@ func resourceProfitBricksServerDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-//Reads public key from file and returns key string iff valid
+// Reads public key from file and returns key string iff valid
 func readPublicKey(path string) (key string, err error) {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
