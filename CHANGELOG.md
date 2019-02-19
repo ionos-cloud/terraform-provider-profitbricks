@@ -2,7 +2,7 @@
 
 BUG FIXES:
 
-- Fix nic.0.dhcp & nic.0.firewall_active update have no effect  ([#48](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/48))
+- Fix nic.0.dhcp & nic.0.firewall_active update have no effect  ([#51](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/51))
 
 ## 1.4.2 (February 11, 2019)
 
