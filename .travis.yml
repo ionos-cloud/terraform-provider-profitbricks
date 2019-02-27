@@ -5,7 +5,8 @@ services:
 language: go
 go:
   - "1.11.x"
-
+env:
+  GO111MODULE=on
 install:
 # This script is used by the Travis build to install a cookie for
 # go.googlesource.com so rate limits are higher when using `go get` to fetch
@@ -15,7 +16,7 @@ install:
 - go get github.com/kardianos/govendor
 
 script:
-- make test
+-  make test
 - make vendor-status
 - make vet
 - make website-test
