@@ -41,6 +41,8 @@ func TestAccProfitBricksServer_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksServerAttributes("profitbricks_server.webserver", "updated"),
 					resource.TestCheckResourceAttr("profitbricks_server.webserver", "name", "updated"),
+					resource.TestCheckResourceAttr("profitbricks_server.webserver", "nic.0.dhcp", "false"),
+					resource.TestCheckResourceAttr("profitbricks_server.webserver", "nic.0.firewall_active", "false"),
 				),
 			},
 		},
@@ -216,8 +218,8 @@ resource "profitbricks_server" "webserver" {
 }
   nic {
     lan = "${profitbricks_lan.webserver_lan.id}"
-    dhcp = true
-    firewall_active = true
+    dhcp = false
+    firewall_active = false
 		firewall {
       protocol = "TCP"
       name = "SSH"
@@ -226,3 +228,7 @@ resource "profitbricks_server" "webserver" {
     }
   }
 }`
+
+func Test_Update(t *testing.T) {
+
+}
