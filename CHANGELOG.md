@@ -1,5 +1,3 @@
-## 1.5.0 (Unreleased)
-
 ## 1.4.4 (Unreleased)
 
 BUG FIXES:
