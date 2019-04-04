@@ -57,6 +57,7 @@ func resourceProfitBricksServer() *schema.Resource {
 			"cpu_family": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"boot_image": {
 				Type:     schema.TypeString,
