@@ -1,4 +1,4 @@
-## 1.4.4 (Unreleased)
+## 1.4.4 (April 04, 2019)
 
 BUG FIXES:
 - Set cpu_family to computed. ([#54](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/54))
