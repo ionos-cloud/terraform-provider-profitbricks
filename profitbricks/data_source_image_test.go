@@ -1,9 +1,10 @@
 package profitbricks
 
 import (
-	"github.com/hashicorp/terraform/helper/resource"
 	"regexp"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceImage_basic(t *testing.T) {

@@ -141,14 +141,17 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("An error occured while creating a firewall rule: %s", err)
 	}
+	d.SetId(fw.ID)
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, fw.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
-
-	d.SetId(fw.ID)
 
 	return resourceProfitBricksFirewallRead(d, meta)
 }

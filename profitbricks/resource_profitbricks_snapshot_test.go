@@ -2,10 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/profitbricks/profitbricks-sdk-go"
-	"testing"
 )
 
 func TestAccProfitBricksSnapshot_Basic(t *testing.T) {

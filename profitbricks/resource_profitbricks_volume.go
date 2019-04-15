@@ -188,9 +188,15 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("An error occured while creating a volume: %s", err)
 	}
 
+	d.SetId(volume.ID)
+
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
 
@@ -199,14 +205,16 @@ func resourceProfitBricksVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("An error occured while attaching a volume dcId: %s server_id: %s ID: %s Response: %s", dcId, serverId, volume.ID, err)
 	}
 
+	d.Set("server_id", serverId)
 	// Wait, catching any errors
 	_, errState = getStateChangeConf(meta, d, volume.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.Set("server_id", "")
+		}
 		return errState
 	}
-
-	d.SetId(volume.ID)
-	d.Set("server_id", serverId)
 
 	return resourceProfitBricksVolumeRead(d, meta)
 }

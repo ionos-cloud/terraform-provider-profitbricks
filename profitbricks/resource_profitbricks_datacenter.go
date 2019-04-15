@@ -67,6 +67,10 @@ func resourceProfitBricksDatacenterCreate(d *schema.ResourceData, meta interface
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, dc.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
 

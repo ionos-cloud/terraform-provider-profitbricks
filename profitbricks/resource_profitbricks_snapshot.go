@@ -47,13 +47,16 @@ func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("An error occured while creating a snapshot: %s", err)
 	}
 
+	d.SetId(snapshot.ID)
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, snapshot.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
-
-	d.SetId(snapshot.ID)
 
 	return resourceProfitBricksSnapshotRead(d, meta)
 }

@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
-	"github.com/profitbricks/profitbricks-sdk-go"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
+	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
 func TestAccProfitBricksUser_Basic(t *testing.T) {

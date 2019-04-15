@@ -98,14 +98,16 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		return fmt.Errorf("Error occured while creating a nic: %s", err)
 	}
-
+	d.SetId(nic.ID)
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, nic.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
-
-	d.SetId(nic.ID)
 	return resourceProfitBricksNicRead(d, meta)
 }
 

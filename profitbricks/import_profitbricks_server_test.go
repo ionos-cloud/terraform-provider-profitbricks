@@ -3,9 +3,10 @@ package profitbricks
 import (
 	"fmt"
 
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"testing"
 )
 
 func TestAccProfitBricksServer_ImportBasic(t *testing.T) {

@@ -131,6 +131,19 @@ func getStateChangeConf(meta interface{}, d *schema.ResourceData, location strin
 	return stateConf
 }
 
+type RequestFailedError struct {
+	msg string
+}
+
+func (e RequestFailedError) Error() string {
+	return e.msg
+}
+
+func IsRequestFailed(err error) bool {
+	_, ok := err.(RequestFailedError)
+	return ok
+}
+
 // resourceStateRefreshFunc tracks progress of a request
 func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
@@ -147,7 +160,7 @@ func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefre
 		}
 
 		if request.Metadata.Status == "FAILED" {
-			return nil, "", fmt.Errorf("Request failed with following error: %s", request.Metadata.Message)
+			return nil, "", RequestFailedError{fmt.Sprintf("Request failed with following error: %s", request.Metadata.Message)}
 		}
 
 		if request.Metadata.Status == "DONE" {

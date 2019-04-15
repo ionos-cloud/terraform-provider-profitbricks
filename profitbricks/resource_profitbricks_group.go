@@ -107,14 +107,17 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("An error occured while creating a group: %s", err)
 	}
+	d.SetId(group.ID)
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, group.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
-
-	d.SetId(group.ID)
 
 	//add users to group if any is provided
 	if usertoAdd != "" {

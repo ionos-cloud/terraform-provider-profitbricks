@@ -1,8 +1,9 @@
 package profitbricks
 
 import (
-	"github.com/hashicorp/terraform/helper/resource"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccResource_basic(t *testing.T) {
