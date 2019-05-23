@@ -14,6 +14,9 @@ func resourceProfitBricksVolume() *schema.Resource {
 		Read:   resourceProfitBricksVolumeRead,
 		Update: resourceProfitBricksVolumeUpdate,
 		Delete: resourceProfitBricksVolumeDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceProfitBricksResourceImport,
+		},
 		Schema: map[string]*schema.Schema{
 			"image_name": {
 				Type:     schema.TypeString,
