@@ -601,24 +601,21 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 
 	server, err := client.CreateServer(d.Get("datacenter_id").(string), request)
 
-	log.Printf("[DEBUG] dhcp %t", *request.Entities.Nics.Items[0].Properties.Dhcp)
-
-	jsn, _ := json.Marshal(request)
-	log.Println("[DEBUG] Server request", string(jsn))
-	log.Println("[DEBUG] Server response", server.Response)
-
 	if err != nil {
 		return fmt.Errorf(
 			"Error creating server: (%s)", err)
 	}
+	d.SetId(server.ID)
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, server.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
-
-	d.SetId(server.ID)
 	server, err = client.GetServer(d.Get("datacenter_id").(string), server.ID)
 	if err != nil {
 		return fmt.Errorf("Error fetching server: (%s)", err)

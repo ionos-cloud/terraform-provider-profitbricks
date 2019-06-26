@@ -1,4 +1,8 @@
-## 1.5.0 (Unreleased)
+## 1.4.5 (Unreleased)
+
+BUG FIXES:
+- Persist resource ids in state before syncing ([#57]https://github.com/terraform-providers/terraform-provider-profitbricks/pull/57)
+
 ## 1.4.4 (April 04, 2019)
 
 BUG FIXES:

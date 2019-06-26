@@ -77,13 +77,17 @@ func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("An error occured while creating a user: %s", err)
 	}
 
+	d.SetId(user.ID)
+
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, user.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
-
-	d.SetId(user.ID)
 	return resourceProfitBricksUserRead(d, meta)
 }
 

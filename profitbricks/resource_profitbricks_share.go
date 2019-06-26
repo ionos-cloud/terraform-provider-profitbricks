@@ -58,14 +58,18 @@ func resourceProfitBricksShareCreate(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("An error occured while creating a share: %s", err)
 	}
+	d.SetId(share.ID)
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, share.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
 
-	d.SetId(share.ID)
 	return resourceProfitBricksShareRead(d, meta)
 }
 

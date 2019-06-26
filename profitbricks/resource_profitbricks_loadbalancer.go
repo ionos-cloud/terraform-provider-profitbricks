@@ -69,14 +69,17 @@ func resourceProfitBricksLoadbalancerCreate(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return fmt.Errorf("Error occured while creating a loadbalancer %s", err)
 	}
+	d.SetId(lb.ID)
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, lb.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
 		return errState
 	}
-
-	d.SetId(lb.ID)
 
 	return resourceProfitBricksLoadbalancerRead(d, meta)
 }

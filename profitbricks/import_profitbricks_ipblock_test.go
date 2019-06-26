@@ -3,8 +3,9 @@ package profitbricks
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/resource"
 	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccProfitBricksIPBlock_ImportBasic(t *testing.T) {
