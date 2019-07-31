@@ -1,7 +1,7 @@
 package profitbricks
 
 import (
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform/httpclient"
 	"github.com/profitbricks/profitbricks-sdk-go"
 )
 
@@ -11,6 +11,8 @@ type Config struct {
 	Endpoint string
 	Retries  int
 	Token    string
+
+	terraformVersion string
 }
 
 // Client() returns a new client for accessing ProfitBricks.
@@ -21,7 +23,8 @@ func (c *Config) Client() (*profitbricks.Client, error) {
 	} else {
 		client = profitbricks.NewClient(c.Username, c.Password)
 	}
-	client.SetUserAgent(terraform.UserAgentString())
+	tfUserAgent := httpclient.UserAgent(c.terraformVersion)
+	client.SetUserAgent(tfUserAgent.String())
 	client.SetDepth(5)
 
 	if len(c.Endpoint) > 0 {

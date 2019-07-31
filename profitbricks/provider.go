@@ -12,7 +12,7 @@ import (
 
 // Provider returns a schema.Provider for ProfitBricks.
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
+	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"username": {
 				Type:          schema.TypeString,
@@ -71,12 +71,16 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_resource":   dataSourceResource(),
 			"profitbricks_snapshot":   dataSourceSnapshot(),
 		},
-		ConfigureFunc: providerConfigure,
 	}
+
+	provider.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+		return providerConfigure(d, provider.TerraformVersion)
+	}
+
+	return provider
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-
+func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 	username, usernameOk := d.GetOk("username")
 	password, passwordOk := d.GetOk("password")
 	token, tokenOk := d.GetOk("token")
@@ -96,11 +100,12 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 
 	config := Config{
-		Username: username.(string),
-		Password: password.(string),
-		Endpoint: cleanURL(d.Get("endpoint").(string)),
-		Retries:  d.Get("retries").(int),
-		Token:    token.(string),
+		Username:         username.(string),
+		Password:         password.(string),
+		Endpoint:         cleanURL(d.Get("endpoint").(string)),
+		Retries:          d.Get("retries").(int),
+		Token:            token.(string),
+		terraformVersion: terraformVersion,
 	}
 
 	return config.Client()
