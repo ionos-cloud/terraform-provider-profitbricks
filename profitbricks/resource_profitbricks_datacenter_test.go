@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/profitbricks/profitbricks-sdk-go"
+	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
 func TestAccProfitBricksDataCenter_Basic(t *testing.T) {

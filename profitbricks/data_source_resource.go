@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
+	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
 func dataSourceResource() *schema.Resource {

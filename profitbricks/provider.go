@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/profitbricks/profitbricks-sdk-go"
+	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
 // Provider returns a schema.Provider for ProfitBricks.

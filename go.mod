@@ -1,5 +1,7 @@
 module github.com/terraform-providers/terraform-provider-profitbricks
 
+go 1.14
+
 require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/apparentlymart/go-cidr v0.0.0-20170418151526-7e4b007599d4 // indirect
@@ -44,15 +46,12 @@ require (
 	github.com/mitchellh/reflectwalk v0.0.0-20161003174516-92573fe8d000 // indirect
 	github.com/oklog/run v0.0.0-20180308005104-6934b124db28 // indirect
 	github.com/posener/complete v0.0.0-20180413091813-e037c22b2fcf // indirect
-	github.com/profitbricks/profitbricks-sdk-go v0.0.0-20190222123111-d5c5c597c06e
+	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.9
 	github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa // indirect
 	github.com/ulikunitz/xz v0.0.0-20180703112113-636d36a76670 // indirect
 	github.com/zclconf/go-cty v0.0.0-20180616180831-c96d660229f9 // indirect
-	golang.org/x/crypto v0.0.0-20170808112155-b176d7def5d7
-	golang.org/x/net v0.0.0-20180702212446-ed29d75add3d // indirect
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
-	golang.org/x/sys v0.0.0-20180704094941-151529c776cd // indirect
-	golang.org/x/text v0.0.0-20180629073911-c0fe8dde8a10 // indirect
 	google.golang.org/genproto v0.0.0-20180627194029-ff3583edef7d // indirect
 	google.golang.org/grpc v0.0.0-20180703210707-40cd6b15e288 // indirect
 )
