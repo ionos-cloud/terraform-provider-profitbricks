@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
 func dataSourceSnapshot() *schema.Resource {

@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/profitbricks/profitbricks-sdk-go"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -62,6 +62,7 @@ func resourceProfitBricksServer() *schema.Resource {
 			"boot_image": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 			"primary_nic": {
 				Type:     schema.TypeString,
