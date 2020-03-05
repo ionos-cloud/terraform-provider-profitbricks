@@ -1,7 +1,5 @@
 module github.com/terraform-providers/terraform-provider-profitbricks
 
-go 1.14
-
 require (
 	cloud.google.com/go/bigquery v1.5.0 // indirect
 	github.com/aws/aws-sdk-go v1.29.16 // indirect
