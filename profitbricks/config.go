@@ -1,7 +1,7 @@
 package profitbricks
 
 import (
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform/httpclient"
 	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
@@ -22,7 +22,7 @@ func (c *Config) Client() (*profitbricks.Client, error) {
 	} else {
 		client = profitbricks.NewClient(c.Username, c.Password)
 	}
-	client.SetUserAgent(terraform.UserAgentString())
+	client.SetUserAgent(httpclient.UserAgentString())
 	client.SetDepth(5)
 
 	if len(c.Endpoint) > 0 {
