@@ -19,6 +19,7 @@ require (
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20200210163047-f7d8399e1194 // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20191119180714-d2e4933b9136 // indirect
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
+	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
@@ -38,7 +39,7 @@ require (
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
-	golang.org/x/tools v0.0.0-20200304024140-c4206d458c3f // indirect
+	golang.org/x/tools v0.0.0-20200304193943-95d2e580d8eb // indirect
 	google.golang.org/api v0.20.0 // indirect
 	google.golang.org/genproto v0.0.0-20200303153909-beee998c1893 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
