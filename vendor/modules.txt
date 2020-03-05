@@ -224,8 +224,6 @@ github.com/jmespath/go-jmespath
 github.com/jstemmer/go-junit-report
 github.com/jstemmer/go-junit-report/formatter
 github.com/jstemmer/go-junit-report/parser
-# github.com/kisielk/errcheck v1.2.0
-## explicit
 # github.com/kr/pretty v0.2.0
 ## explicit
 # github.com/kr/text v0.2.0

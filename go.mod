@@ -19,7 +19,6 @@ require (
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20200210163047-f7d8399e1194 // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20191119180714-d2e4933b9136 // indirect
 	github.com/hashicorp/yamux v0.0.0-20190923154419-df201c70410d // indirect
-	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
