@@ -5,7 +5,6 @@ go 1.14
 require (
 	cloud.google.com/go/bigquery v1.5.0 // indirect
 	github.com/aws/aws-sdk-go v1.29.17 // indirect
-	github.com/bmatcuk/doublestar v1.2.2 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-resty/resty/v2 v2.2.0 // indirect
 	github.com/go-test/deep v1.0.5 // indirect
@@ -14,7 +13,6 @@ require (
 	github.com/hashicorp/go-plugin v1.1.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/hashicorp/hil v0.0.0-20190212132231-97b3a9cdfa93 // indirect
 	github.com/hashicorp/terraform v0.12.21
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20200210163047-f7d8399e1194 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.7.0
