@@ -9,7 +9,7 @@
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.12.x
-- [Go](https://golang.org/doc/install) 1.11 (to build the provider plugin)
+- [Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
 
 **NOTE:** In order to use a speciffic version of this provider, please include the following block at the beginning of your terraform config files [details](https://www.terraform.io/docs/configuration/terraform.html#specifying-a-required-terraform-version):
 
