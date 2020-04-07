@@ -1,7 +1,18 @@
+## 1.5.0 (April 7th, 2020)
+
+ENHANCEMENTS:
+- Use profitbricks-sdk-go v5.0.9
+- Use golang 1.13+
+- Uses the new v5 API endpoint
+- Terraform v0.12.21
+
+BACKWARDS INCOMPATIBILITIES / NOTES:
+- This provider version might have some incompatibility issues with older terraform code
+
 ## 1.4.5 (Unreleased)
 
 BUG FIXES:
-- Persist resource ids in state before syncing ([#57]https://github.com/terraform-providers/terraform-provider-profitbricks/pull/57)
+- Persist resource ids in state before syncing [#57](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/57)
 
 ## 1.4.4 (April 04, 2019)
 
