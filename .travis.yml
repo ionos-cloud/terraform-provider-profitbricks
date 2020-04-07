@@ -4,7 +4,7 @@ services:
 - docker
 language: go
 go:
-  - "1.11.x"
+  - "1.13.x"
 env:
   GO111MODULE=on
 install:
@@ -16,7 +16,7 @@ install:
 - go get github.com/kardianos/govendor
 
 script:
--  make test
+- make test
 - make vendor-status
 - make vet
 - make website-test
