@@ -1,4 +1,4 @@
-## 1.5.0 (April 7th, 2020)
+## 1.5.0 (Unreleased)
 
 ENHANCEMENTS:
 - Use profitbricks-sdk-go v5.0.9
