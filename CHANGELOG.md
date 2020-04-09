@@ -6,6 +6,9 @@ ENHANCEMENTS:
 - Uses the new v5 API endpoint
 - Terraform v0.12.21
 
+BUG FIXES:
+- Persist resource ids in state before syncing [#57](https://github.com/terraform-providers/terraform-provider-profitbricks/pull/57)
+
 BACKWARDS INCOMPATIBILITIES / NOTES:
 - This provider version might have some incompatibility issues with older terraform code
 
