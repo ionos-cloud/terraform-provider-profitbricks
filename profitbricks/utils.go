@@ -2,9 +2,11 @@ package profitbricks
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
 func resourceProfitBricksResourceImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -31,6 +33,40 @@ func resourceProfitBricksServerImport(d *schema.ResourceData, meta interface{}) 
 		d.Set("firewallrule_id", parts[3])
 	}
 	d.SetId(parts[1])
+
+	return []*schema.ResourceData{d}, nil
+}
+
+func resourceProfitBricksK8sClusterImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*profitbricks.Client)
+	cluster, err := client.GetKubernetesCluster(d.Id())
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil, fmt.Errorf("Unable to find k8s cluster %q", d.Id())
+			}
+		}
+		return nil, fmt.Errorf("Unable to retreive k8s cluster %q", d.Id())
+	}
+
+	log.Printf("[INFO] K8s cluster found: %+v", cluster)
+	d.SetId(cluster.ID)
+	d.Set("name", cluster.Properties.Name)
+	d.Set("k8s_version", cluster.Properties.K8sVersion)
+
+	if cluster.Properties.MaintenanceWindow != nil {
+		d.Set("maintenance_window", []map[string]string{
+			{
+				"day_of_the_week": cluster.Properties.MaintenanceWindow.DayOfTheWeek,
+				"time":            cluster.Properties.MaintenanceWindow.Time,
+			},
+		})
+		log.Printf("[INFO] Setting maintenance window for k8s cluster %s to %+v...", d.Id(), cluster.Properties.MaintenanceWindow)
+	}
+
+	log.Printf("[INFO] Importing k8s cluster %q...", d.Id())
 
 	return []*schema.ResourceData{d}, nil
 }

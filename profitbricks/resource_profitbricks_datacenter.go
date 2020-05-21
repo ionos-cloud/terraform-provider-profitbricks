@@ -37,8 +37,6 @@ func resourceProfitBricksDatacenter() *schema.Resource {
 				Computed: true,
 			},
 		},
-
-		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

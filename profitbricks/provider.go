@@ -63,6 +63,7 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_user":         resourceProfitBricksUser(),
 			"profitbricks_snapshot":     resourceProfitBricksSnapshot(),
 			"profitbricks_ipfailover":   resourceProfitBricksLanIPFailover(),
+			"profitbricks_k8s_cluster":  resourcek8sCluster(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"profitbricks_datacenter": dataSourceDataCenter(),

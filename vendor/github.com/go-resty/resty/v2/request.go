@@ -30,6 +30,7 @@ type Request struct {
 	URL        string
 	Method     string
 	Token      string
+	AuthScheme string
 	QueryParam url.Values
 	FormData   url.Values
 	Header     http.Header
@@ -51,6 +52,7 @@ type Request struct {
 	trace               bool
 	outputFile          string
 	fallbackContentType string
+	forceContentType    string
 	ctx                 context.Context
 	pathParams          map[string]string
 	values              map[string]interface{}
@@ -320,6 +322,15 @@ func (r *Request) SetFileReader(param, fileName string, reader io.Reader) *Reque
 	return r
 }
 
+// SetMultipartFormData method allows simple form data to be attached to the request as `multipart:form-data`
+func (r *Request) SetMultipartFormData(data map[string]string) *Request {
+	for k, v := range data {
+		r = r.SetMultipartField(k, "", "", strings.NewReader(v))
+	}
+
+	return r
+}
+
 // SetMultipartField method is to set custom data using io.Reader for multipart upload.
 func (r *Request) SetMultipartField(param, fileName, contentType string, reader io.Reader) *Request {
 	r.isMultiPart = true
@@ -382,7 +393,7 @@ func (r *Request) SetBasicAuth(username, password string) *Request {
 	return r
 }
 
-// SetAuthToken method sets bearer auth token header in the current HTTP request. Header example:
+// SetAuthToken method sets the auth token header(Default Scheme: Bearer) in the current HTTP request. Header example:
 // 		Authorization: Bearer <auth-token-value-comes-here>
 //
 // For Example: To set auth token BC594900518B4F7EAC75BD37F019E08FBC594900518B4F7EAC75BD37F019E08F
@@ -392,6 +403,27 @@ func (r *Request) SetBasicAuth(username, password string) *Request {
 // This method overrides the Auth token set by method `Client.SetAuthToken`.
 func (r *Request) SetAuthToken(token string) *Request {
 	r.Token = token
+	return r
+}
+
+// SetAuthScheme method sets the auth token scheme type in the HTTP request. For Example:
+//      Authorization: <auth-scheme-value-set-here> <auth-token-value>
+//
+// For Example: To set the scheme to use OAuth
+//
+// 		client.R().SetAuthScheme("OAuth")
+//
+// This auth header scheme gets added to all the request rasied from this client instance.
+// Also it can be overridden or set one at the request level is supported.
+//
+// Information about Auth schemes can be found in RFC7235 which is linked to below along with the page containing
+// the currently defined official authentication schemes:
+//     https://tools.ietf.org/html/rfc7235
+//     https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml#authschemes
+//
+// This method overrides the Authorization scheme set by method `Client.SetAuthScheme`.
+func (r *Request) SetAuthScheme(scheme string) *Request {
+	r.AuthScheme = scheme
 	return r
 }
 
@@ -454,6 +486,13 @@ func (r *Request) SetPathParams(params map[string]string) *Request {
 // when `Content-Type` response header is unavailable.
 func (r *Request) ExpectContentType(contentType string) *Request {
 	r.fallbackContentType = contentType
+	return r
+}
+
+// ForceContentType method provides a strong sense of response `Content-Type` for automatic unmarshalling.
+// Resty will respect it with higher priority; even response `Content-Type` response header value is available.
+func (r *Request) ForceContentType(contentType string) *Request {
+	r.forceContentType = contentType
 	return r
 }
 
@@ -535,17 +574,32 @@ func (r *Request) TraceInfo() TraceInfo {
 		return TraceInfo{}
 	}
 
-	return TraceInfo{
+	ti := TraceInfo{
 		DNSLookup:     ct.dnsDone.Sub(ct.dnsStart),
-		ConnTime:      ct.gotConn.Sub(ct.getConn),
 		TLSHandshake:  ct.tlsHandshakeDone.Sub(ct.tlsHandshakeStart),
-		ServerTime:    ct.gotFirstResponseByte.Sub(ct.wroteRequest),
-		ResponseTime:  ct.endTime.Sub(ct.gotFirstResponseByte),
-		TotalTime:     ct.endTime.Sub(ct.getConn),
+		ServerTime:    ct.gotFirstResponseByte.Sub(ct.gotConn),
+		TotalTime:     ct.endTime.Sub(ct.dnsStart),
 		IsConnReused:  ct.gotConnInfo.Reused,
 		IsConnWasIdle: ct.gotConnInfo.WasIdle,
 		ConnIdleTime:  ct.gotConnInfo.IdleTime,
 	}
+
+	// Only calcuate on successful connections
+	if !ct.connectDone.IsZero() {
+		ti.TCPConnTime = ct.connectDone.Sub(ct.dnsDone)
+	}
+
+	// Only calcuate on successful connections
+	if !ct.gotConn.IsZero() {
+		ti.ConnTime = ct.gotConn.Sub(ct.getConn)
+	}
+
+	// Only calcuate on successful connections
+	if !ct.gotFirstResponseByte.IsZero() {
+		ti.ResponseTime = ct.endTime.Sub(ct.gotFirstResponseByte)
+	}
+
+	return ti
 }
 
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -602,6 +656,7 @@ func (r *Request) Send() (*Response, error) {
 // 		resp, err := client.R().Execute(resty.GET, "http://httpbin.org/get")
 func (r *Request) Execute(method, url string) (*Response, error) {
 	var addrs []*net.SRV
+	var resp *Response
 	var err error
 
 	if r.isMultiPart && !(method == MethodPost || method == MethodPut || method == MethodPatch) {
@@ -619,10 +674,10 @@ func (r *Request) Execute(method, url string) (*Response, error) {
 	r.URL = r.selectAddr(addrs, url, 0)
 
 	if r.client.RetryCount == 0 {
-		return r.client.execute(r)
+		resp, err = r.client.execute(r)
+		return resp, unwrapNoRetryErr(err)
 	}
 
-	var resp *Response
 	attempt := 0
 	err = Backoff(
 		func() (*Response, error) {
@@ -643,7 +698,7 @@ func (r *Request) Execute(method, url string) (*Response, error) {
 		RetryConditions(r.client.RetryConditions),
 	)
 
-	return resp, err
+	return resp, unwrapNoRetryErr(err)
 }
 
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
