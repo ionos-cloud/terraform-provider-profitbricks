@@ -20,26 +20,31 @@ func resourcek8sCluster() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Description: "The desired name for the cluster",
+				Required:    true,
 			},
 			"k8s_version": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Description: "The desired kubernetes version",
+				Optional:    true,
 			},
 			"maintenance_window": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Description: "A maintenance window comprise of a day of the week and a time for maintenance to be allowed",
+				Optional:    true,
+				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"time": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Description: "A clock time in the day when maintenance is allowed",
+							Required:    true,
 						},
 						"day_of_the_week": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Description: "Day of the week when maintenance is allowed",
+							Required:    true,
 						},
 					},
 				},
@@ -85,9 +90,20 @@ func resourcek8sClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(createdCluster.ID)
 	log.Printf("[INFO] Created k8s cluster: %s", d.Id())
 
-	for !k8sClusterReady(client, d) {
+	for {
 		log.Printf("[INFO] Waiting for cluster %s to be ready...", d.Id())
 		time.Sleep(5 * time.Second)
+
+		clusterReady, rsErr := k8sClusterReady(client, d)
+
+		if rsErr != nil {
+			return fmt.Errorf("Error while checking readiness status of k8s cluster %s: %s", d.Id(), rsErr)
+		}
+
+		if clusterReady && rsErr == nil {
+			log.Printf("[INFO] k8s cluster ready: %s", d.Id())
+			break
+		}
 	}
 
 	return resourcek8sClusterRead(d, meta)
@@ -110,6 +126,7 @@ func resourcek8sClusterRead(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Successfully retreived cluster %s", d.Id())
 
+	d.SetId(cluster.ID)
 	d.Set("name", cluster.Properties.Name)
 	d.Set("k8s_version", cluster.Properties.K8sVersion)
 
@@ -197,9 +214,20 @@ func resourcek8sClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error while updating k8s cluster %s: %s", d.Id(), err)
 	}
 
-	for !k8sClusterReady(client, d) {
+	for {
 		log.Printf("[INFO] Waiting for cluster %s to be ready...", d.Id())
 		time.Sleep(5 * time.Second)
+
+		clusterReady, rsErr := k8sClusterReady(client, d)
+
+		if rsErr != nil {
+			return fmt.Errorf("Error while checking readiness status of k8s cluster %s: %s", d.Id(), rsErr)
+		}
+
+		if clusterReady && rsErr == nil {
+			log.Printf("[INFO] k8s cluster ready: %s", d.Id())
+			break
+		}
 	}
 
 	return resourcek8sClusterRead(d, meta)
@@ -222,34 +250,44 @@ func resourcek8sClusterDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error while deleting k8s cluster %s: %s", d.Id(), err)
 	}
 
-	for !k8sClusterDeleted(client, d) {
+	for {
 		log.Printf("[INFO] Waiting for cluster %s to be deleted...", d.Id())
 		time.Sleep(5 * time.Second)
-	}
 
-	log.Printf("[INFO] Successfully deleted k8s cluster: %s", d.Id())
+		clusterdDeleted, dsErr := k8sClusterDeleted(client, d)
+
+		if dsErr != nil {
+			return fmt.Errorf("Error while checking deletion status of k8s cluster %s: %s", d.Id(), dsErr)
+		}
+
+		if clusterdDeleted && dsErr == nil {
+			log.Printf("[INFO] Successfully deleted k8s cluster: %s", d.Id())
+			break
+		}
+	}
 
 	return nil
 }
 
-func k8sClusterReady(client *profitbricks.Client, d *schema.ResourceData) bool {
+func k8sClusterReady(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {
 	subjectCluster, err := client.GetKubernetesCluster(d.Id())
 
-	if err == nil {
-		return subjectCluster.Metadata.State == "ACTIVE"
+	if err != nil {
+		return true, fmt.Errorf("Error checking k8s cluster status: %s", err)
 	}
-	return false
+	return subjectCluster.Metadata.State == "ACTIVE", nil
 }
 
-func k8sClusterDeleted(client *profitbricks.Client, d *schema.ResourceData) bool {
+func k8sClusterDeleted(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {
 	_, err := client.GetKubernetesCluster(d.Id())
 
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() == 404 {
-				return true
+				return true, nil
 			}
+			return true, fmt.Errorf("Error checking k8s cluster deletion status: %s", err)
 		}
 	}
-	return false
+	return false, nil
 }

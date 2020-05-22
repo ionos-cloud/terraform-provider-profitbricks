@@ -6,9 +6,9 @@ description: |-
   Creates and manages Profitbricks Kubernetes Clusters.
 ---
 
-# profitbricks\_k8s_cluster
+# profitbricks_k8s_cluster
 
-Manages a Virtual Data Center on ProfitBricks.
+Manages a Managed Kubernetes cluster on ProfitBricks.
 
 ## Example Usage
 
@@ -27,9 +27,9 @@ resource "profitbricks_k8s_cluster" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required)[string] The name of the Kubernetes Cluster.
-* `k8s_version` - (Optional)[string] The desired Kubernetes Version. for supported values, please check the API documentation.
-* `maintenance_window` - (Optional) See the **maintenance_window** section in the example above
+- `name` - (Required)[string] The name of the Kubernetes Cluster.
+- `k8s_version` - (Optional)[string] The desired Kubernetes Version. for supported values, please check the API documentation.
+- `maintenance_window` - (Optional) See the **maintenance_window** section in the example above
 
 ## Import
 

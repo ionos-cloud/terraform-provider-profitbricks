@@ -21,7 +21,7 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/v12/textseg
 # github.com/armon/go-radix v1.0.0
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.31.3
+# github.com/aws/aws-sdk-go v1.31.4
 ## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/arn
@@ -261,7 +261,7 @@ github.com/oklog/run
 github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
-# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.12
+# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.13
 ## explicit
 github.com/profitbricks/profitbricks-sdk-go/v5
 # github.com/sergi/go-diff v1.1.0
@@ -360,7 +360,7 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
-# golang.org/x/tools v0.0.0-20200521211927-2b542361a4fc
+# golang.org/x/tools v0.0.0-20200522201501-cb1345f3a375
 ## explicit
 golang.org/x/tools/cmd/goimports
 golang.org/x/tools/go/analysis

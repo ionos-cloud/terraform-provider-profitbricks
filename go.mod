@@ -5,7 +5,7 @@ go 1.14
 require (
 	cloud.google.com/go/bigquery v1.8.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/aws/aws-sdk-go v1.31.3 // indirect
+	github.com/aws/aws-sdk-go v1.31.4 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-resty/resty/v2 v2.3.0 // indirect
 	github.com/go-test/deep v1.0.6 // indirect
@@ -33,7 +33,7 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.12
+	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.13
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/ulikunitz/xz v0.5.7 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
@@ -41,7 +41,7 @@ require (
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
 	golang.org/x/sys v0.0.0-20200519105757-fe76b779f299 // indirect
-	golang.org/x/tools v0.0.0-20200521211927-2b542361a4fc // indirect
+	golang.org/x/tools v0.0.0-20200522201501-cb1345f3a375 // indirect
 	google.golang.org/api v0.25.0 // indirect
 	google.golang.org/genproto v0.0.0-20200521103424-e9a78aa275b7 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
