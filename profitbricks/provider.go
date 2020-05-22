@@ -2,6 +2,7 @@ package profitbricks
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -12,7 +13,7 @@ import (
 
 // Provider returns a schema.Provider for ProfitBricks.
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
+	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"username": {
 				Type:          schema.TypeString,
@@ -72,11 +73,27 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_resource":   dataSourceResource(),
 			"profitbricks_snapshot":   dataSourceSnapshot(),
 		},
-		ConfigureFunc: providerConfigure,
 	}
+
+	provider.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+
+		terraformVersion := provider.TerraformVersion
+
+		if terraformVersion == "" {
+			// Terraform 0.12 introduced this field to the protocol
+			// We can therefore assume that if it's missing it's 0.10 or 0.11
+			terraformVersion = "0.11+compatible"
+		}
+
+		log.Printf("[DEBUG] Setting terraformVersion to %s", terraformVersion)
+
+		return providerConfigure(d, terraformVersion)
+	}
+
+	return provider
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 
 	username, usernameOk := d.GetOk("username")
 	password, passwordOk := d.GetOk("password")
@@ -104,7 +121,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		Token:    token.(string),
 	}
 
-	return config.Client()
+	return config.Client(terraformVersion)
 }
 
 // cleanURL makes sure trailing slash does not corrupte the state

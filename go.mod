@@ -10,13 +10,13 @@ require (
 	github.com/go-resty/resty/v2 v2.3.0 // indirect
 	github.com/go-test/deep v1.0.6 // indirect
 	github.com/google/go-cmp v0.4.1 // indirect
+	github.com/hashicorp/go-getter v1.4.2-0.20200106182914-9813cbd4eb02 // indirect
 	github.com/hashicorp/go-hclog v0.13.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-plugin v1.3.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.5.1 // indirect
-	github.com/hashicorp/terraform v0.12.25
 	github.com/hashicorp/terraform-config-inspect v0.0.0-20200518182950-3a72ca6c26e2 // indirect
 	github.com/hashicorp/terraform-json v0.5.0 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.13.0
