@@ -174,29 +174,7 @@ func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	log.Printf("[INFO] Successfully retreived k8s node pool %s", d.Id())
-
-	d.SetId(k8sNodepool.ID)
-	d.Set("name", k8sNodepool.Properties.Name)
-	d.Set("k8s_version", k8sNodepool.Properties.K8sVersion)
-	d.Set("datacenter_id", k8sNodepool.Properties.DatacenterID)
-	d.Set("cpu_family", k8sNodepool.Properties.CPUFamily)
-	d.Set("availability_zone", k8sNodepool.Properties.AvailabilityZone)
-	d.Set("storage_type", k8sNodepool.Properties.StorageType)
-	d.Set("node_count", k8sNodepool.Properties.NodeCount)
-	d.Set("cores_count", k8sNodepool.Properties.CoresCount)
-	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
-	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
-
-	if k8sNodepool.Properties.MaintenanceWindow != nil {
-		d.Set("maintenance_window", []map[string]string{
-			{
-				"day_of_the_week": k8sNodepool.Properties.MaintenanceWindow.DayOfTheWeek,
-				"time":            k8sNodepool.Properties.MaintenanceWindow.Time,
-			},
-		})
-		log.Printf("[INFO] Setting maintenance window for k8s node pool %s to %+v...", d.Id(), k8sNodepool.Properties.MaintenanceWindow)
-	}
+	log.Printf("[INFO] Successfully retreived k8s node pool %s: %+v", d.Id(), k8sNodepool)
 
 	return nil
 }

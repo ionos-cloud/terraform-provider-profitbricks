@@ -44,7 +44,7 @@ func testAccCheckDProfitBricksk8sNodepoolDestroyCheck(s *terraform.State) error 
 	client := testAccProvider.Meta().(*profitbricks.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "profitbricks_k8s_node_pool" {
+		if rs.Type != "profitbricks_k8s_node_pool" && rs.Type != "profitbricks_datacenter" && rs.Type != "profitbricks_k8s_cluster" {
 			continue
 		}
 
