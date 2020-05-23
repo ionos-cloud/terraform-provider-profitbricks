@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
-	var k8sNodepool profitbricks.KubernetesCluster
+	var k8sNodepool profitbricks.KubernetesNodePool
 	k8sNodepoolName := "example"
 
 	resource.Test(t, resource.TestCase{
@@ -23,15 +23,16 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckProfitBricksk8sNodepoolConfigBasic, k8sNodepoolName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_cluster.example", &k8sNodepool),
-					resource.TestCheckResourceAttr("profitbricks_k8s_cluster.example", "name", k8sNodepoolName),
+					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.example", &k8sNodepool),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "name", k8sNodepoolName),
 				),
 			},
 			{
 				Config: testAccCheckProfitBricksk8sNodepoolConfigUpdate,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_cluster.example", &k8sNodepool),
-					resource.TestCheckResourceAttr("profitbricks_k8s_cluster.example", "name", "example-renamed"),
+					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.example", &k8sNodepool),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.day_of_the_week", "Monday"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.time", "11:30:00Z"),
 				),
 			},
 		},
@@ -40,26 +41,48 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 
 func testAccCheckDProfitBricksk8sNodepoolDestroyCheck(s *terraform.State) error {
 	client := testAccProvider.Meta().(*profitbricks.Client)
+
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "profitbricks_k8s_cluster" {
+		if rs.Type != "profitbricks_k8s_node_pool" {
 			continue
 		}
 
-		_, err := client.GetKubernetesCluster(rs.Primary.ID)
+		_, err := client.GetKubernetesNodePool(rs.Primary.Attributes["k8s_cluster_id"], rs.Primary.ID)
 
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() != 404 {
-				return fmt.Errorf("K8s cluster still exists %s %s", rs.Primary.ID, apiError)
+				return fmt.Errorf("K8s node pool still exists %s %s", rs.Primary.ID, apiError)
 			}
 		} else {
-			return fmt.Errorf("Unable to fetch k8s cluster %s %s", rs.Primary.ID, err)
+			return fmt.Errorf("Unable to fetch k8s node pool %s %s", rs.Primary.ID, err)
 		}
+
+		_, ddcErr := client.GetDatacenter(rs.Primary.Attributes["datacenter_id"])
+
+		if apiError, ok := ddcErr.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("Data center for node pool still exists %s %s", rs.Primary.Attributes["k8s_cluster_id"], apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetch data center for node pool %s %s", rs.Primary.Attributes["k8s_cluster_id"], err)
+		}
+
+		_, dkErr := client.GetKubernetesCluster(rs.Primary.Attributes["k8s_cluster_id"])
+
+		if apiError, ok := dkErr.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() != 404 {
+				return fmt.Errorf("K8s cluster for node pool still exists %s %s", rs.Primary.Attributes["k8s_cluster_id"], apiError)
+			}
+		} else {
+			return fmt.Errorf("Unable to fetch k8s cluster for node pool %s %s", rs.Primary.Attributes["k8s_cluster_id"], err)
+		}
+
 	}
 
 	return nil
 }
 
-func testAccCheckProfitBricksk8sNodepoolExists(n string, k8sNodepool *profitbricks.KubernetesCluster) resource.TestCheckFunc {
+func testAccCheckProfitBricksk8sNodepoolExists(n string, k8sNodepool *profitbricks.KubernetesNodePool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*profitbricks.Client)
 		rs, ok := s.RootModule().Resources[n]
@@ -72,10 +95,10 @@ func testAccCheckProfitBricksk8sNodepoolExists(n string, k8sNodepool *profitbric
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		foundK8sNodepool, err := client.GetKubernetesCluster(rs.Primary.ID)
+		foundK8sNodepool, err := client.GetKubernetesNodePool(rs.Primary.Attributes["k8s_cluster_id"], rs.Primary.ID)
 
 		if err != nil {
-			return fmt.Errorf("Error occured while fetching k8s Cluster: %s", rs.Primary.ID)
+			return fmt.Errorf("Error occured while fetching k8s node pool: %s", rs.Primary.ID)
 		}
 		if foundK8sNodepool.ID != rs.Primary.ID {
 			return fmt.Errorf("Record not found")
@@ -87,21 +110,54 @@ func testAccCheckProfitBricksk8sNodepoolExists(n string, k8sNodepool *profitbric
 }
 
 const testAccCheckProfitBricksk8sNodepoolConfigBasic = `
-resource "profitbricks_k8s_cluster" "example" {
+resource "profitbricks_datacenter" "example" {
   name        = "%s"
-  k8s_version = "1.16.9"
+  location    = "de/fra"
+  description = "Datacenter created through terraform"
+}
+
+resource "profitbricks_k8s_cluster" "example" {
+  name        = "example"
+  k8s_version = "1.17.5"
   maintenance_window {
     day_of_the_week = "Sunday"
-    time            = "09:00:00Z"
+    time            = "10:30:00Z"
   }
+}
+
+resource "profitbricks_k8s_node_pool" "example" {
+  name        = profitbricks_k8s_cluster.example.name
+  k8s_version = profitbricks_k8s_cluster.example.k8s_version
+  maintenance_window {
+    day_of_the_week = "Sunday"
+    time            = "10:30:00Z"
+  }
+  datacenter_id     = profitbricks_datacenter.example.id
+  k8s_cluster_id    = profitbricks_k8s_cluster.example.id
+  cpu_family        = "INTEL_XEON"
+  availability_zone = "AUTO"
+  storage_type      = "SSD"
+  node_count        = 1
+  cores_count       = 2
+  ram_size          = 2048
+  storage_size      = 40
 }`
 
 const testAccCheckProfitBricksk8sNodepoolConfigUpdate = `
-resource "profitbricks_k8s_cluster" "example" {
-  name        = "example-renamed"
-  k8s_version = "1.17.5"
+resource "profitbricks_k8s_node_pool" "example" {
+  name        = profitbricks_k8s_cluster.example.name
+  k8s_version = profitbricks_k8s_cluster.example.k8s_version
   maintenance_window {
     day_of_the_week = "Monday"
-    time            = "10:30:00Z"
+    time            = "11:30:00Z"
   }
+  datacenter_id     = profitbricks_datacenter.example.id
+  k8s_cluster_id    = profitbricks_k8s_cluster.example.id
+  cpu_family        = "INTEL_XEON"
+  availability_zone = "AUTO"
+  storage_type      = "SSD"
+  node_count        = 1
+  cores_count       = 2
+  ram_size          = 2048
+  storage_size      = 40
 }`

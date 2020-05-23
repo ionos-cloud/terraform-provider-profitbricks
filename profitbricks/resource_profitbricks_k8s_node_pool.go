@@ -1,7 +1,6 @@
 package profitbricks
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -130,12 +129,6 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 		k8sNodepool.Properties.MaintenanceWindow.DayOfTheWeek = mdVal.(string)
 	}
 
-	b, err := json.Marshal(k8sNodepool)
-
-	if err == nil {
-		log.Printf("[INFO] Req body is %s", b)
-	}
-
 	createdNodepool, err := client.CreateKubernetesNodePool(d.Get("k8s_cluster_id").(string), k8sNodepool)
 
 	if err != nil {
@@ -217,15 +210,15 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		NodeCount: uint32(d.Get("node_count").(int)),
 	}
 
-	if d.HasChange("name") {
-		oldName, newName := d.GetChange("name")
-		log.Printf("[INFO] k8s node pool name changed from %+v to %+v", oldName, newName)
-		request.Properties.Name = newName.(string)
+	if d.HasChange("node_count") {
+		oldNc, newNc := d.GetChange("name")
+		log.Printf("[INFO] k8s node pool node count changed from %+v to %+v", oldNc, newNc)
+		request.Properties.NodeCount = uint32(newNc.(int))
 	}
 
 	if d.HasChange("k8s_version") {
 		oldk8sVersion, newk8sVersion := d.GetChange("k8s_version")
-		log.Printf("[INFO] Node pool k8s version changed from %+v to %+v", oldk8sVersion, newk8sVersion)
+		log.Printf("[INFO] k8s pool k8s version changed from %+v to %+v", oldk8sVersion, newk8sVersion)
 		if newk8sVersion != nil {
 			request.Properties.K8sVersion = newk8sVersion.(string)
 		}
