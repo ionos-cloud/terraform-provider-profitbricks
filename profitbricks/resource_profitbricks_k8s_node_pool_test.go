@@ -146,8 +146,8 @@ resource "profitbricks_k8s_node_pool" "example" {
   name        = "%s"
   k8s_version = "${profitbricks_k8s_cluster.example.k8s_version}"
   maintenance_window {
-    day_of_the_week = "Monday"
-    time            = "09:00:00Z"
+    day_of_the_week = "Tuesday"
+    time            = "11:00:00Z"
   }
   datacenter_id     = "${profitbricks_datacenter.example.id}"
   k8s_cluster_id    = "${profitbricks_k8s_cluster.example.id}"
