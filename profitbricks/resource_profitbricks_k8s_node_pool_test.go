@@ -23,7 +23,7 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckProfitBricksk8sNodepoolConfigBasic, k8sNodepoolName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.%s", &k8sNodepool),
+					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.example", &k8sNodepool),
 					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "name", k8sNodepoolName),
 				),
 			},
@@ -32,7 +32,7 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.example", &k8sNodepool),
 					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.day_of_the_week", "Monday"),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.time", "11:30:00Z"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.time", "10:00:00Z"),
 				),
 			},
 		},
@@ -121,7 +121,7 @@ resource "profitbricks_k8s_cluster" "example" {
   k8s_version = "1.17.5"
   maintenance_window {
     day_of_the_week = "Sunday"
-    time            = "10:30:00Z"
+    time            = "10:00:00Z"
   }
 }
 
@@ -130,7 +130,7 @@ resource "profitbricks_k8s_node_pool" "%s" {
   k8s_version = profitbricks_k8s_cluster.example.k8s_version
   maintenance_window {
     day_of_the_week = "Sunday"
-    time            = "10:30:00Z"
+    time            = "10:00:00Z"
   }
   datacenter_id     = profitbricks_datacenter.example.id
   k8s_cluster_id    = profitbricks_k8s_cluster.example.id
@@ -149,7 +149,7 @@ resource "profitbricks_k8s_node_pool" "example" {
   k8s_version = profitbricks_k8s_cluster.example.k8s_version
   maintenance_window {
     day_of_the_week = "Monday"
-    time            = "11:30:00Z"
+    time            = "11:00:00Z"
   }
   datacenter_id     = profitbricks_datacenter.example.id
   k8s_cluster_id    = profitbricks_k8s_cluster.example.id
