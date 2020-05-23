@@ -188,16 +188,6 @@ func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
 
-	if k8sNodepool.Properties.MaintenanceWindow != nil {
-		d.Set("maintenance_window", []map[string]string{
-			{
-				"day_of_the_week": k8sNodepool.Properties.MaintenanceWindow.DayOfTheWeek,
-				"time":            k8sNodepool.Properties.MaintenanceWindow.Time,
-			},
-		})
-		log.Printf("[INFO] Setting maintenance window for k8s node pool %s to %+v...", d.Id(), k8sNodepool.Properties.MaintenanceWindow)
-	}
-
 	return nil
 }
 
