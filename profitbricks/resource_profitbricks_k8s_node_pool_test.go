@@ -28,11 +28,12 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckProfitBricksk8sNodepoolConfigUpdate,
+				Config: fmt.Sprintf(testAccCheckProfitBricksk8sNodepoolConfigUpdate, k8sNodepoolName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.example", &k8sNodepool),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.day_of_the_week", "Monday"),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.time", "10:00:00Z"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "name", k8sNodepoolName),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.day_of_the_week", "Tuesday"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "maintenance_window.0.time", "11:00:00Z"),
 				),
 			},
 		},
@@ -120,20 +121,20 @@ resource "profitbricks_k8s_cluster" "example" {
   name        = "example"
   k8s_version = "1.17.5"
   maintenance_window {
-    day_of_the_week = "Sunday"
-    time            = "10:00:00Z"
+    day_of_the_week = "Monday"
+    time            = "09:00:00Z"
   }
 }
 
-resource "profitbricks_k8s_node_pool" "%s" {
-  name        = profitbricks_k8s_cluster.example.name
-  k8s_version = profitbricks_k8s_cluster.example.k8s_version
+resource "profitbricks_k8s_node_pool" "example" {
+  name        = "%s"
+  k8s_version = "${profitbricks_k8s_cluster.example.k8s_version}"
   maintenance_window {
-    day_of_the_week = "Sunday"
-    time            = "10:00:00Z"
+    day_of_the_week = "Monday"
+    time            = "09:00:00Z"
   }
-  datacenter_id     = profitbricks_datacenter.example.id
-  k8s_cluster_id    = profitbricks_k8s_cluster.example.id
+  datacenter_id     = "${profitbricks_datacenter.example.id}"
+  k8s_cluster_id    = "${profitbricks_k8s_cluster.example.id}"
   cpu_family        = "INTEL_XEON"
   availability_zone = "AUTO"
   storage_type      = "SSD"
@@ -144,15 +145,30 @@ resource "profitbricks_k8s_node_pool" "%s" {
 }`
 
 const testAccCheckProfitBricksk8sNodepoolConfigUpdate = `
-resource "profitbricks_k8s_node_pool" "example" {
-  name        = profitbricks_k8s_cluster.example.name
-  k8s_version = profitbricks_k8s_cluster.example.k8s_version
+resource "profitbricks_datacenter" "example" {
+  name        = "example"
+  location    = "de/fra"
+  description = "Datacenter created through terraform"
+}
+
+resource "profitbricks_k8s_cluster" "example" {
+  name        = "example"
+  k8s_version = "1.17.5"
   maintenance_window {
     day_of_the_week = "Monday"
+    time            = "09:00:00Z"
+  }
+}
+
+resource "profitbricks_k8s_node_pool" "example" {
+  name        = "%s"
+  k8s_version = "${profitbricks_k8s_cluster.example.k8s_version}"
+  maintenance_window {
+    day_of_the_week = "Tuesday"
     time            = "11:00:00Z"
   }
-  datacenter_id     = profitbricks_datacenter.example.id
-  k8s_cluster_id    = profitbricks_k8s_cluster.example.id
+  datacenter_id     = "${profitbricks_datacenter.example.id}"
+  k8s_cluster_id    = "${profitbricks_k8s_cluster.example.id}"
   cpu_family        = "INTEL_XEON"
   availability_zone = "AUTO"
   storage_type      = "SSD"
