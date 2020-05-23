@@ -23,7 +23,7 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckProfitBricksk8sNodepoolConfigBasic, k8sNodepoolName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.example", &k8sNodepool),
+					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.%s", &k8sNodepool),
 					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.example", "name", k8sNodepoolName),
 				),
 			},
@@ -111,7 +111,7 @@ func testAccCheckProfitBricksk8sNodepoolExists(n string, k8sNodepool *profitbric
 
 const testAccCheckProfitBricksk8sNodepoolConfigBasic = `
 resource "profitbricks_datacenter" "example" {
-  name        = "%s"
+  name        = "example"
   location    = "de/fra"
   description = "Datacenter created through terraform"
 }
@@ -125,7 +125,7 @@ resource "profitbricks_k8s_cluster" "example" {
   }
 }
 
-resource "profitbricks_k8s_node_pool" "example" {
+resource "profitbricks_k8s_node_pool" "%s" {
   name        = profitbricks_k8s_cluster.example.name
   k8s_version = profitbricks_k8s_cluster.example.k8s_version
   maintenance_window {
