@@ -130,16 +130,6 @@ func resourcek8sClusterRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", cluster.Properties.Name)
 	d.Set("k8s_version", cluster.Properties.K8sVersion)
 
-	if cluster.Properties.MaintenanceWindow != nil {
-		d.Set("maintenance_window", []map[string]string{
-			{
-				"day_of_the_week": cluster.Properties.MaintenanceWindow.DayOfTheWeek,
-				"time":            cluster.Properties.MaintenanceWindow.Time,
-			},
-		})
-		log.Printf("[INFO] Setting maintenance window for k8s cluster %s to %+v...", d.Id(), cluster.Properties.MaintenanceWindow)
-	}
-
 	return nil
 }
 
