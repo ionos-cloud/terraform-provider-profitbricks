@@ -1,6 +1,7 @@
 package profitbricks
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -191,7 +192,9 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("node_count") {
 		oldNc, newNc := d.GetChange("name")
 		log.Printf("[INFO] k8s node pool node count changed from %+v to %+v", oldNc, newNc)
-		request.Properties.NodeCount = uint32(newNc.(int))
+		if oldNc.(int) != newNc.(int) {
+			request.Properties.NodeCount = uint32(newNc.(int))
+		}
 	}
 
 	if d.HasChange("k8s_version") {
@@ -209,7 +212,10 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		if newMw.(map[string]interface{}) != nil {
 
 			updateMaintenanceWindow := false
-			maintenanceWindow := &profitbricks.MaintenanceWindow{}
+			maintenanceWindow := &profitbricks.MaintenanceWindow{
+				DayOfTheWeek: d.Get("maintenance_window.0.day_of_the_week").(string),
+				Time:         d.Get("maintenance_window.0.time").(string),
+			}
 
 			if d.HasChange("maintenance_window.0.day_of_the_week") {
 
@@ -234,6 +240,12 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 				request.Properties.MaintenanceWindow = maintenanceWindow
 			}
 		}
+	}
+
+	b, jErr := json.Marshal(request)
+
+	if jErr == nil {
+		log.Printf("[INFO] Update req: %s", string(b))
 	}
 
 	_, err := client.UpdateKubernetesNodePool(d.Get("k8s_cluster_id").(string), d.Id(), request)

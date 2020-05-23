@@ -160,7 +160,10 @@ func resourcek8sClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 		if newMw.(map[string]interface{}) != nil {
 
 			updateMaintenanceWindow := false
-			maintenanceWindow := &profitbricks.MaintenanceWindow{}
+			maintenanceWindow := &profitbricks.MaintenanceWindow{
+				DayOfTheWeek: d.Get("maintenance_window.0.day_of_the_week").(string),
+				Time:         d.Get("maintenance_window.0.time").(string),
+			}
 
 			if d.HasChange("maintenance_window.0.day_of_the_week") {
 				oldMd, newMd := d.GetChange("maintenance_window.0.day_of_the_week")

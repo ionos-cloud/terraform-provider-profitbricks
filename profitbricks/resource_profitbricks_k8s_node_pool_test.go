@@ -2,6 +2,7 @@ package profitbricks
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -44,7 +45,7 @@ func testAccCheckDProfitBricksk8sNodepoolDestroyCheck(s *terraform.State) error 
 	client := testAccProvider.Meta().(*profitbricks.Client)
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "profitbricks_k8s_node_pool" && rs.Type != "profitbricks_datacenter" && rs.Type != "profitbricks_k8s_cluster" {
+		if rs.Type != "profitbricks_k8s_node_pool" {
 			continue
 		}
 
@@ -57,27 +58,6 @@ func testAccCheckDProfitBricksk8sNodepoolDestroyCheck(s *terraform.State) error 
 		} else {
 			return fmt.Errorf("Unable to fetch k8s node pool %s %s", rs.Primary.ID, err)
 		}
-
-		_, ddcErr := client.GetDatacenter(rs.Primary.Attributes["datacenter_id"])
-
-		if apiError, ok := ddcErr.(profitbricks.ApiError); ok {
-			if apiError.HttpStatusCode() != 404 {
-				return fmt.Errorf("Data center for node pool still exists %s %s", rs.Primary.Attributes["k8s_cluster_id"], apiError)
-			}
-		} else {
-			return fmt.Errorf("Unable to fetch data center for node pool %s %s", rs.Primary.Attributes["k8s_cluster_id"], err)
-		}
-
-		_, dkErr := client.GetKubernetesCluster(rs.Primary.Attributes["k8s_cluster_id"])
-
-		if apiError, ok := dkErr.(profitbricks.ApiError); ok {
-			if apiError.HttpStatusCode() != 404 {
-				return fmt.Errorf("K8s cluster for node pool still exists %s %s", rs.Primary.Attributes["k8s_cluster_id"], apiError)
-			}
-		} else {
-			return fmt.Errorf("Unable to fetch k8s cluster for node pool %s %s", rs.Primary.Attributes["k8s_cluster_id"], err)
-		}
-
 	}
 
 	return nil
@@ -95,6 +75,8 @@ func testAccCheckProfitBricksk8sNodepoolExists(n string, k8sNodepool *profitbric
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")
 		}
+
+		log.Printf("[INFO] REQ PATH: %+v/%+v", rs.Primary.Attributes["k8s_cluster_id"], rs.Primary.ID)
 
 		foundK8sNodepool, err := client.GetKubernetesNodePool(rs.Primary.Attributes["k8s_cluster_id"], rs.Primary.ID)
 
@@ -156,7 +138,7 @@ resource "profitbricks_k8s_cluster" "example" {
   k8s_version = "1.17.5"
   maintenance_window {
     day_of_the_week = "Monday"
-    time            = "09:00:00Z"
+    time            = "10:00:00Z"
   }
 }
 
@@ -164,8 +146,8 @@ resource "profitbricks_k8s_node_pool" "example" {
   name        = "%s"
   k8s_version = "${profitbricks_k8s_cluster.example.k8s_version}"
   maintenance_window {
-    day_of_the_week = "Tuesday"
-    time            = "11:00:00Z"
+    day_of_the_week = "Monday"
+    time            = "09:00:00Z"
   }
   datacenter_id     = "${profitbricks_datacenter.example.id}"
   k8s_cluster_id    = "${profitbricks_k8s_cluster.example.id}"
