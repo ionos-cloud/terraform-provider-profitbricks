@@ -20,10 +20,11 @@ func TestAccProfitBricksk8sNodepool_ImportBasic(t *testing.T) {
 				Config: fmt.Sprintf(testAccCheckProfitBricksk8sNodepoolConfigBasic, resourceName),
 			},
 			{
-				ResourceName:      fmt.Sprintf("profitbricks_k8s_node_pool.%s", resourceName),
-				ImportStateIdFunc: testAccProfitBricksk8sNodepoolImportStateID,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            fmt.Sprintf("profitbricks_k8s_node_pool.%s", resourceName),
+				ImportStateIdFunc:       testAccProfitBricksk8sNodepoolImportStateID,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"maintenance_window.0.time"},
 			},
 		},
 	})

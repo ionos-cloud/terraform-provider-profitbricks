@@ -19,9 +19,10 @@ func TestAccProfitBricksk8sCluster_ImportBasic(t *testing.T) {
 				Config: fmt.Sprintf(testAccCheckProfitBricksk8sClusterConfigBasic, resourceName),
 			},
 			{
-				ResourceName:      fmt.Sprintf("profitbricks_k8s_cluster.%s", resourceName),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            fmt.Sprintf("profitbricks_k8s_cluster.%s", resourceName),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"maintenance_window.0.time"},
 			},
 		},
 	})
