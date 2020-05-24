@@ -40,7 +40,7 @@ require (
 	github.com/zclconf/go-cty v1.4.1 // indirect
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
-	golang.org/x/sys v0.0.0-20200519105757-fe76b779f299 // indirect
+	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
 	golang.org/x/tools v0.0.0-20200522201501-cb1345f3a375 // indirect
 	google.golang.org/api v0.25.0 // indirect
 	google.golang.org/genproto v0.0.0-20200521103424-e9a78aa275b7 // indirect
