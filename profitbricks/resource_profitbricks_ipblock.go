@@ -39,8 +39,6 @@ func resourceProfitBricksIPBlock() *schema.Resource {
 				Computed: true,
 			},
 		},
-
-		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

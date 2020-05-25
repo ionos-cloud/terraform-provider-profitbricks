@@ -309,8 +309,6 @@ func resourceProfitBricksServer() *schema.Resource {
 				},
 			},
 		},
-
-		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

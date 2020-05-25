@@ -55,6 +55,14 @@ func (r *Response) StatusCode() int {
 	return r.RawResponse.StatusCode
 }
 
+// Proto method returns the HTTP response protocol used for the request.
+func (r *Response) Proto() string {
+	if r.RawResponse == nil {
+		return ""
+	}
+	return r.RawResponse.Proto
+}
+
 // Result method returns the response value as an object if it has one
 func (r *Response) Result() interface{} {
 	return r.Request.Result
@@ -95,7 +103,7 @@ func (r *Response) String() string {
 // when client sent a request.
 func (r *Response) Time() time.Duration {
 	if r.Request.clientTrace != nil {
-		return r.receivedAt.Sub(r.Request.clientTrace.getConn)
+		return r.Request.TraceInfo().TotalTime
 	}
 	return r.receivedAt.Sub(r.Request.Time)
 }
@@ -137,6 +145,13 @@ func (r *Response) IsError() bool {
 //‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 // Response Unexported methods
 //_______________________________________________________________________
+
+func (r *Response) setReceivedAt() {
+	r.receivedAt = time.Now()
+	if r.Request.clientTrace != nil {
+		r.Request.clientTrace.endTime = r.receivedAt
+	}
+}
 
 func (r *Response) fmtBodyString(sl int64) string {
 	if r.body != nil {

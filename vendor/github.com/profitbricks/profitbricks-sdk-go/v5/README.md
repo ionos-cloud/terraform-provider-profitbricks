@@ -2231,11 +2231,20 @@ GetResourceByType(resourcetype, resourceId)
 | ---------- | :------: | ----------------------------------------------------------------------------- | ----------------------------------------- |
 | Properties | **yes**  | \*[KubernetesClusterProperties](#KubernetesClusterProperties-resource-object) | The properties of the Kubernetes Cluster. |
 
+## MaintenanceWindow Resource Object
+
+| Name         | Required | Type   | Description                                                                                                 |
+| ------------ | :------: | ------ | ----------------------------------------------------------------------------------------------------------- |
+| DayOfTheWeek | **yes**  | string | The english name of the day of the week (One of: Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday). |
+| Time         | **yes**  | string | The time of the day in **HH:mm:ss** format                                                                  |
+
 ##### KubernetesClusterProperties Resource Object
 
-| Name | Required | Type   | Description                                 |
-| ---- | :------: | ------ | ------------------------------------------- |
-| Name | **yes**  | string | The desired name for the Kubernetes Cluster |
+| Name              | Required | Type                                                    | Description                                 |
+| ----------------- | :------: | ------------------------------------------------------- | ------------------------------------------- |
+| Name              | **yes**  | string                                                  | The desired name for the Kubernetes Cluster |
+| K8sVersion        |  **no**  | string                                                  | The desired Kubernetes Version              |
+| MaintenanceWindow |  **no**  | [MaintenanceWindow](#MaintenanceWindow-resource-object) | The desired Maintenance Window              |
 
 ##### KubernetesNodePool Resource Object
 
@@ -2245,17 +2254,19 @@ GetResourceByType(resourcetype, resourceId)
 
 ##### KubernetesNodePoolProperties Resource Object
 
-| Name             | Required | Type   | Description                                                                                                    |
-| ---------------- | :------: | ------ | -------------------------------------------------------------------------------------------------------------- |
-| Name             | **yes**  | string | The desired name of the node pool - The name of each node in the pool will have this as prefix                 |
-| DatacenterID     | **yes**  | string | The desired datacenter location - see [Locations](#locations)                                                  |
-| NodeCount        | **yes**  | uint32 | The desired number of nodes in the cluster                                                                     |
-| CPUFamily        | **yes**  | string | CPU Family for the nodes - see [Locations](#locations)                                                         |
-| CoresCount       | **yes**  | uint32 | Desired number of CPU cores per node                                                                           |
-| AvailabilityZone | **yes**  | string | Desired availability zone (one of AUTO, ZONE_1, ZONE_2)                                                        |
-| RAMSize          | **yes**  | uint32 | Desired amount of RAM per node in MB - Size must be specified in multiples of 256 MB with a minimum of 2048 MB |
-| StorageSize      | **yes**  | uint32 | Desired storage size, in MB                                                                                    |
-| StorageType      | **yes**  | string | The storage type for each node (one of HDD, SSD)                                                               |
+| Name              | Required | Type                                                    | Description                                                                                                    |
+| ----------------- | :------: | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Name              | **yes**  | string                                                  | The desired name of the node pool - The name of each node in the pool will have this as prefix                 |
+| DatacenterID      | **yes**  | string                                                  | The desired datacenter location - see [Locations](#locations)                                                  |
+| NodeCount         | **yes**  | uint32                                                  | The desired number of nodes in the cluster                                                                     |
+| CPUFamily         | **yes**  | string                                                  | CPU Family for the nodes - see [Locations](#locations)                                                         |
+| CoresCount        | **yes**  | uint32                                                  | Desired number of CPU cores per node                                                                           |
+| AvailabilityZone  | **yes**  | string                                                  | Desired availability zone (one of AUTO, ZONE_1, ZONE_2)                                                        |
+| RAMSize           | **yes**  | uint32                                                  | Desired amount of RAM per node in MB - Size must be specified in multiples of 256 MB with a minimum of 2048 MB |
+| StorageSize       | **yes**  | uint32                                                  | Desired storage size, in MB                                                                                    |
+| StorageType       | **yes**  | string                                                  | The storage type for each node (one of HDD, SSD)                                                               |
+| K8sVersion        |   yes    | string                                                  | The kubernetes version in which a nodepool is running                                                          |
+| MaintenanceWindow |  **no**  | [MaintenanceWindow](#MaintenanceWindow-resource-object) | An optional object with 2 keys: dayOfTheWeek and time.                                                         |
 
 ### Create Cluster
 
