@@ -1,4 +1,19 @@
 ## 1.6.0 (Unreleased)
+
+ENHANCEMENTS:
+- Golang SDK version **v5.0.14**
+- Added Kubernetes cluster resource
+- Added Kubernetes node pool resource
+- Possibility to import existing Kubernetes clusters, which were not created via Terraform
+- Possibility to import existing Kubernetes node pools, which were not created via Terraform
+- CRUD acceptance test for the Kubernetes cluster resource
+- CRUD acceptance test for the Kubernetes node pool resource
+- Acceptance test for the kubernetes cluster import functionality
+- Acceptance test for the kubernetes node pool import functionality
+
+BUG FIXES:
+- A bugfix to the appearance of the provider documentation page
+
 ## 1.5.0 (April 09, 2020)
 
 ENHANCEMENTS:
