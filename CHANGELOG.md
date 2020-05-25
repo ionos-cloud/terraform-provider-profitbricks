@@ -1,4 +1,4 @@
-## 1.5.1 (Unreleased)
+## 1.5.1 (May 25, 2020)
 
 ENHANCEMENTS:
 - Golang SDK version **v5.0.14**
