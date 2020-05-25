@@ -1,4 +1,4 @@
-## 1.6.0 (Unreleased)
+## 1.5.1 (Unreleased)
 
 ENHANCEMENTS:
 - Golang SDK version **v5.0.14**
