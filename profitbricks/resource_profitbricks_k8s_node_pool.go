@@ -190,7 +190,7 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("node_count") {
-		oldNc, newNc := d.GetChange("name")
+		oldNc, newNc := d.GetChange("node_count")
 		log.Printf("[INFO] k8s node pool node count changed from %+v to %+v", oldNc, newNc)
 		if oldNc.(int) != newNc.(int) {
 			request.Properties.NodeCount = uint32(newNc.(int))
