@@ -1,4 +1,11 @@
-## 1.6.0 (Unreleased)
+## 1.5.2 (Unreleased)
+
+BUG FIXES
+- Fixes a typo preventing users from updating a k8s node pool's nodes count
+- Fixes #56 
+- Fixes #66 
+- Updates for all go dependencies
+
 ## 1.5.1 (May 25, 2020)
 
 ENHANCEMENTS:
