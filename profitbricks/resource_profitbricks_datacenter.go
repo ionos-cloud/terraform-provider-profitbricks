@@ -175,9 +175,15 @@ func getImage(client *profitbricks.Client, dcId string, imageName string, imageT
 			if imageType == "SSD" {
 				imageType = "HDD"
 			}
+
 			if imgName != "" && strings.Contains(strings.ToLower(imgName), strings.ToLower(imageName)) && i.Properties.ImageType == imageType && i.Properties.Location == dc.Properties.Location {
 				return &i, err
 			}
+
+			if imgName != "" && strings.ToLower(imageName) == strings.ToLower(i.ID) && i.Properties.ImageType == imageType && i.Properties.Location == dc.Properties.Location {
+				return &i, err
+			}
+
 		}
 	}
 	return nil, err

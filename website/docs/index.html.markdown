@@ -12,11 +12,9 @@ The ProfitBricks provider gives the ability to deploy and configure resources us
 
 Use the navigation to the left to read about the available data sources and resources.
 
-
 ## Usage
 
 The provider needs to be configured with proper credentials before it can be used.
-
 
 ```hcl
 $ export PROFITBRICKS_USERNAME="profitbricks_username"
@@ -26,9 +24,7 @@ $ export PROFITBRICKS_API_URL="profitbricks_cloud_api_url"
 
 Or you can provide your credentials in a `.tf` configuration file as shown in this example.
 
-
 ## Example Usage
-
 
 ```hcl
 provider "profitbricks" {
@@ -42,20 +38,19 @@ resource "profitbricks_datacenter" "main" {
 }
 ```
 
-
 **Note**: The credentials provided in a `.tf` file will override the credentials from environment variables.
 
 ## Configuration Reference
 
 The following arguments are supported:
 
-* `username` - (Required) If omitted, the `PROFITBRICKS_USERNAME` environment variable is used. The username is generally an e-mail address in 'username@domain.tld' format.
+- `username` - (Required) If omitted, the `PROFITBRICKS_USERNAME` environment variable is used. The username is generally an e-mail address in 'username@domain.tld' format.
 
-* `password` - (Required) If omitted, the `PROFITBRICKS_PASSWORD` environment variable is used.
+- `password` - (Required) If omitted, the `PROFITBRICKS_PASSWORD` environment variable is used.
 
-* `endpoint` - (Optional) If omitted, the `PROFITBRICKS_API_URL` environment variable is used, or it defaults to the current Cloud API release.
+- `endpoint` - (Optional) If omitted, the `PROFITBRICKS_API_URL` environment variable is used, or it defaults to the current Cloud API release.
 
-* `retries` - (Deprecated) Number of retries while waiting for a resource to be provisioned. Default value is 50. **Note**: This argument has been deprecated and replaced by the implementation of resource timeouts described below.
+- `retries` - (Deprecated) Number of retries while waiting for a resource to be provisioned. Default value is 50. **Note**: This argument has been deprecated and replaced by the implementation of resource timeouts described below.
 
 ## Resource Timeout
 
@@ -64,10 +59,10 @@ Users can overwrite the default values for a specific resource in the configurat
 
 The default `timeouts` values are:
 
-* create - (Default 60 minutes) Used for creating a resource.
-* update - (Default 60 minutes) Used for updating a resource .
-* delete - (Default 60 minutes) Used for destroying a resource.
-* default -  (Default 60 minutes) Used for every other action on a resource.
+- create - (Default 60 minutes) Used for creating a resource.
+- update - (Default 60 minutes) Used for updating a resource .
+- delete - (Default 60 minutes) Used for destroying a resource.
+- default - (Default 60 minutes) Used for every other action on a resource.
 
 An example of overwriting the `create`, `update`, and `delete` timeouts:
 
@@ -92,7 +87,7 @@ resource "profitbricks_server" "example" {
   nic {
     lan             = "${profitbricks_lan.example.id}"
     dhcp            = true
-    ip              = "${profitbricks_ipblock.example.ip}"
+    ip              = "${profitbricks_ipblock.example.ips[0]}"
     firewall_active = true
 
     firewall {
@@ -121,4 +116,5 @@ Instead, your Terraform state file will be partially updated with
 any resources that successfully completed.
 
 ## Support
+
 You are welcome to contact us with questions or comments at [ProfitBricks DevOps Central](https://devops.profitbricks.com/).
