@@ -1,4 +1,4 @@
-## 1.5.2 (Unreleased)
+## 1.5.2 (May 27, 2020)
 
 BUG FIXES
 - Fixes a typo preventing users from updating a k8s node pool's nodes count
