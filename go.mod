@@ -5,19 +5,19 @@ go 1.14
 require (
 	cloud.google.com/go/bigquery v1.8.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/aws/aws-sdk-go v1.31.4 // indirect
+	github.com/aws/aws-sdk-go v1.31.6 // indirect
 	github.com/fatih/color v1.9.0 // indirect
 	github.com/go-resty/resty/v2 v2.3.0 // indirect
 	github.com/go-test/deep v1.0.6 // indirect
 	github.com/google/go-cmp v0.4.1 // indirect
 	github.com/hashicorp/go-getter v1.4.2-0.20200106182914-9813cbd4eb02 // indirect
-	github.com/hashicorp/go-hclog v0.13.0 // indirect
+	github.com/hashicorp/go-hclog v0.14.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-plugin v1.3.0 // indirect
 	github.com/hashicorp/go-uuid v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.5.1 // indirect
-	github.com/hashicorp/terraform-config-inspect v0.0.0-20200518182950-3a72ca6c26e2 // indirect
+	github.com/hashicorp/terraform-config-inspect v0.0.0-20200526195750-d43f12b82861 // indirect
 	github.com/hashicorp/terraform-json v0.5.0 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.13.0
 	github.com/hashicorp/terraform-svchost v0.0.0-20191119180714-d2e4933b9136 // indirect
@@ -41,9 +41,9 @@ require (
 	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
 	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
 	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
-	golang.org/x/tools v0.0.0-20200522201501-cb1345f3a375 // indirect
+	golang.org/x/tools v0.0.0-20200527175047-7527cb292c67 // indirect
 	google.golang.org/api v0.25.0 // indirect
-	google.golang.org/genproto v0.0.0-20200521103424-e9a78aa275b7 // indirect
+	google.golang.org/genproto v0.0.0-20200527145253-8367513e4ece // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
