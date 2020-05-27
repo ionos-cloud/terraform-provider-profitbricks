@@ -1,3 +1,4 @@
+## 1.6.0 (Unreleased)
 ## 1.5.2 (May 27, 2020)
 
 BUG FIXES
