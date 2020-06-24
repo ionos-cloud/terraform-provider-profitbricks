@@ -50,6 +50,7 @@ func resourcek8sCluster() *schema.Resource {
 				},
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

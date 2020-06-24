@@ -29,6 +29,7 @@ func dataSourceImage() *schema.Resource {
 				Optional: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

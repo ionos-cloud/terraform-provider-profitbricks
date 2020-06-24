@@ -33,6 +33,7 @@ func resourceProfitBricksLanIPFailover() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

@@ -96,6 +96,7 @@ func resourcek8sNodePool() *schema.Resource {
 				Required:    true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

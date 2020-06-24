@@ -85,6 +85,7 @@ func resourceProfitBricksFirewall() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

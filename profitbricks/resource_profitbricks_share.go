@@ -35,6 +35,7 @@ func resourceProfitBricksShare() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

@@ -34,6 +34,7 @@ func resourceProfitBricksLan() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

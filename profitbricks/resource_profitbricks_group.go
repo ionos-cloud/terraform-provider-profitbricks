@@ -73,6 +73,7 @@ func resourceProfitBricksGroup() *schema.Resource {
 				},
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

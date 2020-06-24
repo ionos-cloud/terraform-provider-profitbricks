@@ -60,6 +60,7 @@ func resourceProfitBricksNic() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

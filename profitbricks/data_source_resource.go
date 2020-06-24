@@ -20,6 +20,7 @@ func dataSourceResource() *schema.Resource {
 				Optional: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

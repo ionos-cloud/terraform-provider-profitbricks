@@ -22,6 +22,7 @@ func dataSourceLocation() *schema.Resource {
 				Optional: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

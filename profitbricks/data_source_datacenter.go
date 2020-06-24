@@ -28,6 +28,7 @@ func dataSourceDataCenter() *schema.Resource {
 				Optional: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

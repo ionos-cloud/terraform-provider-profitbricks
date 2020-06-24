@@ -41,6 +41,7 @@ func resourceProfitBricksUser() *schema.Resource {
 				Required: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 
