@@ -30,6 +30,26 @@ func resourcek8sNodePool() *schema.Resource {
 				Description: "The desired kubernetes version",
 				Required:    true,
 			},
+			"auto_scaling": {
+				Type:        schema.TypeList,
+				Description: "The range defining the minimum and maximum number of worker nodes that the managed node group can scale in",
+				Optional:    true,
+				MaxItems:    1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"min_node_count": {
+							Type:        schema.TypeInt,
+							Description: "The minimum number of worker nodes the node pool can scale down to. Should be less than max_node_count",
+							Required:    true,
+						},
+						"max_node_count": {
+							Type:        schema.TypeInt,
+							Description: "The maximum number of worker nodes that the node pool can scale to. Should be greater than min_node_count",
+							Required:    true,
+						},
+					},
+				},
+			},
 			"maintenance_window": {
 				Type:        schema.TypeList,
 				Description: "A maintenance window comprise of a day of the week and a time for maintenance to be allowed",

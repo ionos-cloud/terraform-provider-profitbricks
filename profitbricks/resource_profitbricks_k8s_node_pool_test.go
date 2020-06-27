@@ -101,7 +101,7 @@ resource "profitbricks_datacenter" "example" {
 
 resource "profitbricks_k8s_cluster" "example" {
   name        = "example"
-  k8s_version = "1.17.5"
+  k8s_version = "1.18.5"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "09:00:00Z"
@@ -110,7 +110,7 @@ resource "profitbricks_k8s_cluster" "example" {
 
 resource "profitbricks_k8s_node_pool" "example" {
   name        = "%s"
-  k8s_version = "${profitbricks_k8s_cluster.example.k8s_version}"
+	k8s_version = "${profitbricks_k8s_cluster.example.k8s_version}"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "09:00:00Z"
@@ -135,7 +135,11 @@ resource "profitbricks_datacenter" "example" {
 
 resource "profitbricks_k8s_cluster" "example" {
   name        = "example"
-  k8s_version = "1.17.5"
+	k8s_version = "1.18.5"
+	auto_scaling {
+		min_node_count = 1
+		max_node_count = 3
+	}
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "10:00:00Z"
