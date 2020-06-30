@@ -1,4 +1,15 @@
-## 1.6.0 (Unreleased)
+## 1.5.3 (Unreleased)
+
+
+BUG FIXES:
+- Fix missing .Timeout property for resource definitions
+
+ENHACEMENTS:
+- Use golang sdk v5.0.16
+
+FEATURES:
+- Add autoscaling support
+
 ## 1.5.2 (May 27, 2020)
 
 BUG FIXES
