@@ -66,6 +66,7 @@ func resourceProfitBricksVolume() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

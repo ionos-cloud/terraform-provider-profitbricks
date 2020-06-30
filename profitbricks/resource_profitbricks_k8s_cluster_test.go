@@ -89,7 +89,7 @@ func testAccCheckProfitBricksk8sClusterExists(n string, k8sCluster *profitbricks
 const testAccCheckProfitBricksk8sClusterConfigBasic = `
 resource "profitbricks_k8s_cluster" "example" {
   name        = "%s"
-  k8s_version = "1.16.9"
+	k8s_version = "1.18.3"
   maintenance_window {
     day_of_the_week = "Sunday"
     time            = "09:00:00Z"
@@ -99,7 +99,7 @@ resource "profitbricks_k8s_cluster" "example" {
 const testAccCheckProfitBricksk8sClusterConfigUpdate = `
 resource "profitbricks_k8s_cluster" "example" {
   name        = "example-renamed"
-  k8s_version = "1.17.5"
+  k8s_version = "1.18.3"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "10:30:00Z"

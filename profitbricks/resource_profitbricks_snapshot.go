@@ -30,6 +30,7 @@ func resourceProfitBricksSnapshot() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

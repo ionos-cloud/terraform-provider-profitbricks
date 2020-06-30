@@ -25,6 +25,7 @@ func dataSourceSnapshot() *schema.Resource {
 				Optional: true,
 			},
 		},
+		Timeouts: &resourceDefaultTimeouts,
 	}
 }
 

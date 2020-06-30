@@ -15,7 +15,11 @@ Manages a Kubernetes Node Pool, part of a managed Kubernetes cluster on ProfitBr
 ```hcl
 resource "profitbricks_k8s_node_pool" "demo" {
   name        = demo
-  k8s_version = "1.17.5"
+  k8s_version = "1.18.3"
+  auto_scaling {
+    min_node_count = 1
+    max_node_count = 3
+  }
   maintenance_window {
     day_of_the_week = "Sunday"
     time            = "10:30:00Z"
@@ -39,6 +43,7 @@ The following arguments are supported:
 
 - `name` - (Required)[string] The name of the Kubernetes Cluster.
 - `k8s_version` - (Optional)[string] The desired Kubernetes Version. for supported values, please check the API documentation.
+- `auto_scaling` - (Optional)[string] Wether the Node Pool should autoscale. For more details, please check the API documentation
 - `maintenance_window` - (Optional) See the **maintenance_window** section in the example above
 - `datacenter_id` - (Required)[string] A Datacenter's UUID
 - `k8s_cluster_id`- (Required)[string] A k8s cluster's UUID
