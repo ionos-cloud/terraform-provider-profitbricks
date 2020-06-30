@@ -1,4 +1,4 @@
-## 1.5.3 (Unreleased)
+## 1.5.3 (June 30, 2020)
 
 
 BUG FIXES:
