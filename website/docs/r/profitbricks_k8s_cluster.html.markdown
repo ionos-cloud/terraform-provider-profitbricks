@@ -15,7 +15,7 @@ Manages a Managed Kubernetes cluster on ProfitBricks.
 ```hcl
 resource "profitbricks_k8s_cluster" "example" {
   name        = "example"
-  k8s_version = "1.18.5"
+  k8s_version = "1.18.3"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "09:30:00Z"

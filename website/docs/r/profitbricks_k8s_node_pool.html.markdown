@@ -15,11 +15,11 @@ Manages a Kubernetes Node Pool, part of a managed Kubernetes cluster on ProfitBr
 ```hcl
 resource "profitbricks_k8s_node_pool" "demo" {
   name        = demo
-  k8s_version = "1.18.5"
+  k8s_version = "1.18.3"
   auto_scaling {
-		min_node_count = 1
-		max_node_count = 3
-	}
+    min_node_count = 1
+    max_node_count = 3
+  }
   maintenance_window {
     day_of_the_week = "Sunday"
     time            = "10:30:00Z"

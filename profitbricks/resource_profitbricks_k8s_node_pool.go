@@ -138,6 +138,20 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 		},
 	}
 
+	if _, asOk := d.GetOk("auto_scaling.0"); asOk {
+		k8sNodepool.Properties.AutoScaling = &profitbricks.AutoScaling{}
+	}
+
+	if asmnVal, asmnOk := d.GetOk("auto_scaling.0.min_node_count"); asmnOk {
+		log.Printf("[INFO] Setting Autoscaling minimum node count to : %d", uint32(asmnVal.(int)))
+		k8sNodepool.Properties.AutoScaling.MinNodeCount = uint32(asmnVal.(int))
+	}
+
+	if asmxnVal, asmxnOk := d.GetOk("auto_scaling.0.max_node_count"); asmxnOk {
+		log.Printf("[INFO] Setting Autoscaling maximum node count to : %d", uint32(asmxnVal.(int)))
+		k8sNodepool.Properties.AutoScaling.MaxNodeCount = uint32(asmxnVal.(int))
+	}
+
 	if _, mwOk := d.GetOk("maintenance_window.0"); mwOk {
 		k8sNodepool.Properties.MaintenanceWindow = &profitbricks.MaintenanceWindow{}
 	}
@@ -149,6 +163,20 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if mdVal, mdOk := d.GetOk("maintenance_window.0.day_of_the_week"); mdOk {
 		k8sNodepool.Properties.MaintenanceWindow.DayOfTheWeek = mdVal.(string)
+	}
+
+	if _, asOk := d.GetOk("auto_scaling.0"); asOk {
+		k8sNodepool.Properties.AutoScaling = &profitbricks.AutoScaling{}
+	}
+
+	if asmnVal, asmnOk := d.GetOk("auto_scaling.0.min_node_count"); asmnOk {
+		log.Printf("[INFO] Setting Autoscaling minimum node count to : %d", uint32(asmnVal.(int)))
+		k8sNodepool.Properties.AutoScaling.MinNodeCount = uint32(asmnVal.(int))
+	}
+
+	if asmxnVal, asmxnOk := d.GetOk("auto_scaling.0.max_node_count"); asmxnOk {
+		log.Printf("[INFO] Setting Autoscaling maximum node count to : %d", uint32(asmxnVal.(int)))
+		k8sNodepool.Properties.AutoScaling.MaxNodeCount = uint32(asmxnVal.(int))
 	}
 
 	createdNodepool, err := client.CreateKubernetesNodePool(d.Get("k8s_cluster_id").(string), k8sNodepool)
@@ -223,6 +251,39 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		log.Printf("[INFO] k8s pool k8s version changed from %+v to %+v", oldk8sVersion, newk8sVersion)
 		if newk8sVersion != nil {
 			request.Properties.K8sVersion = newk8sVersion.(string)
+		}
+	}
+
+	if d.HasChange("auto_scaling.0") {
+		_, newAs := d.GetChange("auto_scaling.0")
+		if newAs.(map[string]interface{}) != nil {
+			updateAutoscaling := false
+			autoScaling := &profitbricks.AutoScaling{
+				MinNodeCount: uint32(d.Get("auto_scaling.0.min_node_count").(int)),
+				MaxNodeCount: uint32(d.Get("auto_scaling.0.max_node_count").(int)),
+			}
+
+			if d.HasChange("auto_scaling.0.min_node_count") {
+				oldMinNodes, newMinNodes := d.GetChange("auto_scaling.0.min_node_count")
+				if newMinNodes != 0 {
+					log.Printf("[INFO] k8s node pool autoscaling min # of nodes changed from %+v to %+v", oldMinNodes, newMinNodes)
+					updateAutoscaling = true
+					autoScaling.MinNodeCount = uint32(newMinNodes.(int))
+				}
+			}
+
+			if d.HasChange("auto_scaling.0.max_node_count") {
+				oldMaxNodes, newMaxNodes := d.GetChange("auto_scaling.0.max_node_count")
+				if newMaxNodes != 0 {
+					log.Printf("[INFO] k8s node pool autoscaling max # of nodes changed from %+v to %+v", oldMaxNodes, newMaxNodes)
+					updateAutoscaling = true
+					autoScaling.MaxNodeCount = uint32(newMaxNodes.(int))
+				}
+			}
+
+			if updateAutoscaling == true {
+				request.Properties.AutoScaling = autoScaling
+			}
 		}
 	}
 
