@@ -50,6 +50,14 @@ func resourcek8sNodePool() *schema.Resource {
 					},
 				},
 			},
+			"lans": {
+				Type:        schema.TypeList,
+				Description: "A list of Local Area Networks the node pool should be part of",
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeInt,
+				},
+			},
 			"maintenance_window": {
 				Type:        schema.TypeList,
 				Description: "A maintenance window comprise of a day of the week and a time for maintenance to be allowed",
@@ -284,6 +292,32 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 			if updateAutoscaling == true {
 				request.Properties.AutoScaling = autoScaling
 			}
+		}
+	}
+
+	if d.HasChange("lans") {
+		oldLANs, newLANs := d.GetChange("lans")
+		if newLANs.([]interface{}) != nil {
+			updateLans := false
+
+			lans := []profitbricks.KubernetesNodePoolLAN{}
+
+			for lanIndex := range newLANs.([]interface{}) {
+				if lanID, lanIDOk := d.GetOk(fmt.Sprintf("lans.%d", lanIndex)); lanIDOk {
+					log.Printf("[INFO] Adding k8s node pool to LAN %+v...", lanID)
+					lans = append(lans, profitbricks.KubernetesNodePoolLAN{ID: uint32(lanID.(int))})
+				}
+			}
+
+			if len(lans) > 0 {
+				updateLans = true
+			}
+
+			if updateLans == true {
+				log.Printf("[INFO] k8s node pool LANs changed from %+v to %+v", oldLANs, newLANs)
+				request.Properties.LANs = &lans
+			}
+
 		}
 	}
 

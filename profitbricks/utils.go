@@ -107,6 +107,26 @@ func resourceProfitBricksK8sNodepoolImport(d *schema.ResourceData, meta interfac
 	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
 
+	if k8sNodepool.Properties.AutoScaling != nil {
+		d.Set("auto_scaling", []map[string]uint32{
+			{
+				"min_node_count": k8sNodepool.Properties.AutoScaling.MinNodeCount,
+				"max_node_count": k8sNodepool.Properties.AutoScaling.MaxNodeCount,
+			},
+		})
+		log.Printf("[INFO] Setting AutoScaling for k8s node pool %s to %+v...", d.Id(), k8sNodepool.Properties.AutoScaling)
+	}
+
+	if k8sNodepool.Properties.LANs != nil {
+		lans := []uint32{}
+
+		for _, lan := range *k8sNodepool.Properties.LANs {
+			lans = append(lans, lan.ID)
+		}
+		d.Set("lans", lans)
+		log.Printf("[INFO] Setting lansfor k8s node pool %s to %+v...", d.Id(), d.Get("lans"))
+	}
+
 	if k8sNodepool.Properties.MaintenanceWindow != nil {
 		d.Set("maintenance_window", []map[string]string{
 			{

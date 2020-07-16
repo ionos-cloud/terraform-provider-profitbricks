@@ -74,7 +74,6 @@ github.com/davecgh/go-spew/spew
 ## explicit
 github.com/fatih/color
 # github.com/go-resty/resty/v2 v2.3.0
-## explicit
 github.com/go-resty/resty/v2
 # github.com/go-test/deep v1.0.6
 ## explicit
@@ -213,8 +212,6 @@ github.com/hashicorp/terraform-svchost/disco
 # github.com/hashicorp/yamux v0.0.0-20200609203250-aecfd211c9ce
 ## explicit
 github.com/hashicorp/yamux
-# github.com/jarcoal/httpmock v1.0.5
-## explicit
 # github.com/jhump/protoreflect v1.6.1
 ## explicit
 # github.com/jmespath/go-jmespath v0.3.0
@@ -224,8 +221,6 @@ github.com/jstemmer/go-junit-report
 github.com/jstemmer/go-junit-report/formatter
 github.com/jstemmer/go-junit-report/parser
 # github.com/kr/pretty v0.2.0
-## explicit
-# github.com/kr/text v0.2.0
 ## explicit
 # github.com/mattn/go-colorable v0.1.7
 ## explicit
@@ -251,8 +246,6 @@ github.com/mitchellh/go-wordwrap
 github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.1
 github.com/mitchellh/reflectwalk
-# github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e
-## explicit
 # github.com/oklog/run v1.1.0
 ## explicit
 github.com/oklog/run
@@ -261,7 +254,7 @@ github.com/oklog/run
 github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
-# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.16
+# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.19
 ## explicit
 github.com/profitbricks/profitbricks-sdk-go/v5
 # github.com/sergi/go-diff v1.1.0
@@ -270,8 +263,6 @@ github.com/profitbricks/profitbricks-sdk-go/v5
 ## explicit
 github.com/spf13/afero
 github.com/spf13/afero/mem
-# github.com/stretchr/testify v1.6.1
-## explicit
 # github.com/ulikunitz/xz v0.5.7
 ## explicit
 github.com/ulikunitz/xz
@@ -338,7 +329,7 @@ golang.org/x/lint/golint
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20200625001655-4c5254603344
+# golang.org/x/net v0.0.0-20200707034311-ab3426394381
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -498,7 +489,3 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
 google.golang.org/protobuf/types/pluginpb
-# gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f
-## explicit
-# gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
-## explicit
