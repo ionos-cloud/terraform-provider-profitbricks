@@ -35,8 +35,7 @@ func resourceProfitBricksLan() *schema.Resource {
 			},
 			"pcc": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Optional: true,
 			},
 		},
 		Timeouts: &resourceDefaultTimeouts,
