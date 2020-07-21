@@ -33,6 +33,11 @@ func resourceProfitBricksLan() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"pcc": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 		},
 		Timeouts: &resourceDefaultTimeouts,
 	}
@@ -107,9 +112,19 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 	properties := &profitbricks.LanProperties{}
 	newValue := d.Get("public")
 	properties.Public = newValue.(bool)
+
 	if d.HasChange("name") {
 		_, newValue := d.GetChange("name")
 		properties.Name = newValue.(string)
+	}
+
+	if d.HasChange("pcc") {
+		_, newPCC := d.GetChange("pcc")
+
+		if newPCC.(string) != "" {
+			log.Printf("[INFO] Setting PCC for LAN %s to %s...", d.Id(), newPCC.(string))
+			properties.PCC = newPCC.(string)
+		}
 	}
 
 	if properties != nil {

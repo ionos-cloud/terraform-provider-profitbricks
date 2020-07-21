@@ -124,7 +124,7 @@ func resourceProfitBricksK8sNodepoolImport(d *schema.ResourceData, meta interfac
 			lans = append(lans, lan.ID)
 		}
 		d.Set("lans", lans)
-		log.Printf("[INFO] Setting lansfor k8s node pool %s to %+v...", d.Id(), d.Get("lans"))
+		log.Printf("[INFO] Setting LAN's for k8s node pool %s to %+v...", d.Id(), d.Get("lans"))
 	}
 
 	if k8sNodepool.Properties.MaintenanceWindow != nil {
