@@ -16,7 +16,7 @@ func resourcePrivateCrossConnect() *schema.Resource {
 		Update: resourcePrivateCrossConnectUpdate,
 		Delete: resourcePrivateCrossConnectDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceProfitBricksK8sClusterImport,
+			State: resourceProfitBricksPrivateCrossConnectImport,
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {

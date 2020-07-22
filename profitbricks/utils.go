@@ -142,6 +142,63 @@ func resourceProfitBricksK8sNodepoolImport(d *schema.ResourceData, meta interfac
 	return []*schema.ResourceData{d}, nil
 }
 
+func resourceProfitBricksPrivateCrossConnectImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*profitbricks.Client)
+	pcc, err := client.GetPrivateCrossConnect(d.Id())
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil, fmt.Errorf("Unable to find PCC %q", d.Id())
+			}
+		}
+		return nil, fmt.Errorf("Unable to retreive PCC %q", d.Id())
+	}
+
+	log.Printf("[INFO] PCC found: %+v", pcc)
+
+	d.SetId(pcc.ID)
+	d.Set("name", pcc.Properties.Name)
+	d.Set("description", pcc.Properties.Description)
+
+	if pcc.Properties.Peers != nil {
+		peers := []map[string]interface{}{}
+
+		for _, peer := range *pcc.Properties.Peers {
+			peers = append(peers, map[string]interface{}{
+				"lan_id":          peer.LANId,
+				"lan_name":        peer.LANName,
+				"datacenter_id":   peer.DataCenterID,
+				"datacenter_name": peer.DataCenterName,
+				"location":        peer.Location,
+			})
+		}
+
+		d.Set("peers", peers)
+		log.Printf("[INFO] Setting peers for PCC %s to %+v...", d.Id(), d.Get("peers"))
+	}
+
+	if pcc.Properties.ConnectableDatacenters != nil {
+		connectableDatacenters := []map[string]interface{}{}
+
+		for _, connectableDatacenter := range *pcc.Properties.ConnectableDatacenters {
+			connectableDatacenters = append(connectableDatacenters, map[string]interface{}{
+				"id":       connectableDatacenter.ID,
+				"name":     connectableDatacenter.Name,
+				"location": connectableDatacenter.Location,
+			})
+		}
+
+		d.Set("connectable_datacenters", connectableDatacenters)
+		log.Printf("[INFO] Setting peers for PCC %s to %+v...", d.Id(), d.Get("peers"))
+	}
+
+	log.Printf("[INFO] Importing PCC %q...", d.Id())
+
+	return []*schema.ResourceData{d}, nil
+}
+
 func resourceProfitBricksFirewallImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	parts := strings.Split(d.Id(), "/")
 	if len(parts) != 4 || parts[0] == "" || parts[1] == "" {

@@ -92,11 +92,11 @@ func testAccCheckProfitBricksprivateCrossConnectExists(n string, privateCrossCon
 const testAccCheckProfitBricksprivateCrossConnectConfigBasic = `
 resource "profitbricks_private_crossconnect" "example" {
   name        = "%s"
-  descruotuib = "%s"
+  description = "%s"
 }`
 
 const testAccCheckProfitBricksprivateCrossConnectConfigUpdate = `
 resource "profitbricks_private_crossconnect" "example" {
   name        = "example-renamed"
-  descruotuib = "example-description-updated"
+  description = "example-description-updated"
 }`
