@@ -5,7 +5,9 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
@@ -133,12 +135,11 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 
 func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	dcid := d.Id()
-	resp, err := client.DeleteDatacenter(dcid)
+	retryCount := 0
 
-	if err != nil {
-		return fmt.Errorf("An error occured while deleting the data center ID %s %s", d.Id(), err)
-	}
+	dcid := d.Id()
+
+	resp, err := client.DeleteDatacenter(dcid)
 
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
@@ -146,8 +147,19 @@ func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface
 		return errState
 	}
 
-	d.SetId("")
-	return nil
+	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		if err != nil {
+			if retryCount > 3 {
+				return resource.NonRetryableError(fmt.Errorf("A fatal error occured while deleting the data center ID %s %s", d.Id(), err))
+			}
+			retryCount++
+			time.Sleep(10 * time.Second)
+			return resource.RetryableError(fmt.Errorf("An error occured while deleting the data center ID %s %s", d.Id(), err))
+		}
+
+		d.SetId("")
+		return nil
+	})
 }
 
 func getImage(client *profitbricks.Client, dcId string, imageName string, imageType string) (*profitbricks.Image, error) {

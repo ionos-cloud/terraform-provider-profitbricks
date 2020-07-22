@@ -55,6 +55,12 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 		request.Properties.Name = d.Get("name").(string)
 	}
 
+	if d.Get("pcc") != nil && d.Get("pcc").(string) != "" {
+		pccID := d.Get("pcc").(string)
+		log.Printf("[INFO] Setting PCC for LAN %s to %s...", d.Id(), pccID)
+		request.Properties.PCC = pccID
+	}
+
 	lan, err := client.CreateLan(d.Get("datacenter_id").(string), request)
 
 	log.Printf("[DEBUG] LAN ID: %s", lan.ID)
@@ -120,7 +126,7 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 	if d.HasChange("pcc") {
 		_, newPCC := d.GetChange("pcc")
 
-		if newPCC.(string) != "" {
+		if newPCC != nil && newPCC.(string) != "" {
 			log.Printf("[INFO] Setting PCC for LAN %s to %s...", d.Id(), newPCC.(string))
 			properties.PCC = newPCC.(string)
 		}
@@ -160,7 +166,7 @@ func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		//try again in 120 seconds
 		time.Sleep(120 * time.Second)
-		_, err = client.DeleteLan(d.Id(), d.Id())
+		_, err = client.DeleteLan(d.Get("datacenter_id").(string), d.Id())
 
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -187,7 +193,7 @@ func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	// d.SetId("")
+	d.SetId("")
 	return nil
 }
 
