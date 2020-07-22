@@ -169,6 +169,7 @@ func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefre
 	return func() (interface{}, string, error) {
 		client := meta.(*profitbricks.Client)
 
+		fmt.Printf("[INFO] Checking PATH %s", path)
 		if path == "" {
 			return nil, "", fmt.Errorf("Can not check a state when path is empty")
 		}

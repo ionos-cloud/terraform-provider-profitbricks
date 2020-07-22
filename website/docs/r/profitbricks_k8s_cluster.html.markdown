@@ -15,7 +15,7 @@ Manages a Managed Kubernetes cluster on ProfitBricks.
 ```hcl
 resource "profitbricks_k8s_cluster" "example" {
   name        = "example"
-  k8s_version = "1.18.3"
+  k8s_version = "1.18.5"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "09:30:00Z"
@@ -40,3 +40,7 @@ terraform import profitbricks_k8s_cluster.demo {k8s_cluster uuid}
 ```
 
 This can be helpful when you want to import kubernetes clusters which you have already created manually or using other means, outside of terraform.
+
+## Important Notes
+
+- Please note that every `profitbricks_datacenter` resource you plan to add kubernetes node pools for the cluster to needs to also be specified as a dependency of the Kubernetes cluster by using the `depends_on` meta-property (For more details, please see https://www.terraform.io/docs/configuration/resources.html#resource-dependencies). This will ensure that resources are destroyed in the right order. In case you do not do this, you might encounter problems when deleting the Virtual Datacenter. In return, this will give you the ability to keep the data in your PersistentVolumeClaims across NodePools created in the same Virtual Datacenter `profitbricks_datacenter`

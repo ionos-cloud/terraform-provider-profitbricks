@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	profitbricks "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
@@ -136,30 +135,52 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
 	retryCount := 0
+	deletionError := false
 
 	dcid := d.Id()
 
-	resp, err := client.DeleteDatacenter(dcid)
+	for {
+		_, err := client.DeleteDatacenter(dcid)
 
-	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
-	if errState != nil {
-		return errState
-	}
-
-	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-		if err != nil {
-			if retryCount > 3 {
-				return resource.NonRetryableError(fmt.Errorf("A fatal error occured while deleting the data center ID %s %s", d.Id(), err))
-			}
-			retryCount++
-			time.Sleep(10 * time.Second)
-			return resource.RetryableError(fmt.Errorf("An error occured while deleting the data center ID %s %s", d.Id(), err))
+		if retryCount > 3 && deletionError {
+			log.Fatalf("[FATAL] Error while deleting VDC: %s", err)
+			break
 		}
 
-		d.SetId("")
-		return nil
-	})
+		if err != nil {
+			if apiError, ok := err.(profitbricks.ApiError); ok {
+				if apiError.HttpStatusCode() == 404 {
+					d.SetId("")
+					return nil
+				}
+				log.Printf("[ERROR] API Error while deleting VDC, retrying (%d): %s", retryCount, err)
+			}
+
+			log.Printf("[ERROR] Error while deleting VDC, retrying (%d) %s: %s", retryCount, d.Id(), err)
+		}
+
+		deletionError = true
+		retryCount++
+		time.Sleep(10 * time.Second)
+	}
+
+	for {
+		log.Printf("[INFO] Waiting for VDC %s to be deleted...", d.Id())
+		time.Sleep(5 * time.Second)
+
+		pccDeleted, dsErr := datacenterDeleted(client, d)
+
+		if dsErr != nil {
+			return fmt.Errorf("Error while checking deletion status of VDC %s: %s", d.Id(), dsErr)
+		}
+
+		if pccDeleted && dsErr == nil {
+			log.Printf("[INFO] Successfully deleted PCC: %s", d.Id())
+			break
+		}
+	}
+
+	return nil
 }
 
 func getImage(client *profitbricks.Client, dcId string, imageName string, imageType string) (*profitbricks.Image, error) {
@@ -253,4 +274,27 @@ func getImageAlias(client *profitbricks.Client, imageAlias string, location stri
 func IsValidUUID(uuid string) bool {
 	r := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$")
 	return r.MatchString(uuid)
+}
+
+func datacenterReady(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {
+	subjectVDC, err := client.GetDatacenter(d.Id())
+
+	if err != nil {
+		return true, fmt.Errorf("Error checking datacenter status: %s", err)
+	}
+	return subjectVDC.Metadata.State == "AVAILABLE", nil
+}
+
+func datacenterDeleted(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {
+	_, err := client.GetDatacenter(d.Id())
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				return true, nil
+			}
+			return true, fmt.Errorf("Error checking VDC deletion status: %s", err)
+		}
+	}
+	return false, nil
 }
