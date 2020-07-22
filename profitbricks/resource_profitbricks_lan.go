@@ -63,15 +63,27 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 
 	lan, err := client.CreateLan(d.Get("datacenter_id").(string), request)
 
-	log.Printf("[DEBUG] LAN ID: %s", lan.ID)
-	log.Printf("[DEBUG] LAN RESPONSE: %s", lan.Response)
-
 	if err != nil {
 		d.SetId("")
 		return fmt.Errorf("An error occured while creating LAN: %s", err)
 	}
 
+	log.Printf("[DEBUG] LAN ID: %s", lan.ID)
+	log.Printf("[DEBUG] LAN RESPONSE: %s", lan.Response)
+
 	d.SetId(lan.ID)
+
+	log.Printf("[INFO] LAN ID: %s", d.Id())
+
+	// Wait, catching any errors
+	_, errState := getStateChangeConf(meta, d, lan.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
+	if errState != nil {
+		if IsRequestFailed(err) {
+			// Request failed, so resource was not created, delete resource from state file
+			d.SetId("")
+		}
+		return errState
+	}
 
 	for {
 		log.Printf("[INFO] Waiting for LAN %s to be available...", lan.ID)
