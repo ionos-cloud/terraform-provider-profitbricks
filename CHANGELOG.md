@@ -1,4 +1,4 @@
-## 1.5.4 (Unreleased)
+## 1.5.4 (July 23, 2020)
 
 FEATURES:
 
