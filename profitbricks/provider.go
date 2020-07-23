@@ -51,21 +51,22 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"profitbricks_datacenter":    resourceProfitBricksDatacenter(),
-			"profitbricks_ipblock":       resourceProfitBricksIPBlock(),
-			"profitbricks_firewall":      resourceProfitBricksFirewall(),
-			"profitbricks_lan":           resourceProfitBricksLan(),
-			"profitbricks_loadbalancer":  resourceProfitBricksLoadbalancer(),
-			"profitbricks_nic":           resourceProfitBricksNic(),
-			"profitbricks_server":        resourceProfitBricksServer(),
-			"profitbricks_volume":        resourceProfitBricksVolume(),
-			"profitbricks_group":         resourceProfitBricksGroup(),
-			"profitbricks_share":         resourceProfitBricksShare(),
-			"profitbricks_user":          resourceProfitBricksUser(),
-			"profitbricks_snapshot":      resourceProfitBricksSnapshot(),
-			"profitbricks_ipfailover":    resourceProfitBricksLanIPFailover(),
-			"profitbricks_k8s_cluster":   resourcek8sCluster(),
-			"profitbricks_k8s_node_pool": resourcek8sNodePool(),
+			"profitbricks_datacenter":           resourceProfitBricksDatacenter(),
+			"profitbricks_ipblock":              resourceProfitBricksIPBlock(),
+			"profitbricks_firewall":             resourceProfitBricksFirewall(),
+			"profitbricks_lan":                  resourceProfitBricksLan(),
+			"profitbricks_loadbalancer":         resourceProfitBricksLoadbalancer(),
+			"profitbricks_nic":                  resourceProfitBricksNic(),
+			"profitbricks_server":               resourceProfitBricksServer(),
+			"profitbricks_volume":               resourceProfitBricksVolume(),
+			"profitbricks_group":                resourceProfitBricksGroup(),
+			"profitbricks_share":                resourceProfitBricksShare(),
+			"profitbricks_user":                 resourceProfitBricksUser(),
+			"profitbricks_snapshot":             resourceProfitBricksSnapshot(),
+			"profitbricks_ipfailover":           resourceProfitBricksLanIPFailover(),
+			"profitbricks_k8s_cluster":          resourcek8sCluster(),
+			"profitbricks_k8s_node_pool":        resourcek8sNodePool(),
+			"profitbricks_private_crossconnect": resourcePrivateCrossConnect(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"profitbricks_datacenter": dataSourceDataCenter(),
@@ -168,6 +169,7 @@ func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefre
 	return func() (interface{}, string, error) {
 		client := meta.(*profitbricks.Client)
 
+		fmt.Printf("[INFO] Checking PATH %s", path)
 		if path == "" {
 			return nil, "", fmt.Errorf("Can not check a state when path is empty")
 		}

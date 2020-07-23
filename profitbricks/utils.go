@@ -107,6 +107,26 @@ func resourceProfitBricksK8sNodepoolImport(d *schema.ResourceData, meta interfac
 	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
 
+	if k8sNodepool.Properties.AutoScaling != nil {
+		d.Set("auto_scaling", []map[string]uint32{
+			{
+				"min_node_count": k8sNodepool.Properties.AutoScaling.MinNodeCount,
+				"max_node_count": k8sNodepool.Properties.AutoScaling.MaxNodeCount,
+			},
+		})
+		log.Printf("[INFO] Setting AutoScaling for k8s node pool %s to %+v...", d.Id(), k8sNodepool.Properties.AutoScaling)
+	}
+
+	if k8sNodepool.Properties.LANs != nil {
+		lans := []uint32{}
+
+		for _, lan := range *k8sNodepool.Properties.LANs {
+			lans = append(lans, lan.ID)
+		}
+		d.Set("lans", lans)
+		log.Printf("[INFO] Setting LAN's for k8s node pool %s to %+v...", d.Id(), d.Get("lans"))
+	}
+
 	if k8sNodepool.Properties.MaintenanceWindow != nil {
 		d.Set("maintenance_window", []map[string]string{
 			{
@@ -118,6 +138,63 @@ func resourceProfitBricksK8sNodepoolImport(d *schema.ResourceData, meta interfac
 	}
 
 	log.Printf("[INFO] Importing k8s node pool %q...", d.Id())
+
+	return []*schema.ResourceData{d}, nil
+}
+
+func resourceProfitBricksPrivateCrossConnectImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*profitbricks.Client)
+	pcc, err := client.GetPrivateCrossConnect(d.Id())
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil, fmt.Errorf("Unable to find PCC %q", d.Id())
+			}
+		}
+		return nil, fmt.Errorf("Unable to retreive PCC %q", d.Id())
+	}
+
+	log.Printf("[INFO] PCC found: %+v", pcc)
+
+	d.SetId(pcc.ID)
+	d.Set("name", pcc.Properties.Name)
+	d.Set("description", pcc.Properties.Description)
+
+	if pcc.Properties.Peers != nil {
+		peers := []map[string]interface{}{}
+
+		for _, peer := range *pcc.Properties.Peers {
+			peers = append(peers, map[string]interface{}{
+				"lan_id":          peer.LANId,
+				"lan_name":        peer.LANName,
+				"datacenter_id":   peer.DataCenterID,
+				"datacenter_name": peer.DataCenterName,
+				"location":        peer.Location,
+			})
+		}
+
+		d.Set("peers", peers)
+		log.Printf("[INFO] Setting peers for PCC %s to %+v...", d.Id(), d.Get("peers"))
+	}
+
+	if pcc.Properties.ConnectableDatacenters != nil {
+		connectableDatacenters := []map[string]interface{}{}
+
+		for _, connectableDatacenter := range *pcc.Properties.ConnectableDatacenters {
+			connectableDatacenters = append(connectableDatacenters, map[string]interface{}{
+				"id":       connectableDatacenter.ID,
+				"name":     connectableDatacenter.Name,
+				"location": connectableDatacenter.Location,
+			})
+		}
+
+		d.Set("connectable_datacenters", connectableDatacenters)
+		log.Printf("[INFO] Setting peers for PCC %s to %+v...", d.Id(), d.Get("peers"))
+	}
+
+	log.Printf("[INFO] Importing PCC %q...", d.Id())
 
 	return []*schema.ResourceData{d}, nil
 }

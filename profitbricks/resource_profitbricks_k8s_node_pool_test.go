@@ -101,7 +101,7 @@ resource "profitbricks_datacenter" "example" {
 
 resource "profitbricks_k8s_cluster" "example" {
   name        = "example"
-  k8s_version = "1.18.3"
+  k8s_version = "1.18.5"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "09:00:00Z"
@@ -135,7 +135,7 @@ resource "profitbricks_datacenter" "example" {
 
 resource "profitbricks_k8s_cluster" "example" {
   name        = "example"
-	k8s_version = "1.18.3"
+	k8s_version = "1.18.5"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "10:00:00Z"

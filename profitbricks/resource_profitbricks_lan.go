@@ -33,6 +33,10 @@ func resourceProfitBricksLan() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"pcc": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 		Timeouts: &resourceDefaultTimeouts,
 	}
@@ -51,16 +55,26 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 		request.Properties.Name = d.Get("name").(string)
 	}
 
+	if d.Get("pcc") != nil && d.Get("pcc").(string) != "" {
+		pccID := d.Get("pcc").(string)
+		log.Printf("[INFO] Setting PCC for LAN %s to %s...", d.Id(), pccID)
+		request.Properties.PCC = pccID
+	}
+
 	lan, err := client.CreateLan(d.Get("datacenter_id").(string), request)
+
+	if err != nil {
+		d.SetId("")
+		return fmt.Errorf("An error occured while creating LAN: %s", err)
+	}
 
 	log.Printf("[DEBUG] LAN ID: %s", lan.ID)
 	log.Printf("[DEBUG] LAN RESPONSE: %s", lan.Response)
 
-	if err != nil {
-		return fmt.Errorf("An error occured while creating a lan: %s", err)
-	}
-
 	d.SetId(lan.ID)
+
+	log.Printf("[INFO] LAN ID: %s", d.Id())
+
 	// Wait, catching any errors
 	_, errState := getStateChangeConf(meta, d, lan.Headers.Get("Location"), schema.TimeoutCreate).WaitForState()
 	if errState != nil {
@@ -69,6 +83,22 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 		}
 		return errState
+	}
+
+	for {
+		log.Printf("[INFO] Waiting for LAN %s to be available...", lan.ID)
+		time.Sleep(5 * time.Second)
+
+		clusterReady, rsErr := lanAvailable(client, d)
+
+		if rsErr != nil {
+			return fmt.Errorf("Error while checking readiness status of LAN %s: %s", lan.ID, rsErr)
+		}
+
+		if clusterReady && rsErr == nil {
+			log.Printf("[INFO] LAN ready: %s", d.Id())
+			break
+		}
 	}
 
 	return resourceProfitBricksLanRead(d, meta)
@@ -81,17 +111,16 @@ func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() == 404 {
+				log.Printf("[INFO] LAN %s not found", d.Id())
 				d.SetId("")
 				return nil
 			}
 		}
-		return fmt.Errorf("An error occured while fetching a lan ID %s %s", d.Id(), err)
+
+		return fmt.Errorf("An error occured while fetching a LAN %s: %s", d.Id(), err)
 	}
 
-	d.Set("public", lan.Properties.Public)
-	d.Set("name", lan.Properties.Name)
-	d.Set("ip_failover", lan.Properties.IPFailover)
-	d.Set("datacenter_id", d.Get("datacenter_id").(string))
+	log.Printf("[INFO] LAN %s found: %+v", d.Id(), lan)
 	return nil
 }
 
@@ -100,35 +129,56 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 	properties := &profitbricks.LanProperties{}
 	newValue := d.Get("public")
 	properties.Public = newValue.(bool)
+
 	if d.HasChange("name") {
 		_, newValue := d.GetChange("name")
 		properties.Name = newValue.(string)
 	}
 
+	if d.HasChange("pcc") {
+		_, newPCC := d.GetChange("pcc")
+
+		if newPCC != nil && newPCC.(string) != "" {
+			log.Printf("[INFO] Setting PCC for LAN %s to %s...", d.Id(), newPCC.(string))
+			properties.PCC = newPCC.(string)
+		}
+	}
+
 	if properties != nil {
-		lan, err := client.UpdateLan(d.Get("datacenter_id").(string), d.Id(), *properties)
+		updatedLAN, err := client.UpdateLan(d.Get("datacenter_id").(string), d.Id(), *properties)
 		if err != nil {
 			return fmt.Errorf("An error occured while patching a lan ID %s %s", d.Id(), err)
 		}
 
-		// Wait, catching any errors
-		_, errState := getStateChangeConf(meta, d, lan.Headers.Get("Location"), schema.TimeoutUpdate).WaitForState()
-		if errState != nil {
-			return errState
+		for {
+			log.Printf("[INFO] Waiting for LAN %s to be available...", d.Id())
+			time.Sleep(5 * time.Second)
+
+			clusterReady, rsErr := lanAvailable(client, d)
+
+			if rsErr != nil {
+				return fmt.Errorf("Error while checking readiness status of LAN %s: %s", d.Id(), rsErr)
+			}
+
+			if clusterReady && rsErr == nil {
+				log.Printf("[INFO] LAN %s ready: %+v", d.Id(), updatedLAN)
+				break
+			}
 		}
 
 	}
+
 	return resourceProfitBricksLanRead(d, meta)
 }
 
 func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	dcId := d.Get("datacenter_id").(string)
-	resp, err := client.DeleteLan(dcId, d.Id())
+	_, err := client.DeleteLan(d.Id(), d.Id())
+
 	if err != nil {
 		//try again in 120 seconds
 		time.Sleep(120 * time.Second)
-		resp, err = client.DeleteLan(dcId, d.Id())
+		_, err = client.DeleteLan(d.Get("datacenter_id").(string), d.Id())
 
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -139,12 +189,50 @@ func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	// Wait, catching any errors
-	_, errState := getStateChangeConf(meta, d, resp.Get("Location"), schema.TimeoutDelete).WaitForState()
-	if errState != nil {
-		return errState
+	for {
+		log.Printf("[INFO] Waiting for LAN %s to be deleted...", d.Id())
+		time.Sleep(5 * time.Second)
+
+		lDeleted, dsErr := lanDeleted(client, d)
+
+		if dsErr != nil {
+			return fmt.Errorf("Error while checking deletion status of LAN %s: %s", d.Id(), dsErr)
+		}
+
+		if lDeleted && dsErr == nil {
+			log.Printf("[INFO] Successfully deleted LAN: %s", d.Id())
+			break
+		}
 	}
 
 	d.SetId("")
 	return nil
+}
+
+func lanAvailable(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {
+	subjectLAN, err := client.GetLan(d.Get("datacenter_id").(string), d.Id())
+
+	log.Printf("[INFO] Current status for LAN %s: %+v", d.Id(), subjectLAN)
+
+	if err != nil {
+		return true, fmt.Errorf("Error checking LAN status: %s", err)
+	}
+	return subjectLAN.Metadata.State == "AVAILABLE", nil
+}
+
+func lanDeleted(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {
+	subjectLAN, err := client.GetLan(d.Get("datacenter_id").(string), d.Id())
+
+	log.Printf("[INFO] Current deletion status for LAN %s: %+v", d.Id(), subjectLAN)
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				return true, nil
+			}
+			return true, fmt.Errorf("Error checking LAN deletion status: %s", err)
+		}
+	}
+	log.Printf("[INFO] LAN %s not deleted yet deleted LAN: %+v", d.Id(), subjectLAN)
+	return false, nil
 }
