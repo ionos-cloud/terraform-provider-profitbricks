@@ -120,6 +120,10 @@ func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("An error occured while fetching a LAN %s: %s", d.Id(), err)
 	}
 
+	d.Set("public", lan.Properties.Public)
+	d.Set("name", lan.Properties.Name)
+	d.Set("ip_failover", lan.Properties.IPFailover)
+	d.Set("datacenter_id", d.Get("datacenter_id").(string))
 	log.Printf("[INFO] LAN %s found: %+v", d.Id(), lan)
 	return nil
 }
@@ -173,12 +177,14 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 
 func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*profitbricks.Client)
-	_, err := client.DeleteLan(d.Id(), d.Id())
+	dcID := d.Get("datacenter_id").(string)
+
+	_, err := client.DeleteLan(dcID, d.Id())
 
 	if err != nil {
 		//try again in 120 seconds
 		time.Sleep(120 * time.Second)
-		_, err = client.DeleteLan(d.Get("datacenter_id").(string), d.Id())
+		_, err = client.DeleteLan(dcID, d.Id())
 
 		if err != nil {
 			if apiError, ok := err.(profitbricks.ApiError); ok {
