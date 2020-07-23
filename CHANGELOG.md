@@ -1,4 +1,18 @@
-## 1.6.0 (Unreleased)
+## 1.5.4 (Unreleased)
+
+FEATURES:
+
+- Additional **lans** support for the **profitbricks_k8s_node_pool** resource (including import state sync)
+- Revamped the **profitbricks_lan** implementation
+- New **profitbricks_private_crossconnect** resource
+- New **pcc** property for the **profitbricks_lan** resource so that it works in conjunction with private cross-connects
+- Acceptance Tests for **profitbricks_private_crossconnect** (including an import test)
+- **profitbricks_k8s_cluster** resource documentation updates
+
+ENHANCEMENTS
+
+- Documentation website updates for all new functionalities, as well as clarifying dependencies
+
 ## 1.5.3 (June 30, 2020)
 
 
