@@ -721,6 +721,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("ram", server.Properties.RAM)
 	d.Set("availability_zone", server.Properties.AvailabilityZone)
 	d.Set("cpu_family", server.Properties.CPUFamily)
+	d.Set("boot_image", server.Entities.Volumes.Items[0].Properties.Image)
 
 	if primarynic, ok := d.GetOk("primary_nic"); ok {
 		d.Set("primary_nic", primarynic.(string))
