@@ -24,7 +24,7 @@ resource "profitbricks_backup_unit" "example" {
 
 The following arguments are supported:
 
-- `name` - (Required)[string] The name of the Kubernetes Cluster.
+- `name` - (Required)[string] The name of the Backup Unit.
 - `password` - (Required)[string] The desired password for the Backup Unit.
 - `email` - (Required)[string] The email address assigned to the backup unit
 
