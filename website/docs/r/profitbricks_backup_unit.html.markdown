@@ -41,4 +41,4 @@ This can be helpful when you want to import backup units which you have already 
 ## Important Notes
 
 - Please note that at the moment, Backup Units cannot be renamed
-- Please note that the password attribute is write-only, and it cannot be retrieved from the API when importing a profitbricks_backup_unit. Basically, the only way to keep track of it in terraform is to specify it.
+- Please note that the password attribute is write-only, and it cannot be retrieved from the API when importing a profitbricks_backup_unit. The only way to keep track of it in Terraform is to specify it on the resource to be imported, thus, making it a required attribute.
