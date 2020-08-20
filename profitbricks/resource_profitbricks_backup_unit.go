@@ -107,7 +107,9 @@ func resourceBackupUnitRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error while fetching contract resources for backup unit %s: %s", d.Id(), cErr)
 	}
 
-	d.Set("login", fmt.Sprintf("%s-%s", backupUnit.Properties.Name, contractResources.Properties.PBContractNumber))
+	log.Printf("[INFO] Successfully retreived contract resource for backup unit unit %s: %+v", d.Id(), contractResources)
+
+	d.Set("login", fmt.Sprintf("%s-%d", backupUnit.Properties.Name, int64(contractResources.Properties.PBContractNumber)))
 
 	log.Printf("[INFO] Successfully retreived backup unit %s: %+v", d.Id(), backupUnit)
 

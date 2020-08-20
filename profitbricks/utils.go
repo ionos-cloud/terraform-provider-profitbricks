@@ -215,18 +215,18 @@ func resourceProfitBricksBackupUnitImport(d *schema.ResourceData, meta interface
 
 	log.Printf("[INFO] Backup Unit found: %+v", backupUnit)
 
+	d.SetId(backupUnit.ID)
+
+	d.Set("name", backupUnit.Properties.Name)
+	d.Set("email", backupUnit.Properties.Email)
+
 	contractResources, cErr := client.GetContractResources()
 
 	if cErr != nil {
 		return nil, fmt.Errorf("Error while fetching contract resources for backup unit %q: %s", d.Id(), cErr)
 	}
 
-	d.Set("login", fmt.Sprintf("%s-%s", backupUnit.Properties.Name, contractResources.Properties.PBContractNumber))
-
-	d.SetId(backupUnit.ID)
-
-	d.Set("name", backupUnit.Properties.Name)
-	d.Set("email", backupUnit.Properties.Email)
+	d.Set("login", fmt.Sprintf("%s-%d", backupUnit.Properties.Name, int64(contractResources.Properties.PBContractNumber)))
 
 	return []*schema.ResourceData{d}, nil
 }

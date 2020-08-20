@@ -31,7 +31,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.24
+	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.26
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/afero v1.3.1 // indirect
 	github.com/ulikunitz/xz v0.5.7 // indirect
@@ -40,7 +40,7 @@ require (
 	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
 	go.opencensus.io v0.22.4 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/net v0.0.0-20200707034311-ab3426394381 // indirect
+	golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc // indirect
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/grpc v1.30.0 // indirect
