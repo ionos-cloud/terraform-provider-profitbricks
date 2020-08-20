@@ -199,6 +199,38 @@ func resourceProfitBricksPrivateCrossConnectImport(d *schema.ResourceData, meta 
 	return []*schema.ResourceData{d}, nil
 }
 
+func resourceProfitBricksBackupUnitImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*profitbricks.Client)
+	backupUnit, err := client.GetBackupUnit(d.Id())
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil, fmt.Errorf("Unable to find Backup Unit %q", d.Id())
+			}
+		}
+		return nil, fmt.Errorf("Unable to retreive Backup Unit %q", d.Id())
+	}
+
+	log.Printf("[INFO] Backup Unit found: %+v", backupUnit)
+
+	contractResources, cErr := client.GetContractResources()
+
+	if cErr != nil {
+		return nil, fmt.Errorf("Error while fetching contract resources for backup unit %q: %s", d.Id(), cErr)
+	}
+
+	d.Set("login", fmt.Sprintf("%s-%s", backupUnit.Properties.Name, contractResources.Properties.PBContractNumber))
+
+	d.SetId(backupUnit.ID)
+
+	d.Set("name", backupUnit.Properties.Name)
+	d.Set("email", backupUnit.Properties.Email)
+
+	return []*schema.ResourceData{d}, nil
+}
+
 func resourceProfitBricksFirewallImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	parts := strings.Split(d.Id(), "/")
 	if len(parts) != 4 || parts[0] == "" || parts[1] == "" {
