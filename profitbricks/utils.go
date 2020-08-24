@@ -107,7 +107,7 @@ func resourceProfitBricksK8sNodepoolImport(d *schema.ResourceData, meta interfac
 	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
 
-	if k8sNodepool.Properties.AutoScaling != nil {
+	if k8sNodepool.Properties.AutoScaling != nil && (k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0) {
 		d.Set("auto_scaling", []map[string]uint32{
 			{
 				"min_node_count": k8sNodepool.Properties.AutoScaling.MinNodeCount,
