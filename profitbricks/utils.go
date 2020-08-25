@@ -231,6 +231,34 @@ func resourceProfitBricksBackupUnitImport(d *schema.ResourceData, meta interface
 	return []*schema.ResourceData{d}, nil
 }
 
+func resourceProfitBricksS3KeyImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("Invalid import id %q. Expecting {userId}/{s3KeyId}", d.Id())
+	}
+
+	client := meta.(*profitbricks.Client)
+	s3Key, err := client.GetS3Key(parts[0], parts[1])
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil, fmt.Errorf("Unable to find S3 key %q", d.Id())
+			}
+		}
+		return nil, fmt.Errorf("Unable to retreive S3 key %q", d.Id())
+	}
+
+	d.SetId(s3Key.ID)
+	d.Set("user_id", parts[0])
+	d.Set("secret_key", s3Key.Properties.SecretKey)
+	d.Set("active", s3Key.Properties.Active)
+
+	return []*schema.ResourceData{d}, nil
+}
+
 func resourceProfitBricksFirewallImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	parts := strings.Split(d.Id(), "/")
 	if len(parts) != 4 || parts[0] == "" || parts[1] == "" {

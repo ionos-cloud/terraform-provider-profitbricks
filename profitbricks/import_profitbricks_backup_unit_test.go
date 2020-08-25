@@ -13,7 +13,7 @@ func TestAccProfitBricksbackupUnit_ImportBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDProfitBricksk8sClusterDestroyCheck,
+		CheckDestroy: testAccCheckDProfitBricksbackupUnitDestroyCheck,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckProfitBricksbackupUnitConfigBasic, resourceName),

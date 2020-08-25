@@ -109,6 +109,8 @@ func resourceBackupUnitRead(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Successfully retreived contract resource for backup unit unit %s: %+v", d.Id(), contractResources)
 
+	d.Set("name", backupUnit.Properties.Name)
+	d.Set("email", backupUnit.Properties.Email)
 	d.Set("login", fmt.Sprintf("%s-%d", backupUnit.Properties.Name, int64(contractResources.Properties.PBContractNumber)))
 
 	log.Printf("[INFO] Successfully retreived backup unit %s: %+v", d.Id(), backupUnit)
@@ -205,12 +207,12 @@ func resourceBackupUnitDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func backupUnitReady(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {
-	subjectCluster, err := client.GetBackupUnit(d.Id())
+	subjectBackupUnit, err := client.GetBackupUnit(d.Id())
 
 	if err != nil {
 		return true, fmt.Errorf("Error checking backup unit status: %s", err)
 	}
-	return subjectCluster.Metadata.State == "AVAILABLE", nil
+	return subjectBackupUnit.Metadata.State == "AVAILABLE", nil
 }
 
 func backupUnitDeleted(client *profitbricks.Client, d *schema.ResourceData) (bool, error) {

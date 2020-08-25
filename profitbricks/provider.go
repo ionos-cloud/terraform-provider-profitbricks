@@ -68,6 +68,7 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_k8s_node_pool":        resourcek8sNodePool(),
 			"profitbricks_private_crossconnect": resourcePrivateCrossConnect(),
 			"profitbricks_backup_unit":          resourceBackupUnit(),
+			"profitbricks_s3_key":               resourceS3Key(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"profitbricks_datacenter": dataSourceDataCenter(),
