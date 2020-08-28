@@ -107,7 +107,7 @@ func resourceProfitBricksK8sNodepoolImport(d *schema.ResourceData, meta interfac
 	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
 
-	if k8sNodepool.Properties.AutoScaling != nil {
+	if k8sNodepool.Properties.AutoScaling != nil && (k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0) {
 		d.Set("auto_scaling", []map[string]uint32{
 			{
 				"min_node_count": k8sNodepool.Properties.AutoScaling.MinNodeCount,
@@ -195,6 +195,66 @@ func resourceProfitBricksPrivateCrossConnectImport(d *schema.ResourceData, meta 
 	}
 
 	log.Printf("[INFO] Importing PCC %q...", d.Id())
+
+	return []*schema.ResourceData{d}, nil
+}
+
+func resourceProfitBricksBackupUnitImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*profitbricks.Client)
+	backupUnit, err := client.GetBackupUnit(d.Id())
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil, fmt.Errorf("Unable to find Backup Unit %q", d.Id())
+			}
+		}
+		return nil, fmt.Errorf("Unable to retreive Backup Unit %q", d.Id())
+	}
+
+	log.Printf("[INFO] Backup Unit found: %+v", backupUnit)
+
+	d.SetId(backupUnit.ID)
+
+	d.Set("name", backupUnit.Properties.Name)
+	d.Set("email", backupUnit.Properties.Email)
+
+	contractResources, cErr := client.GetContractResources()
+
+	if cErr != nil {
+		return nil, fmt.Errorf("Error while fetching contract resources for backup unit %q: %s", d.Id(), cErr)
+	}
+
+	d.Set("login", fmt.Sprintf("%s-%d", backupUnit.Properties.Name, int64(contractResources.Properties.PBContractNumber)))
+
+	return []*schema.ResourceData{d}, nil
+}
+
+func resourceProfitBricksS3KeyImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return nil, fmt.Errorf("Invalid import id %q. Expecting {userId}/{s3KeyId}", d.Id())
+	}
+
+	client := meta.(*profitbricks.Client)
+	s3Key, err := client.GetS3Key(parts[0], parts[1])
+
+	if err != nil {
+		if apiError, ok := err.(profitbricks.ApiError); ok {
+			if apiError.HttpStatusCode() == 404 {
+				d.SetId("")
+				return nil, fmt.Errorf("Unable to find S3 key %q", d.Id())
+			}
+		}
+		return nil, fmt.Errorf("Unable to retreive S3 key %q", d.Id())
+	}
+
+	d.SetId(s3Key.ID)
+	d.Set("user_id", parts[0])
+	d.Set("secret_key", s3Key.Properties.SecretKey)
+	d.Set("active", s3Key.Properties.Active)
 
 	return []*schema.ResourceData{d}, nil
 }

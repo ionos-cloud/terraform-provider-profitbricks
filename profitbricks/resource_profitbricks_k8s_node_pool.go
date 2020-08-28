@@ -160,6 +160,21 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 		k8sNodepool.Properties.AutoScaling.MaxNodeCount = uint32(asmxnVal.(int))
 	}
 
+	if k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MinNodeCount != k8sNodepool.Properties.AutoScaling.MaxNodeCount {
+		log.Printf("[INFO] Autoscaling is on, doing some extra checks for k8s node pool")
+
+		if k8sNodepool.Properties.NodeCount < k8sNodepool.Properties.AutoScaling.MinNodeCount {
+			d.SetId("")
+			return fmt.Errorf("Error creating k8s node pool: node_count cannot be lower than min_node_count")
+		}
+
+		if k8sNodepool.Properties.AutoScaling.MaxNodeCount < k8sNodepool.Properties.AutoScaling.MinNodeCount {
+			d.SetId("")
+			return fmt.Errorf("Error creating k8s node pool: max_node_count cannot be lower than min_node_count")
+		}
+
+	}
+
 	if _, mwOk := d.GetOk("maintenance_window.0"); mwOk {
 		k8sNodepool.Properties.MaintenanceWindow = &profitbricks.MaintenanceWindow{}
 	}
@@ -173,18 +188,28 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 		k8sNodepool.Properties.MaintenanceWindow.DayOfTheWeek = mdVal.(string)
 	}
 
-	if _, asOk := d.GetOk("auto_scaling.0"); asOk {
-		k8sNodepool.Properties.AutoScaling = &profitbricks.AutoScaling{}
-	}
+	if lansVal, lansOK := d.GetOk("lans"); lansOK {
+		if lansVal.([]interface{}) != nil {
+			updateLans := false
 
-	if asmnVal, asmnOk := d.GetOk("auto_scaling.0.min_node_count"); asmnOk {
-		log.Printf("[INFO] Setting Autoscaling minimum node count to : %d", uint32(asmnVal.(int)))
-		k8sNodepool.Properties.AutoScaling.MinNodeCount = uint32(asmnVal.(int))
-	}
+			lans := []profitbricks.KubernetesNodePoolLAN{}
 
-	if asmxnVal, asmxnOk := d.GetOk("auto_scaling.0.max_node_count"); asmxnOk {
-		log.Printf("[INFO] Setting Autoscaling maximum node count to : %d", uint32(asmxnVal.(int)))
-		k8sNodepool.Properties.AutoScaling.MaxNodeCount = uint32(asmxnVal.(int))
+			for lanIndex := range lansVal.([]interface{}) {
+				if lanID, lanIDOk := d.GetOk(fmt.Sprintf("lans.%d", lanIndex)); lanIDOk {
+					log.Printf("[INFO] Adding k8s node pool to LAN %+v...", lanID)
+					lans = append(lans, profitbricks.KubernetesNodePoolLAN{ID: uint32(lanID.(int))})
+				}
+			}
+
+			if len(lans) > 0 {
+				updateLans = true
+			}
+
+			if updateLans == true {
+				log.Printf("[INFO] k8s node pool LANs set to %+v", lans)
+				k8sNodepool.Properties.LANs = &lans
+			}
+		}
 	}
 
 	createdNodepool, err := client.CreateKubernetesNodePool(d.Get("k8s_cluster_id").(string), k8sNodepool)
@@ -234,6 +259,28 @@ func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] Successfully retreived k8s node pool %s: %+v", d.Id(), k8sNodepool)
 
+	d.SetId(k8sNodepool.ID)
+	d.Set("name", k8sNodepool.Properties.Name)
+	d.Set("k8s_version", k8sNodepool.Properties.K8sVersion)
+	d.Set("datacenter_id", k8sNodepool.Properties.DatacenterID)
+	d.Set("cpu_family", k8sNodepool.Properties.CPUFamily)
+	d.Set("availability_zone", k8sNodepool.Properties.AvailabilityZone)
+	d.Set("storage_type", k8sNodepool.Properties.StorageType)
+	d.Set("node_count", k8sNodepool.Properties.NodeCount)
+	d.Set("cores_count", k8sNodepool.Properties.CoresCount)
+	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
+	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
+
+	if k8sNodepool.Properties.AutoScaling != nil && (k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0) {
+		d.Set("auto_scaling", []map[string]uint32{
+			{
+				"min_node_count": k8sNodepool.Properties.AutoScaling.MinNodeCount,
+				"max_node_count": k8sNodepool.Properties.AutoScaling.MaxNodeCount,
+			},
+		})
+		log.Printf("[INFO] Setting AutoScaling for k8s node pool %s to %+v...", d.Id(), k8sNodepool.Properties.AutoScaling)
+	}
+
 	return nil
 }
 
@@ -244,14 +291,6 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	request.Properties = &profitbricks.KubernetesNodePoolProperties{
 		NodeCount: uint32(d.Get("node_count").(int)),
-	}
-
-	if d.HasChange("node_count") {
-		oldNc, newNc := d.GetChange("node_count")
-		log.Printf("[INFO] k8s node pool node count changed from %+v to %+v", oldNc, newNc)
-		if oldNc.(int) != newNc.(int) {
-			request.Properties.NodeCount = uint32(newNc.(int))
-		}
 	}
 
 	if d.HasChange("k8s_version") {
@@ -295,6 +334,29 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if d.HasChange("node_count") {
+		updateNodeCount := true
+
+		if d.Get("auto_scaling.0").(map[string]interface{}) != nil {
+
+			updateNodeCount = false
+			np, npErr := client.GetKubernetesNodePool(d.Get("k8s_cluster_id").(string), d.Id())
+			if npErr != nil {
+				return fmt.Errorf("Error retrieving k8s node pool %q: %s", d.Id(), npErr)
+			}
+			log.Printf("[INFO] Setting node_count for node pool %q from server from %d to %d due to autoscaling", d.Id(), uint32(d.Get("node_count").(int)), np.Properties.NodeCount)
+			request.Properties.NodeCount = uint32(np.Properties.NodeCount)
+		}
+
+		if updateNodeCount {
+			oldNc, newNc := d.GetChange("node_count")
+			log.Printf("[INFO] k8s node pool node_count changed from %+v to %+v", oldNc, newNc)
+			if oldNc.(int) != newNc.(int) {
+				request.Properties.NodeCount = uint32(newNc.(int))
+			}
+		}
+	}
+
 	if d.HasChange("lans") {
 		oldLANs, newLANs := d.GetChange("lans")
 		if newLANs.([]interface{}) != nil {
@@ -317,7 +379,6 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 				log.Printf("[INFO] k8s node pool LANs changed from %+v to %+v", oldLANs, newLANs)
 				request.Properties.LANs = &lans
 			}
-
 		}
 	}
 
@@ -429,6 +490,7 @@ func resourcek8sNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	d.SetId("")
 	return nil
 }
 

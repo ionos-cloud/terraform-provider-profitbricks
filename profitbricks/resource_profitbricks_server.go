@@ -419,12 +419,14 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 	} else {
 		img, err := client.GetImage(image_name)
 
-		apiError, ok := err.(profitbricks.ApiError)
-		if !ok {
-			return fmt.Errorf("Error fetching image %s: (%s)", image_name, err)
+		apiError, rsp := err.(profitbricks.ApiError)
+
+		if err != nil {
+			return fmt.Errorf("Error fetching image %s: (%s) - %+v", image_name, err, rsp)
 		}
 
 		if apiError.HttpStatusCode() == 404 {
+
 			img, err := client.GetSnapshot(image_name)
 
 			if apiError, ok := err.(profitbricks.ApiError); !ok {
@@ -434,19 +436,25 @@ func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) 
 			}
 
 			isSnapshot = true
+
 		} else {
 			if err != nil {
 				return fmt.Errorf("Error fetching image/snapshot: %s", err)
 			}
 		}
+
 		if img.Properties.Public == true && isSnapshot == false {
+
 			if volume.ImagePassword == "" && len(sshkey_path) == 0 {
 				return fmt.Errorf("Either 'image_password' or 'ssh_key_path' must be provided.")
 			}
+
 			img, err := getImage(client, d.Get("datacenter_id").(string), image_name, volume.Type)
+
 			if err != nil {
 				return err
 			}
+
 			if img != nil {
 				image = img.ID
 			}
@@ -713,6 +721,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("ram", server.Properties.RAM)
 	d.Set("availability_zone", server.Properties.AvailabilityZone)
 	d.Set("cpu_family", server.Properties.CPUFamily)
+	d.Set("boot_image", server.Entities.Volumes.Items[0].Properties.Image)
 
 	if primarynic, ok := d.GetOk("primary_nic"); ok {
 		d.Set("primary_nic", primarynic.(string))

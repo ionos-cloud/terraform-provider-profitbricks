@@ -254,7 +254,7 @@ github.com/oklog/run
 github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
-# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.24
+# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.26
 ## explicit
 github.com/profitbricks/profitbricks-sdk-go/v5
 # github.com/sergi/go-diff v1.1.0
@@ -329,7 +329,7 @@ golang.org/x/lint/golint
 # golang.org/x/mod v0.3.0
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.0.0-20200707034311-ab3426394381
+# golang.org/x/net v0.0.0-20200813134508-3edf25e44fcc
 ## explicit
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
