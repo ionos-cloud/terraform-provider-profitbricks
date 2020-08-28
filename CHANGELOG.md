@@ -1,4 +1,4 @@
-## 1.5.5 (Unreleased)
+## 1.5.5 (August 28, 2020)
 
 FEATURES:
 - S3 Keys support (CRUD + Import) + documentation
