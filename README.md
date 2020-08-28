@@ -15,7 +15,7 @@
 
 ```terraform
 provider "profitbricks" {
-  version = "~> 1.5.2"
+  version = "~> 1.5.5"
 }
 ```
 
