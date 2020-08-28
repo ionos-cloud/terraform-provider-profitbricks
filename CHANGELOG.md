@@ -1,4 +1,19 @@
-## 1.6.0 (Unreleased)
+## 1.5.5
+
+FEATURES:
+- S3 Keys support (CRUD + Import) + documentation
+- Backup Units support (CRUD + Import) + documentation
+
+BUG FIXES:
+- Fixed an error that was preventing the provider to find an image when its uuid was used instead of its name - Fixes #73 
+- Fixed an error causing the **boot_image** attribute of a server   **profitbricks_server** to be changed if it was specified on create.
+- the node_count property of a **profitbricks_k8s_node_pool** is now dynamically updated when autoscaling is on
+- Ensures the **lans** attribute for a **profitbricks_k8s_node_pool** are now handled upon creation as well
+- Some typos within the docs, code are now fixed
+
+ENHANCEMENTS:
+- Updated the provider to use golang sdk **github.com/profitbricks/profitbricks-sdk-go/v5** **v5.0.26**
+
 ## 1.5.4 (July 23, 2020)
 
 FEATURES:
