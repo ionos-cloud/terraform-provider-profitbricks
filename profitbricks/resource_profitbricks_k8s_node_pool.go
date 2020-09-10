@@ -160,7 +160,7 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 		k8sNodepool.Properties.AutoScaling.MaxNodeCount = uint32(asmxnVal.(int))
 	}
 
-	if k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MinNodeCount != k8sNodepool.Properties.AutoScaling.MaxNodeCount {
+	if k8sNodepool.Properties.AutoScaling != nil && k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MinNodeCount != k8sNodepool.Properties.AutoScaling.MaxNodeCount {
 		log.Printf("[INFO] Autoscaling is on, doing some extra checks for k8s node pool")
 
 		if k8sNodepool.Properties.NodeCount < k8sNodepool.Properties.AutoScaling.MinNodeCount {
@@ -172,7 +172,6 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return fmt.Errorf("Error creating k8s node pool: max_node_count cannot be lower than min_node_count")
 		}
-
 	}
 
 	if _, mwOk := d.GetOk("maintenance_window.0"); mwOk {
