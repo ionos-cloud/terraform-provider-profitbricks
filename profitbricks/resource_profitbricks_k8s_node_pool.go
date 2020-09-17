@@ -336,14 +336,15 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("node_count") {
 		updateNodeCount := true
 
-		if d.Get("auto_scaling.0").(map[string]interface{}) != nil {
+		if d.Get("auto_scaling.0").(map[string]interface{}) != nil && (d.Get("auto_scaling.0.min_node_count").(int) != 0 || d.Get("auto_scaling.0.max_node_count").(int) != 0) {
 
 			updateNodeCount = false
 			np, npErr := client.GetKubernetesNodePool(d.Get("k8s_cluster_id").(string), d.Id())
 			if npErr != nil {
 				return fmt.Errorf("Error retrieving k8s node pool %q: %s", d.Id(), npErr)
 			}
-			log.Printf("[INFO] Setting node_count for node pool %q from server from %d to %d due to autoscaling", d.Id(), uint32(d.Get("node_count").(int)), np.Properties.NodeCount)
+
+			log.Printf("[INFO] Setting node_count for node pool %q from server from %d to %d instead of due to autoscaling %+v", d.Id(), uint32(d.Get("node_count").(int)), np.Properties.NodeCount, d.Get("auto_scaling.0"))
 			request.Properties.NodeCount = uint32(np.Properties.NodeCount)
 		}
 
