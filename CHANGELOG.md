@@ -1,4 +1,4 @@
-## 1.5.6 (Unreleased)
+## 1.5.6 (September 17, 2020)
 
 BUG FIXES:
 - Fixed SegFault during apply
