@@ -1,4 +1,8 @@
-## 1.6.0 (Unreleased)
+## 1.5.7 (Unreleased)
+
+BUG FIXES:
+- Fixed issue #78, a bug causing the node count for a node pool from being increased
+
 ## 1.5.6 (September 17, 2020)
 
 BUG FIXES:
