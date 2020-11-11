@@ -1,4 +1,4 @@
-module github.com/terraform-providers/terraform-provider-profitbricks
+module github.com/ionos-cloud/terraform-provider-ionoscloud
 
 go 1.14
 
@@ -45,3 +45,5 @@ require (
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/grpc v1.30.0 // indirect
 )
+
+replace github.com/profitbricks/profitbricks-sdk-go/v5 => /Users/florin/work/code/ionos-enterprise/ionos-enterprise-sdk-go
