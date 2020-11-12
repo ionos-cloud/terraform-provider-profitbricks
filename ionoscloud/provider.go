@@ -76,6 +76,8 @@ func Provider() terraform.ResourceProvider {
 			"ionoscloud_image":      dataSourceImage(),
 			"ionoscloud_resource":   dataSourceResource(),
 			"ionoscloud_snapshot":   dataSourceSnapshot(),
+			"ionoscloud_lan":		 dataSourceLan(),
+			"ionoscloud_private_crossconnect":		 dataSourcePcc(),
 		},
 	}
 
