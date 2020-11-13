@@ -53,7 +53,25 @@ func dataSourceLan() *schema.Resource {
 	}
 }
 
-func setData(d *schema.ResourceData, lan *ionoscloud.Lan) error {
+func convertIpFailoverList(ips *[]ionoscloud.IPFailover) []interface{} {
+	if ips == nil {
+		return make([]interface{}, 0)
+	}
+
+	ret := make([]interface{}, len(*ips), len(*ips))
+	for i, ip := range *ips {
+		entry := make(map[string]interface{})
+
+		entry["ip"] = ip.IP
+		entry["nic_uuid"] = ip.NicUUID
+
+		ret[i] = entry
+	}
+
+	return ret
+}
+
+func setLanData(d *schema.ResourceData, lan *ionoscloud.Lan) error {
 	d.SetId(lan.ID)
 	if err := d.Set("id", lan.ID); err != nil {
 		return err
@@ -62,7 +80,7 @@ func setData(d *schema.ResourceData, lan *ionoscloud.Lan) error {
 	if err := d.Set("name", lan.Properties.Name); err != nil {
 		return err
 	}
-	if err := d.Set("ip_failover", lan.Properties.IPFailover); err != nil {
+	if err := d.Set("ip_failover", convertIpFailoverList(lan.Properties.IPFailover)); err != nil {
 		return err
 	}
 	if err := d.Set("pcc", lan.Properties.PCC); err != nil {
@@ -120,7 +138,7 @@ func dataSourceLanRead(d *schema.ResourceData, meta interface{}) error {
 		return errors.New("lan not found")
 	}
 
-	if err = setData(d, lan); err != nil {
+	if err = setLanData(d, lan); err != nil {
 		return err
 	}
 
