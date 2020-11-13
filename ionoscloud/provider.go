@@ -71,13 +71,13 @@ func Provider() terraform.ResourceProvider {
 			"ionoscloud_s3_key":               resourceS3Key(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"ionoscloud_datacenter": dataSourceDataCenter(),
-			"ionoscloud_location":   dataSourceLocation(),
-			"ionoscloud_image":      dataSourceImage(),
-			"ionoscloud_resource":   dataSourceResource(),
-			"ionoscloud_snapshot":   dataSourceSnapshot(),
-			"ionoscloud_lan":		 dataSourceLan(),
-			"ionoscloud_private_crossconnect":		 dataSourcePcc(),
+			"ionoscloud_datacenter":           dataSourceDataCenter(),
+			"ionoscloud_location":             dataSourceLocation(),
+			"ionoscloud_image":                dataSourceImage(),
+			"ionoscloud_resource":             dataSourceResource(),
+			"ionoscloud_snapshot":             dataSourceSnapshot(),
+			"ionoscloud_lan":                  dataSourceLan(),
+			"ionoscloud_private_crossconnect": dataSourcePcc(),
 		},
 	}
 
@@ -173,7 +173,7 @@ func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefre
 	return func() (interface{}, string, error) {
 		client := meta.(*ionoscloud.Client)
 
-		fmt.Printf("[INFO] Checking PATH %s", path)
+		fmt.Printf("[INFO] Checking PATH %s\n", path)
 		if path == "" {
 			return nil, "", fmt.Errorf("Can not check a state when path is empty")
 		}

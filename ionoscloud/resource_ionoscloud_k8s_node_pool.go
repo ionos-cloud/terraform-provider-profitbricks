@@ -124,7 +124,7 @@ func resourcek8sNodePool() *schema.Resource {
 				Required:    true,
 			},
 			"public_ips": {
-				Type: 		schema.TypeList,
+				Type:        schema.TypeList,
 				Description: "A list of fixed IPs",
 				Optional:    true,
 				MinItems:    2,

@@ -29,16 +29,16 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	pbUsername := os.Getenv("ionoscloud_USERNAME")
-	pbPassword := os.Getenv("ionoscloud_PASSWORD")
-	pbToken := os.Getenv("ionoscloud_TOKEN")
+	pbUsername := os.Getenv("IONOS_USERNAME")
+	pbPassword := os.Getenv("IONOS_PASSWORD")
+	pbToken := os.Getenv("IONOS_TOKEN")
 	if pbToken == "" {
 		if pbUsername == "" || pbPassword == "" {
-			t.Fatal("ionoscloud_USERNAME/IONOS_PASSWORD or IONOS_TOKEN must be set for acceptance tests")
+			t.Fatal("IONOS_USERNAME/IONOS_PASSWORD or IONOS_TOKEN must be set for acceptance tests")
 		}
 	} else {
 		if pbUsername != "" || pbPassword != "" {
-			t.Fatal("ionoscloud_USERNAME/IONOS_PASSWORD or IONOS_TOKEN must be set for acceptance tests")
+			t.Fatal("IONOS_USERNAME/IONOS_PASSWORD or IONOS_TOKEN must be set for acceptance tests")
 		}
 
 	}

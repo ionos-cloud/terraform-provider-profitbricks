@@ -3,6 +3,7 @@ package ionoscloud
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	ionoscloud "github.com/profitbricks/profitbricks-sdk-go/v5"
@@ -21,31 +22,31 @@ func dataSourceLan() *schema.Resource {
 				Optional: true,
 			},
 			"datacenter_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Required: true,
 			},
 			"ip_failover": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"nic_uuid": {
 							Type:     schema.TypeString,
 							Computed: true,
-												},
+						},
 						"ip": {
 							Type:     schema.TypeString,
 							Computed: true,
-												},
+						},
 					},
 				},
 			},
 			"pcc": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"public": {
-				Type: schema.TypeBool,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 		},
@@ -127,7 +128,7 @@ func dataSourceLanRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		for _, l := range lans.Items {
-			if l.Properties.Name == name.(string) {
+			if strings.Contains(l.Properties.Name, name.(string)) {
 				/* lan found */
 				lan = &l
 			}
