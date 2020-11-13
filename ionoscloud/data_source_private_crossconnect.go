@@ -3,6 +3,7 @@ package ionoscloud
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	ionoscloud "github.com/profitbricks/profitbricks-sdk-go/v5"
@@ -169,7 +170,7 @@ func dataSourcePccRead(d *schema.ResourceData, meta interface{}) error {
 		/* search by ID */
 		pcc, err = client.GetPrivateCrossConnect(id.(string))
 		if err != nil {
-			return fmt.Errorf("an error occurred while fetching pcc with ID %s: %s", id.(string), err)
+			return fmt.Errorf("an error occurred while fetching the pcc with ID %s: %s", id.(string), err)
 		}
 	} else {
 		/* search by name */
@@ -180,9 +181,13 @@ func dataSourcePccRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		for _, p := range pccs.Items {
-			if p.Properties.Name == name.(string) {
+			if strings.Contains(p.Properties.Name, name.(string)) {
 				/* lan found */
-				pcc = &p
+				pcc, err = client.GetPrivateCrossConnect(p.ID)
+				if err != nil {
+					return fmt.Errorf("an error occurred while fetching the pcc with ID %s: %s", p.ID, err)
+				}
+				break
 			}
 		}
 	}

@@ -130,7 +130,11 @@ func dataSourceLanRead(d *schema.ResourceData, meta interface{}) error {
 		for _, l := range lans.Items {
 			if strings.Contains(l.Properties.Name, name.(string)) {
 				/* lan found */
-				lan = &l
+				lan, err = client.GetLan(datacenterId.(string), l.ID)
+				if err != nil {
+					return fmt.Errorf("an error occurred while fetching lan %s: %s", l.ID, err)
+				}
+				break
 			}
 		}
 	}
