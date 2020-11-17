@@ -46,4 +46,3 @@ require (
 	google.golang.org/grpc v1.30.0 // indirect
 )
 
-replace github.com/profitbricks/profitbricks-sdk-go/v5 => /Users/florin/work/code/ionos-enterprise/ionos-enterprise-sdk-go
