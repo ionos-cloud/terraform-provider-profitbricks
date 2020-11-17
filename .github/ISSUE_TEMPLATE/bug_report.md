@@ -14,14 +14,14 @@ assignees: LiviusP
 <!-- A clear and concise description of what you expected to happen. -->
 
 ## Environment
-<!-- coud be ansible, python etc.  version, depends on concrete sdk/tool -->
-hello version: <!-- run `hello --version` and paste the output between the ```marks. -->
+
+Terraform version: 
 ```
 ```
-world version: <!-- run `grep version /etc/world.cfg` and paste the output between the ```marks. -->
+Provider version: 
 ```
 ```
-OS: <!-- use whatever fits and put it between the ```marks. -->
+OS:
 ```
 ```
 
