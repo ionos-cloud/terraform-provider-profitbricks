@@ -7,7 +7,7 @@ assignees: LiviusP
 
 ---
 
-### Current SDK Version
+### Current Provider Version
 <!---
 If you're not using the latest version, please check to see if something related to your request has already been implemented in a later version.
 -->
