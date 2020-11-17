@@ -7,7 +7,7 @@ assignees: LiviusP
 
 ---
 
-## Descripton
+## Description
 <!-- A clear and concise description of what the bug is. -->
 
 ## Expected behavior
