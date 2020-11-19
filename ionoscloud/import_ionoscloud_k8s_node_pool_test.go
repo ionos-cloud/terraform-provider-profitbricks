@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccIonosCloudk8sNodepool_ImportBasic(t *testing.T) {
-	resourceName := "example"
+	resourceName := "terraform_acctest"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

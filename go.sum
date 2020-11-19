@@ -321,6 +321,10 @@ github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.25 h1:QcS3aQ9nciqvb7BdKkeMKc
 github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.25/go.mod h1:7C0mlfS/9rCDaD6asJL78hzigpEP32ylqBOGiDTFskU=
 github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.26 h1:d4u2GFHZHSa/g1hL2+bBS4I7HTyCTRSPds6SpgPR1J0=
 github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.26/go.mod h1:7C0mlfS/9rCDaD6asJL78hzigpEP32ylqBOGiDTFskU=
+github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.29 h1:6aBDXx9f3tPsIorABI5vQY+w+gXRdG3jJvE5ZkcK17s=
+github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.29/go.mod h1:x/4Vomth5nMhzd81Fqji+HfoE8S7cEulROLWFmx/U20=
+github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.30 h1:m1wdN6/f96NmA9f3MM1kryXb0Nr9XQEoZWYrhRRhzJ8=
+github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.30/go.mod h1:x/4Vomth5nMhzd81Fqji+HfoE8S7cEulROLWFmx/U20=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=

@@ -158,10 +158,9 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 	publicIpsProp, ok := d.GetOk("public_ips")
 	if ok {
 		publicIps := publicIpsProp.([]interface{})
-		ips := make([]string, len(publicIps), len(publicIps))
-		k8sNodepool.Properties.PublicIPs = &ips
+		k8sNodepool.Properties.PublicIPs = make([]string, len(publicIps), len(publicIps))
 		for i := range publicIps {
-			(*k8sNodepool.Properties.PublicIPs)[i] = fmt.Sprint(publicIps[i])
+			k8sNodepool.Properties.PublicIPs[i] = fmt.Sprint(publicIps[i])
 		}
 	}
 
@@ -289,14 +288,11 @@ func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
 
-	publicIps := make([]interface{}, 0)
 
 	if k8sNodepool.Properties.PublicIPs != nil {
-		for i, publicIp := range *k8sNodepool.Properties.PublicIPs {
-			publicIps[i] = publicIp
-		}
+		d.Set("public_ips", k8sNodepool.Properties.PublicIPs)
 	}
-	d.Set("public_ips", publicIps)
+
 
 	if k8sNodepool.Properties.AutoScaling != nil && (k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0) {
 		d.Set("auto_scaling", []map[string]uint32{
@@ -325,9 +321,9 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		log.Printf("[INFO] k8s pool public IPs changed from %+v to %+v", oldPublicIps, newPublicIps)
 		if newPublicIps != nil {
 			publicIps := newPublicIps.([]interface{})
-			request.Properties.PublicIPs = &[]string{}
+			request.Properties.PublicIPs = make([]string, len(publicIps), len(publicIps))
 			for i := range publicIps {
-				(*request.Properties.PublicIPs)[i] = fmt.Sprint(publicIps[i])
+				request.Properties.PublicIPs[i] = fmt.Sprint(publicIps[i])
 			}
 		}
 	}
