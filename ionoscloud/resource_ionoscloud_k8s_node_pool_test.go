@@ -34,7 +34,7 @@ func TestAccIonosCloudk8sNodepool_Basic(t *testing.T) {
 				Config: fmt.Sprintf(testAccCheckIonosCloudk8sNodepoolConfigUpdate, k8sNodepoolName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIonosCloudk8sNodepoolExists("ionoscloud_k8s_node_pool.terraform_acctest", &k8sNodepool),
-					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.terraform_acctest", "name", fmt.Sprintf("%s UPDATED", k8sNodepoolName)),
+					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.terraform_acctest", "name", k8sNodepoolName),
 					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.terraform_acctest", "public_ips.0", "157.97.108.242"),
 					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.terraform_acctest", "public_ips.1", "217.160.200.54"),
 					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.terraform_acctest", "public_ips.2", "217.160.200.55"),
@@ -149,11 +149,11 @@ resource "ionoscloud_k8s_cluster" "terraform_acctest" {
 }
 
 resource "ionoscloud_k8s_node_pool" "terraform_acctest" {
-  name        = "%s UPDATED"
+  name        = "%s"
   k8s_version = "${ionoscloud_k8s_cluster.terraform_acctest.k8s_version}"
   auto_scaling {
   	min_node_count = 1
-	max_node_count = 3
+	max_node_count = 2
   }
   maintenance_window {
     day_of_the_week = "Monday"
