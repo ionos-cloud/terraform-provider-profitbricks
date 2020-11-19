@@ -26,6 +26,9 @@ func TestAccIonosCloudk8sNodepool_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckIonosCloudk8sNodepoolExists("ionoscloud_k8s_node_pool.example", &k8sNodepool),
 					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "name", k8sNodepoolName),
+					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "public_ips.0", "157.97.108.242"),
+					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "public_ips.1", "217.160.200.54"),
+					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "public_ips.2", "217.160.200.55"),
 				),
 			},
 			{
@@ -124,6 +127,7 @@ resource "ionoscloud_k8s_node_pool" "example" {
   cores_count       = 2
   ram_size          = 2048
   storage_size      = 40
+  public_ips        = [ "157.97.108.242", "217.160.200.54", "217.160.200.55" ]
 }`
 
 const testAccCheckIonosCloudk8sNodepoolConfigUpdate = `
@@ -162,4 +166,5 @@ resource "ionoscloud_k8s_node_pool" "example" {
   cores_count       = 2
   ram_size          = 2048
   storage_size      = 40
+  public_ips        = [ "157.97.108.242", "217.160.200.54", "217.160.200.55" ]
 }`

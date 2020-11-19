@@ -155,10 +155,14 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 		},
 	}
 
-	publicIps := d.Get("public_ips").([]interface{})
-	k8sNodepool.Properties.PublicIps = make([]string, len(publicIps))
-	for i := range publicIps {
-		k8sNodepool.Properties.PublicIps[i] = fmt.Sprint(publicIps[i])
+	publicIpsProp, ok := d.GetOk("public_ips")
+	if ok {
+		publicIps := publicIpsProp.([]interface{})
+		ips := make([]string, len(publicIps), len(publicIps))
+		k8sNodepool.Properties.PublicIPs = &ips
+		for i := range publicIps {
+			(*k8sNodepool.Properties.PublicIPs)[i] = fmt.Sprint(publicIps[i])
+		}
 	}
 
 	if _, asOk := d.GetOk("auto_scaling.0"); asOk {
@@ -284,7 +288,15 @@ func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("cores_count", k8sNodepool.Properties.CoresCount)
 	d.Set("ram_size", k8sNodepool.Properties.RAMSize)
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
-	d.Set("public_ips", k8sNodepool.Properties.PublicIps)
+
+	publicIps := make([]interface{}, 0)
+
+	if k8sNodepool.Properties.PublicIPs != nil {
+		for i, publicIp := range *k8sNodepool.Properties.PublicIPs {
+			publicIps[i] = publicIp
+		}
+	}
+	d.Set("public_ips", publicIps)
 
 	if k8sNodepool.Properties.AutoScaling != nil && (k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0) {
 		d.Set("auto_scaling", []map[string]uint32{
@@ -308,11 +320,18 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		NodeCount: uint32(d.Get("node_count").(int)),
 	}
 
-	publicIps := d.Get("public_ips").([]interface{})
-	request.Properties.PublicIps = make([]string, len(publicIps))
-	for i := range publicIps {
-		request.Properties.PublicIps[i] = fmt.Sprint(publicIps[i])
+	if d.HasChange("public_ips") {
+		oldPublicIps, newPublicIps := d.GetChange("public_ips")
+		log.Printf("[INFO] k8s pool public IPs changed from %+v to %+v", oldPublicIps, newPublicIps)
+		if newPublicIps != nil {
+			publicIps := newPublicIps.([]interface{})
+			request.Properties.PublicIPs = &[]string{}
+			for i := range publicIps {
+				(*request.Properties.PublicIPs)[i] = fmt.Sprint(publicIps[i])
+			}
+		}
 	}
+
 
 	if d.HasChange("k8s_version") {
 		oldk8sVersion, newk8sVersion := d.GetChange("k8s_version")
