@@ -1,4 +1,4 @@
-module github.com/ionos-cloud/terraform-provider-ionoscloud
+module github.com/ionos-cloud/terraform-provider-profitbricks
 
 go 1.14
 
@@ -45,4 +45,3 @@ require (
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/grpc v1.30.0 // indirect
 )
-
