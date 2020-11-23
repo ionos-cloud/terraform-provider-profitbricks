@@ -10,9 +10,9 @@ import (
 	ionoscloud "github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
-func TestAccIonosCloudk8sNodepool_Basic(t *testing.T) {
-	var k8sNodepool ionoscloud.KubernetesNodePool
-	k8sNodepoolName := "example"
+func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
+	var k8sNodepool profitbricks.KubernetesNodePool
+	k8sNodepoolName := "terraform_acctest"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -24,17 +24,22 @@ func TestAccIonosCloudk8sNodepool_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckIonosCloudk8sNodepoolConfigBasic, k8sNodepoolName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckIonosCloudk8sNodepoolExists("ionoscloud_k8s_node_pool.example", &k8sNodepool),
-					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "name", k8sNodepoolName),
+					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.terraform_acctest", &k8sNodepool),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "name", k8sNodepoolName),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.0", "157.97.108.242"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.1", "217.160.200.54"),
 				),
 			},
 			{
 				Config: fmt.Sprintf(testAccCheckIonosCloudk8sNodepoolConfigUpdate, k8sNodepoolName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckIonosCloudk8sNodepoolExists("ionoscloud_k8s_node_pool.example", &k8sNodepool),
-					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "name", k8sNodepoolName),
-					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "maintenance_window.0.day_of_the_week", "Tuesday"),
-					resource.TestCheckResourceAttr("ionoscloud_k8s_node_pool.example", "maintenance_window.0.time", "11:00:00Z"),
+					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.terraform_acctest", &k8sNodepool),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "name", k8sNodepoolName),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.0", "157.97.108.242"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.1", "217.160.200.54"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.2", "217.160.200.55"),
+//					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "maintenance_window.0.day_of_the_week", "Tuesday"),
+//					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "maintenance_window.0.time", "11:00:00Z"),
 				),
 			},
 		},
@@ -92,31 +97,31 @@ func testAccCheckIonosCloudk8sNodepoolExists(n string, k8sNodepool *ionoscloud.K
 	}
 }
 
-const testAccCheckIonosCloudk8sNodepoolConfigBasic = `
-resource "ionoscloud_datacenter" "example" {
-  name        = "example"
+const testAccCheckProfitBricksk8sNodepoolConfigBasic = `
+resource "profitbricks_datacenter" "terraform_acctest" {
+  name        = "terraform_acctest"
   location    = "de/fra"
   description = "Datacenter created through terraform"
 }
 
-resource "ionoscloud_k8s_cluster" "example" {
-  name        = "example"
-  k8s_version = "1.18.5"
+resource "profitbricks_k8s_cluster" "terraform_acctest" {
+  name        = "terraform_acctest"
+  k8s_version = "1.18.9"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "09:00:00Z"
   }
 }
 
-resource "ionoscloud_k8s_node_pool" "example" {
+resource "profitbricks_k8s_node_pool" "terraform_acctest" {
   name        = "%s"
-	k8s_version = "${ionoscloud_k8s_cluster.example.k8s_version}"
+  k8s_version = "${profitbricks_k8s_cluster.terraform_acctest.k8s_version}"
   maintenance_window {
     day_of_the_week = "Monday"
     time            = "09:00:00Z"
   }
-  datacenter_id     = "${ionoscloud_datacenter.example.id}"
-  k8s_cluster_id    = "${ionoscloud_k8s_cluster.example.id}"
+  datacenter_id     = "${profitbricks_datacenter.terraform_acctest.id}"
+  k8s_cluster_id    = "${profitbricks_k8s_cluster.terraform_acctest.id}"
   cpu_family        = "INTEL_XEON"
   availability_zone = "AUTO"
   storage_type      = "SSD"
@@ -124,37 +129,38 @@ resource "ionoscloud_k8s_node_pool" "example" {
   cores_count       = 2
   ram_size          = 2048
   storage_size      = 40
+  public_ips        = [ "157.97.108.242", "217.160.200.54" ]
 }`
 
-const testAccCheckIonosCloudk8sNodepoolConfigUpdate = `
-resource "ionoscloud_datacenter" "example" {
-  name        = "example"
+const testAccCheckProfitBricksk8sNodepoolConfigUpdate = `
+resource "profitbricks_datacenter" "terraform_acctest" {
+  name        = "terraform_acctest"
   location    = "de/fra"
   description = "Datacenter created through terraform"
 }
 
-resource "ionoscloud_k8s_cluster" "example" {
-  name        = "example"
-	k8s_version = "1.18.5"
+resource "profitbricks_k8s_cluster" "terraform_acctest" {
+  name        = "terraform_acctest"
+  k8s_version = "1.18.9"
   maintenance_window {
     day_of_the_week = "Monday"
-    time            = "10:00:00Z"
+    time            = "09:00:00Z"
   }
 }
 
-resource "ionoscloud_k8s_node_pool" "example" {
+resource "profitbricks_k8s_node_pool" "terraform_acctest" {
   name        = "%s"
-	k8s_version = "${ionoscloud_k8s_cluster.example.k8s_version}"
-	auto_scaling {
-		min_node_count = 1
-		max_node_count = 3
-	}
-  maintenance_window {
-    day_of_the_week = "Tuesday"
-    time            = "11:00:00Z"
+  k8s_version = "${profitbricks_k8s_cluster.terraform_acctest.k8s_version}"
+  auto_scaling {
+  	min_node_count = 1
+	max_node_count = 2
   }
-  datacenter_id     = "${ionoscloud_datacenter.example.id}"
-  k8s_cluster_id    = "${ionoscloud_k8s_cluster.example.id}"
+  maintenance_window {
+    day_of_the_week = "Monday"
+    time            = "09:00:00Z"
+  }
+  datacenter_id     = "${profitbricks_datacenter.terraform_acctest.id}"
+  k8s_cluster_id    = "${profitbricks_k8s_cluster.terraform_acctest.id}"
   cpu_family        = "INTEL_XEON"
   availability_zone = "AUTO"
   storage_type      = "SSD"
@@ -162,4 +168,5 @@ resource "ionoscloud_k8s_node_pool" "example" {
   cores_count       = 2
   ram_size          = 2048
   storage_size      = 40
+  public_ips        = [ "157.97.108.242", "217.160.200.54", "217.160.200.55" ]
 }`

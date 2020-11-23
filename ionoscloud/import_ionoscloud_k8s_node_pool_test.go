@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccIonosCloudk8sNodepool_ImportBasic(t *testing.T) {
-	resourceName := "example"
+func TestAccProfitBricksk8sNodepool_ImportBasic(t *testing.T) {
+	resourceName := "terraform_acctest"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

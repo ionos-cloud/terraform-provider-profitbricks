@@ -1,4 +1,15 @@
 ## 1.6.0 (Unreleased)
+
+## 1.5.9 (November 20th, 2020)
+
+BUG FIXES:
+- The missing documentation regarding k8s node pools public IPs was added.
+
+## 1.5.8 (November 20th, 2020)
+
+FEATURES:
+- Public IPs support in k8s node pools
+
 ## 1.5.7 (September 17, 2020)
 
 BUG FIXES:

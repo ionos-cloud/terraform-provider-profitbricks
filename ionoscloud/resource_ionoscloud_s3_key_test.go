@@ -94,7 +94,7 @@ const testAccCheckIonosClouds3KeyConfigBasic = `
 resource "ionoscloud_user" "example" {
   first_name = "terraform"
   last_name = "test"
-  email = "terraform-s3-acc-tester2@ionos.com"
+  email = "terraform-s3-acc-tester2@profitbricks.com"
   password = "abc123-321CBA"
   administrator = false
   force_sec_auth= false
@@ -109,7 +109,7 @@ const testAccCheckIonosClouds3KeyConfigUpdate = `
 resource "ionoscloud_user" "example" {
   first_name = "terraform"
   last_name = "test"
-  email = "terraform-s3-acc-tester2@ionos.com"
+  email = "terraform-s3-acc-tester2@profitbricks.com"
   password = "abc123-321CBA"
   administrator = false
   force_sec_auth= false

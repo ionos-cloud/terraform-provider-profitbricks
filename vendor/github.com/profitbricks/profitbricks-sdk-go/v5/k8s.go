@@ -260,7 +260,8 @@ type KubernetesNodePoolProperties struct {
 	MaintenanceWindow *MaintenanceWindow `json:"maintenanceWindow,omitempty"`
 
 	// Public Ips
-	PublicIps	[]string	`json:"publicIps,omitempty"`
+	// Required: false
+	PublicIPs []string `json:"publicIps,omitempty"`
 }
 
 type KubernetesNodePools struct {

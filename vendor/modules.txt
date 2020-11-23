@@ -254,7 +254,7 @@ github.com/oklog/run
 github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
-# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.26 => /Users/florin/work/code/ionos-enterprise/ionos-enterprise-sdk-go
+# github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.30
 ## explicit
 github.com/profitbricks/profitbricks-sdk-go/v5
 # github.com/sergi/go-diff v1.1.0
@@ -489,4 +489,3 @@ google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
 google.golang.org/protobuf/types/pluginpb
-# github.com/profitbricks/profitbricks-sdk-go/v5 => /Users/florin/work/code/ionos-enterprise/ionos-enterprise-sdk-go

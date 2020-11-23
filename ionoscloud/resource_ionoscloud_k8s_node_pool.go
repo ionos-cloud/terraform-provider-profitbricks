@@ -124,7 +124,7 @@ func resourcek8sNodePool() *schema.Resource {
 				Required:    true,
 			},
 			"public_ips": {
-				Type:        schema.TypeList,
+				Type:		schema.TypeList,
 				Description: "A list of fixed IPs",
 				Optional:    true,
 				MinItems:    2,
@@ -155,10 +155,20 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 		},
 	}
 
+<<<<<<< HEAD:ionoscloud/resource_ionoscloud_k8s_node_pool.go
 	publicIps := d.Get("public_ips").([]interface{})
 	k8sNodepool.Properties.PublicIps = make([]string, len(publicIps))
 	for i := range publicIps {
 		k8sNodepool.Properties.PublicIps[i] = fmt.Sprint(publicIps[i])
+=======
+	publicIpsProp, ok := d.GetOk("public_ips")
+	if ok {
+		publicIps := publicIpsProp.([]interface{})
+		k8sNodepool.Properties.PublicIPs = make([]string, len(publicIps), len(publicIps))
+		for i := range publicIps {
+			k8sNodepool.Properties.PublicIPs[i] = fmt.Sprint(publicIps[i])
+		}
+>>>>>>> master:profitbricks/resource_profitbricks_k8s_node_pool.go
 	}
 
 	if _, asOk := d.GetOk("auto_scaling.0"); asOk {
@@ -286,6 +296,12 @@ func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("storage_size", k8sNodepool.Properties.StorageSize)
 	d.Set("public_ips", k8sNodepool.Properties.PublicIps)
 
+
+	if k8sNodepool.Properties.PublicIPs != nil {
+		d.Set("public_ips", k8sNodepool.Properties.PublicIPs)
+	}
+
+
 	if k8sNodepool.Properties.AutoScaling != nil && (k8sNodepool.Properties.AutoScaling.MinNodeCount != 0 && k8sNodepool.Properties.AutoScaling.MaxNodeCount != 0) {
 		d.Set("auto_scaling", []map[string]uint32{
 			{
@@ -308,12 +324,28 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 		NodeCount: uint32(d.Get("node_count").(int)),
 	}
 
+<<<<<<< HEAD:ionoscloud/resource_ionoscloud_k8s_node_pool.go
 	publicIps := d.Get("public_ips").([]interface{})
 	request.Properties.PublicIps = make([]string, len(publicIps))
 	for i := range publicIps {
 		request.Properties.PublicIps[i] = fmt.Sprint(publicIps[i])
 	}
 
+=======
+	if d.HasChange("public_ips") {
+		oldPublicIps, newPublicIps := d.GetChange("public_ips")
+		log.Printf("[INFO] k8s pool public IPs changed from %+v to %+v", oldPublicIps, newPublicIps)
+		if newPublicIps != nil {
+			publicIps := newPublicIps.([]interface{})
+			request.Properties.PublicIPs = make([]string, len(publicIps), len(publicIps))
+			for i := range publicIps {
+				request.Properties.PublicIPs[i] = fmt.Sprint(publicIps[i])
+			}
+		}
+	}
+
+
+>>>>>>> master:profitbricks/resource_profitbricks_k8s_node_pool.go
 	if d.HasChange("k8s_version") {
 		oldk8sVersion, newk8sVersion := d.GetChange("k8s_version")
 		log.Printf("[INFO] k8s pool k8s version changed from %+v to %+v", oldk8sVersion, newk8sVersion)

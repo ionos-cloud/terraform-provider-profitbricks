@@ -1,4 +1,4 @@
-module github.com/ionos-cloud/terraform-provider-ionoscloud
+module github.com/ionos-cloud/terraform-provider-profitbricks
 
 go 1.14
 
@@ -31,7 +31,7 @@ require (
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/posener/complete v1.2.3 // indirect
-	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.26
+	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.30
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/spf13/afero v1.3.1 // indirect
 	github.com/ulikunitz/xz v0.5.7 // indirect

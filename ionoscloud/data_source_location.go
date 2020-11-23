@@ -32,7 +32,7 @@ func dataSourceLocationRead(d *schema.ResourceData, meta interface{}) error {
 	locations, err := client.ListLocations()
 
 	if err != nil {
-		return fmt.Errorf("An error occured while fetching Ionos Cloud locations %s", err)
+		return fmt.Errorf("An error occured while fetching Profit Bricks locations %s", err)
 	}
 
 	name, nameOk := d.GetOk("name")
