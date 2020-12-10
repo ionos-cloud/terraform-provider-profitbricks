@@ -1,5 +1,18 @@
 ## 1.6.0 (Unreleased)
 
+## 1.5.12 (December 10th, 2020)
+BUG FIXES:
+- Missing changelog updates added
+
+## 1.5.11 (December 10th, 2020)
+BUG FIXES:
+- Fixed importing public_ips with terraform import
+
+## 1.5.10 (December 10th, 2020)
+
+BUG FIXES:
+- Fixed removing public_ips from a k8s node pool
+
 ## 1.5.9 (November 20th, 2020)
 
 BUG FIXES:
