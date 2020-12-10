@@ -26,8 +26,8 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.terraform_acctest", &k8sNodepool),
 					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "name", k8sNodepoolName),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.0", "157.97.108.242"),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.1", "217.160.200.54"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.0", "85.184.248.17"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.1", "85.184.248.62"),
 				),
 			},
 			{
@@ -35,9 +35,9 @@ func TestAccProfitBricksk8sNodepool_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksk8sNodepoolExists("profitbricks_k8s_node_pool.terraform_acctest", &k8sNodepool),
 					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "name", k8sNodepoolName),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.0", "157.97.108.242"),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.1", "217.160.200.54"),
-					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.2", "217.160.200.55"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.0", "85.184.248.17"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.1", "85.184.248.62"),
+					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "public_ips.2", "81.173.115.246"),
 //					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "maintenance_window.0.day_of_the_week", "Tuesday"),
 //					resource.TestCheckResourceAttr("profitbricks_k8s_node_pool.terraform_acctest", "maintenance_window.0.time", "11:00:00Z"),
 				),
@@ -129,7 +129,7 @@ resource "profitbricks_k8s_node_pool" "terraform_acctest" {
   cores_count       = 2
   ram_size          = 2048
   storage_size      = 40
-  public_ips        = [ "157.97.108.242", "217.160.200.54" ]
+  public_ips        = [ "85.184.248.17", "85.184.248.62" ]
 }`
 
 const testAccCheckProfitBricksk8sNodepoolConfigUpdate = `
@@ -168,5 +168,5 @@ resource "profitbricks_k8s_node_pool" "terraform_acctest" {
   cores_count       = 2
   ram_size          = 2048
   storage_size      = 40
-  public_ips        = [ "157.97.108.242", "217.160.200.54", "217.160.200.55" ]
+  public_ips        = [ "85.184.248.17", "85.184.248.62", "81.173.115.246" ]
 }`
