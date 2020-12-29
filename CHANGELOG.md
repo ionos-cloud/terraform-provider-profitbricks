@@ -1,4 +1,7 @@
-## 1.6.0 (Unreleased)
+## 1.6.0 (December 29th, 2020)
+
+FEATURES:
+- New datasources added: server, lan, private crossconnect
 
 ## 1.5.12 (December 10th, 2020)
 BUG FIXES:
@@ -51,7 +54,7 @@ ENHANCEMENTS:
 
 ## 1.5.4 (July 23, 2020)
 
-FEATURES:
+:FEATURES:
 
 - Additional **lans** support for the **profitbricks_k8s_node_pool** resource (including import state sync)
 - New **profitbricks_private_crossconnect** resource
