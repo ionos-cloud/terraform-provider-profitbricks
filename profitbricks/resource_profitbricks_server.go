@@ -934,7 +934,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 		if v, ok := d.GetOk("nic.0.ip"); ok {
 			ips := strings.Split(v.(string), ",")
 			if len(ips) > 0 {
-				nic.Properties.Ips = ips
+				properties.Ips = ips
 			}
 		}
 
