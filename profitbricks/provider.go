@@ -78,7 +78,8 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_snapshot":             dataSourceSnapshot(),
 			"profitbricks_lan":                  dataSourceLan(),
 			"profitbricks_private_crossconnect": dataSourcePcc(),
-			"profitbricks_server":			   dataSourceServer(),
+			"profitbricks_server":               dataSourceServer(),
+			"profitbricks_k8s_cluster":          dataSourceK8sCluster(),
 		},
 	}
 
