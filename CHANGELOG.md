@@ -1,3 +1,9 @@
+## 1.6.1 (January 5th, 2021)
+
+BUG FIXES:
+
+- Correctly updating ips for nics embedded in server definitions
+
 ## 1.6.0 (December 29th, 2020)
 
 FEATURES:
