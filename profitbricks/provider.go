@@ -80,6 +80,7 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_private_crossconnect": dataSourcePcc(),
 			"profitbricks_server":               dataSourceServer(),
 			"profitbricks_k8s_cluster":          dataSourceK8sCluster(),
+			"profitbricks_k8s_node_pool":		 dataSourceK8sNodePool(),
 		},
 	}
 

@@ -91,24 +91,14 @@ func dataSourceK8sReadCluster(d *schema.ResourceData, meta interface{}) error {
 		return errors.New("k8s cluster not found")
 	}
 
-	if err = setK8sClusterData(d, cluster); err != nil {
-		return err
-	}
-
-	/* get and set the kubeconfig */
-	kubeConfig, err := client.GetKubeconfig(cluster.ID)
-	if err != nil {
-		return fmt.Errorf("an error occurred while fetching the kubernetes config for cluster with ID %s: %s", cluster.ID, err)
-	}
-
-	if err := d.Set("kube_config", kubeConfig); err != nil {
+	if err = setK8sClusterData(d, cluster, client); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func setK8sClusterData(d *schema.ResourceData, cluster *profitbricks.KubernetesCluster) error {
+func setK8sClusterData(d *schema.ResourceData, cluster *profitbricks.KubernetesCluster, client *profitbricks.Client) error {
 	d.SetId(cluster.ID)
 	if err := d.Set("id", cluster.ID); err != nil {
 		return err
@@ -127,11 +117,28 @@ func setK8sClusterData(d *schema.ResourceData, cluster *profitbricks.KubernetesC
 		return err
 	}
 
+	/* get and set the kubeconfig */
+	kubeConfig, err := client.GetKubeconfig(cluster.ID)
+	if err != nil {
+		return fmt.Errorf("an error occurred while fetching the kubernetes config for cluster with ID %s: %s", cluster.ID, err)
+	}
+
+	if err := d.Set("kube_config", kubeConfig); err != nil {
+		return err
+	}
+
+	/* getting node pools */
+	clusterNodePools, err := client.ListKubernetesNodePools(cluster.ID)
+	if err != nil {
+		return fmt.Errorf("an error occurred while fetching the kubernetes cluster node pools for cluster with ID %s: %s", cluster.ID, err)
+	}
+
 	nodePools := make([]interface{}, 0)
-	if cluster.Entities.NodePools != nil {
-		nodePools = make([]interface{}, len(cluster.Entities.NodePools.Items), len(cluster.Entities.NodePools.Items))
-		for i, nodePool := range cluster.Entities.NodePools.Items {
-			nodePools[i] = nodePool
+
+	if clusterNodePools != nil && len(clusterNodePools.Items) > 0 {
+		nodePools = make([]interface{}, len(clusterNodePools.Items), len(clusterNodePools.Items))
+		for i, nodePool := range clusterNodePools.Items {
+			nodePools[i] = nodePool.ID
 		}
 	}
 
