@@ -1,3 +1,8 @@
+## 1.6.2 (January 11th, 2021)
+
+FEATURES:
+- k8s cluster and nodepool datasources
+
 ## 1.6.1 (January 5th, 2021)
 
 BUG FIXES:
