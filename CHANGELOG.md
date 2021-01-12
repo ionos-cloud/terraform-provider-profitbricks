@@ -1,3 +1,8 @@
+## 1.6.3 (January 12th, 2021)
+
+DOCS:
+- layout modifications
+
 ## 1.6.2 (January 11th, 2021)
 
 FEATURES:
