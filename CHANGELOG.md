@@ -1,3 +1,8 @@
+# 1.6.4 (January 13th, 2021)
+
+BUG FIXES: 
+- (#81) Reading PCC info when importing a lan
+
 ## 1.6.3 (January 12th, 2021)
 
 DOCS:
