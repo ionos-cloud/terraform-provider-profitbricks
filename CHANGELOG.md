@@ -1,3 +1,8 @@
+# 1.6.5 (January 13th, 2021)
+
+BUG FIXES:
+- (#82) Importing mac info when loading nic information or server information
+
 # 1.6.4 (January 13th, 2021)
 
 BUG FIXES: 

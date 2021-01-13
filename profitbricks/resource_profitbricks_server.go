@@ -194,6 +194,10 @@ func resourceProfitBricksServer() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"mac": {
+							Type: schema.TypeString,
+							Computed: true,
+						},
 						"lan": {
 							Type:     schema.TypeInt,
 							Required: true,
@@ -721,7 +725,9 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("ram", server.Properties.RAM)
 	d.Set("availability_zone", server.Properties.AvailabilityZone)
 	d.Set("cpu_family", server.Properties.CPUFamily)
-	d.Set("boot_image", server.Entities.Volumes.Items[0].Properties.Image)
+	if server.Entities.Volumes != nil && len(server.Entities.Volumes.Items) > 0 {
+		d.Set("boot_image", server.Entities.Volumes.Items[0].Properties.Image)
+	}
 
 	if primarynic, ok := d.GetOk("primary_nic"); ok {
 		d.Set("primary_nic", primarynic.(string))
@@ -742,6 +748,7 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 			"nat":             *nic.Properties.Nat,
 			"firewall_active": *nic.Properties.FirewallActive,
 			"ips":             nic.Properties.Ips,
+			"mac":				nic.Properties.Mac,
 		}
 
 		if len(nic.Properties.Ips) > 0 {
@@ -816,9 +823,12 @@ func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	_, err = client.GetAttachedVolume(dcId, d.Id(), d.Get("boot_volume").(string))
-	if err != nil {
-		d.Set("volume", nil)
+	bootVolume, ok := d.GetOk("boot_volume")
+	if ok && len(bootVolume.(string)) > 0 {
+		_, err = client.GetAttachedVolume(dcId, d.Id(), d.Get("boot_volume").(string))
+		if err != nil {
+			d.Set("volume", nil)
+		}
 	}
 
 	if server.Properties.BootCdrom != nil {

@@ -25,6 +25,7 @@ func TestAccProfitBricksNic_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckProfitBricksNICExists("profitbricks_nic.database_nic", &nic),
 					testAccCheckProfitBricksNicAttributes("profitbricks_nic.database_nic", volumeName),
+					resource.TestCheckResourceAttrSet("profitbricks_nic.database_nic", "mac"),
 					resource.TestCheckResourceAttr("profitbricks_nic.database_nic", "name", volumeName),
 				),
 			},
@@ -46,7 +47,7 @@ func testAccCheckDProfitBricksNicDestroyCheck(s *terraform.State) error {
 			continue
 		}
 
-		_, err := client.GetNic(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["nic_id"], rs.Primary.ID)
+		_, err := client.GetNic(rs.Primary.Attributes["datacenter_id"], rs.Primary.Attributes["server_id"], rs.Primary.ID)
 
 		if apiError, ok := err.(profitbricks.ApiError); ok {
 			if apiError.HttpStatusCode() != 404 {
