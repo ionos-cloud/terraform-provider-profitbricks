@@ -42,6 +42,24 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("IONOS_API_URL", ""),
 				Description: "ProfitBricks REST API URL.",
 			},
+			"s3_endpoint": {
+				Type:		schema.TypeString,
+				Optional:	true,
+				DefaultFunc: schema.EnvDefaultFunc("IONOS_S3_API_URL", DefaultS3ApiUrl),
+				Description: "ProfitBricks S3 API URL.",
+			},
+			"s3_key": {
+				Type:		schema.TypeString,
+				Optional:	true,
+				DefaultFunc: schema.EnvDefaultFunc("IONOS_S3_KEY", ""),
+				Description: "ProfitBricks S3 key.",
+			},
+			"s3_secret": {
+				Type:		schema.TypeString,
+				Optional:	true,
+				DefaultFunc: schema.EnvDefaultFunc("IONOS_S3_SECRET", ""),
+				Description: "ProfitBricks S3 secret.",
+			},
 			"retries": {
 				Type:       schema.TypeInt,
 				Optional:   true,
@@ -122,15 +140,39 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 		}
 	}
 
+	s3Endpoint := cleanURL(d.Get("s3_endpoint").(string))
+	s3Key, s3KeyOk := d.GetOk("s3_key")
+	s3Secret, s3SecretOk := d.GetOk("s3_secret")
+
+	if (s3KeyOk && !s3SecretOk) || (!s3KeyOk && s3SecretOk) {
+			return nil, fmt.Errorf("both s3_key and s3_secret must be specified")
+	}
+
 	config := Config{
 		Username: username.(string),
 		Password: password.(string),
 		Endpoint: cleanURL(d.Get("endpoint").(string)),
 		Retries:  d.Get("retries").(int),
 		Token:    token.(string),
+		S3Endpoint: s3Endpoint,
+		S3Key: s3Key.(string),
+		S3Secret: s3Secret.(string),
 	}
 
-	return config.Client(terraformVersion)
+	apiClient, err := config.Client(PROVIDER_VERSION, terraformVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	s3Client, err := config.S3Client(PROVIDER_VERSION, terraformVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	return Clients{
+		ApiClient: apiClient,
+		S3Client: s3Client,
+	}, nil
 }
 
 // cleanURL makes sure trailing slash does not corrupte the state

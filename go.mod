@@ -33,6 +33,7 @@ require (
 	github.com/posener/complete v1.2.3 // indirect
 	github.com/profitbricks/profitbricks-sdk-go/v5 v5.0.32
 	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/smartystreets/go-aws-auth v0.0.0-20180515143844-0c1422d1fdb9
 	github.com/spf13/afero v1.3.1 // indirect
 	github.com/ulikunitz/xz v0.5.7 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
@@ -45,4 +46,3 @@ require (
 	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/grpc v1.30.0 // indirect
 )
-

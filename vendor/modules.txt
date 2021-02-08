@@ -259,6 +259,9 @@ github.com/posener/complete/cmd/install
 github.com/profitbricks/profitbricks-sdk-go/v5
 # github.com/sergi/go-diff v1.1.0
 ## explicit
+# github.com/smartystreets/go-aws-auth v0.0.0-20180515143844-0c1422d1fdb9
+## explicit
+github.com/smartystreets/go-aws-auth
 # github.com/spf13/afero v1.3.1
 ## explicit
 github.com/spf13/afero
