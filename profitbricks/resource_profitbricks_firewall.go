@@ -90,7 +90,7 @@ func resourceProfitBricksFirewall() *schema.Resource {
 }
 
 func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	fw := &profitbricks.FirewallRule{
 		Properties: profitbricks.FirewallruleProperties{
 			Protocol: d.Get("protocol").(string),
@@ -156,7 +156,7 @@ func resourceProfitBricksFirewallCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	fw, err := client.GetFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id())
 
 	if err != nil {
@@ -184,7 +184,7 @@ func resourceProfitBricksFirewallRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	properties := profitbricks.FirewallruleProperties{}
 
 	if d.HasChange("name") {
@@ -244,7 +244,7 @@ func resourceProfitBricksFirewallUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksFirewallDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	resp, err := client.DeleteFirewallRule(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Get("nic_id").(string), d.Id())
 
 	if err != nil {

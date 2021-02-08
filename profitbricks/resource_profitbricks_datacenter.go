@@ -42,7 +42,7 @@ func resourceProfitBricksDatacenter() *schema.Resource {
 }
 
 func resourceProfitBricksDatacenterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	datacenter := profitbricks.Datacenter{
 		Properties: profitbricks.DatacenterProperties{
 			Name:     d.Get("name").(string),
@@ -77,7 +77,7 @@ func resourceProfitBricksDatacenterCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceProfitBricksDatacenterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	datacenter, err := client.GetDatacenter(d.Id())
 
 	if err != nil {
@@ -97,7 +97,7 @@ func resourceProfitBricksDatacenterRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	obj := profitbricks.DatacenterProperties{}
 
 	if d.HasChange("name") {
@@ -132,7 +132,7 @@ func resourceProfitBricksDatacenterUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceProfitBricksDatacenterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	dcid := d.Id()
 	resp, err := client.DeleteDatacenter(dcid)
 

@@ -137,7 +137,7 @@ func resourcek8sNodePool() *schema.Resource {
 }
 
 func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 
 	k8sNodepool := profitbricks.KubernetesNodePool{
 		Properties: &profitbricks.KubernetesNodePoolProperties{
@@ -267,7 +267,7 @@ func resourcek8sNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	k8sNodepool, err := client.GetKubernetesNodePool(d.Get("k8s_cluster_id").(string), d.Id())
 
 	if err != nil {
@@ -315,7 +315,7 @@ func resourcek8sNodePoolRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	request := profitbricks.KubernetesNodePool{}
 
 	request.Properties = &profitbricks.KubernetesNodePoolProperties{
@@ -510,7 +510,7 @@ func resourcek8sNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourcek8sNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 
 	_, err := client.DeleteKubernetesNodePool(d.Get("k8s_cluster_id").(string), d.Id())
 

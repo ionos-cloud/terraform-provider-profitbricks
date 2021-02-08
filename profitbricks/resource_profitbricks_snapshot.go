@@ -35,7 +35,7 @@ func resourceProfitBricksSnapshot() *schema.Resource {
 }
 
 func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	dcId := d.Get("datacenter_id").(string)
 	volumeId := d.Get("volume_id").(string)
 	name := d.Get("name").(string)
@@ -61,7 +61,7 @@ func resourceProfitBricksSnapshotCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	snapshot, err := client.GetSnapshot(d.Id())
 
 	if err != nil {
@@ -79,7 +79,7 @@ func resourceProfitBricksSnapshotRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	dcId := d.Get("datacenter_id").(string)
 	volumeId := d.Get("volume_id").(string)
 
@@ -98,7 +98,7 @@ func resourceProfitBricksSnapshotUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceProfitBricksSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	status, err := client.GetSnapshot(d.Id())
 	if err != nil {
 		return fmt.Errorf("An error occured while fetching a snapshot ID %s %s", d.Id(), err)

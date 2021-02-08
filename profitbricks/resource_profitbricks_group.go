@@ -78,7 +78,7 @@ func resourceProfitBricksGroup() *schema.Resource {
 }
 
 func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	request := profitbricks.Group{
 		Properties: profitbricks.GroupProperties{},
 	}
@@ -134,7 +134,7 @@ func resourceProfitBricksGroupCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	group, err := client.GetGroup(d.Id())
 
 	if err != nil {
@@ -170,7 +170,7 @@ func resourceProfitBricksGroupRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	tempCreateDataCenter := d.Get("create_datacenter").(bool)
 	tempCreateSnapshot := d.Get("create_snapshot").(bool)
 	tempReserveIp := d.Get("reserve_ip").(bool)
@@ -215,7 +215,7 @@ func resourceProfitBricksGroupUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceProfitBricksGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	resp, err := client.DeleteGroup(d.Id())
 	if err != nil {
 		//try again in 20 seconds

@@ -25,7 +25,7 @@ func dataSourceResource() *schema.Resource {
 }
 
 func dataSourceResourceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 
 	var results []profitbricks.Resource
 

@@ -69,7 +69,7 @@ func resourceProfitBricksNic() *schema.Resource {
 }
 
 func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	nic := &profitbricks.Nic{
 		Properties: &profitbricks.NicProperties{
 			Lan: d.Get("lan").(int),
@@ -115,7 +115,7 @@ func resourceProfitBricksNicCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksNicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	nic, err := client.GetNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
 	if err != nil {
 		if apiError, ok := err.(profitbricks.ApiError); ok {
@@ -140,7 +140,7 @@ func resourceProfitBricksNicRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	properties := profitbricks.NicProperties{}
 
 	if d.HasChange("name") {
@@ -182,7 +182,7 @@ func resourceProfitBricksNicUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksNicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	resp, err := client.DeleteNic(d.Get("datacenter_id").(string), d.Get("server_id").(string), d.Id())
 
 	if err != nil {

@@ -318,7 +318,7 @@ func resourceProfitBricksServer() *schema.Resource {
 }
 
 func resourceProfitBricksServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 
 	var image_alias string
 	request := profitbricks.Server{
@@ -706,7 +706,7 @@ func GetFirewallResource(d *schema.ResourceData, path string) profitbricks.Firew
 }
 
 func resourceProfitBricksServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	dcId := d.Get("datacenter_id").(string)
 	serverId := d.Id()
 
@@ -842,7 +842,7 @@ func boolAddr(b bool) *bool {
 }
 
 func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	dcId := d.Get("datacenter_id").(string)
 
 	request := profitbricks.ServerProperties{}
@@ -984,7 +984,7 @@ func resourceProfitBricksServerUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceProfitBricksServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	dcId := d.Get("datacenter_id").(string)
 
 	server, err := client.GetServer(dcId, d.Id())

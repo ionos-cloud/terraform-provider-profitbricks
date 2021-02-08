@@ -43,7 +43,7 @@ func resourceProfitBricksLan() *schema.Resource {
 }
 
 func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	request := profitbricks.Lan{
 		Properties: profitbricks.LanProperties{
 			Public: d.Get("public").(bool),
@@ -105,7 +105,7 @@ func resourceProfitBricksLanCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	lan, err := client.GetLan(d.Get("datacenter_id").(string), d.Id())
 
 	if err != nil {
@@ -130,7 +130,7 @@ func resourceProfitBricksLanRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	properties := &profitbricks.LanProperties{}
 	newValue := d.Get("public")
 	properties.Public = newValue.(bool)
@@ -177,7 +177,7 @@ func resourceProfitBricksLanUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceProfitBricksLanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	dcID := d.Get("datacenter_id").(string)
 
 	_, err := client.DeleteLan(dcID, d.Id())

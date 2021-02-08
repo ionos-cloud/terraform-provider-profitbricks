@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/profitbricks/profitbricks-sdk-go/v5"
 )
 
 // Provider returns a schema.Provider for profitbricks.
@@ -98,7 +97,8 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_private_crossconnect": dataSourcePcc(),
 			"profitbricks_server":               dataSourceServer(),
 			"profitbricks_k8s_cluster":          dataSourceK8sCluster(),
-			"profitbricks_k8s_node_pool":		 dataSourceK8sNodePool(),
+			"profitbricks_k8s_node_pool":        dataSourceK8sNodePool(),
+			"profitbricks_s3_buckets":           dataSourceS3Buckets(),
 		},
 	}
 
@@ -216,7 +216,7 @@ func IsRequestFailed(err error) bool {
 // resourceStateRefreshFunc tracks progress of a request
 func resourceStateRefreshFunc(meta interface{}, path string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		client := meta.(*profitbricks.Client)
+		client := meta.(Clients).ApiClient
 
 		fmt.Printf("[INFO] Checking PATH %s\n", path)
 		if path == "" {

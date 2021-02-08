@@ -55,7 +55,7 @@ func resourcek8sCluster() *schema.Resource {
 }
 
 func resourcek8sClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 
 	cluster := profitbricks.KubernetesCluster{
 		Properties: &profitbricks.KubernetesClusterProperties{
@@ -112,7 +112,7 @@ func resourcek8sClusterCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourcek8sClusterRead(d *schema.ResourceData, meta interface{}) error {
 
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	cluster, err := client.GetKubernetesCluster(d.Id())
 
 	if err != nil {
@@ -131,7 +131,7 @@ func resourcek8sClusterRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourcek8sClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	request := profitbricks.UpdatedKubernetesCluster{}
 
 	request.Properties = &profitbricks.KubernetesClusterProperties{
@@ -224,7 +224,7 @@ func resourcek8sClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourcek8sClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 
 	_, err := client.DeleteKubernetesCluster(d.Id())
 

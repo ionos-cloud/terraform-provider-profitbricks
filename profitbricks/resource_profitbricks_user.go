@@ -46,7 +46,7 @@ func resourceProfitBricksUser() *schema.Resource {
 }
 
 func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	request := profitbricks.User{
 		Properties: &profitbricks.UserProperties{},
 	}
@@ -91,7 +91,7 @@ func resourceProfitBricksUserCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	user, err := client.GetUser(d.Id())
 
 	if err != nil {
@@ -113,7 +113,7 @@ func resourceProfitBricksUserRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	originalUser, err := client.GetUser(d.Id())
 
 	if err != nil {
@@ -164,7 +164,7 @@ func resourceProfitBricksUserUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceProfitBricksUserDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*profitbricks.Client)
+	client := meta.(Clients).ApiClient
 	resp, err := client.DeleteUser(d.Id())
 	if err != nil {
 		//try again in 20 seconds
