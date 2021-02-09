@@ -24,7 +24,7 @@ type Config struct {
 
 type Clients struct {
 	ApiClient *profitbricks.Client
-	S3Client *S3Client
+	S3Client S3Client
 }
 
 func GetUserAgent(providerVersion string, terraformVersion string) string {

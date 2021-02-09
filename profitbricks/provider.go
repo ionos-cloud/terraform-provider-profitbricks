@@ -98,7 +98,7 @@ func Provider() terraform.ResourceProvider {
 			"profitbricks_server":               dataSourceServer(),
 			"profitbricks_k8s_cluster":          dataSourceK8sCluster(),
 			"profitbricks_k8s_node_pool":        dataSourceK8sNodePool(),
-			"profitbricks_s3_buckets":           dataSourceS3Buckets(),
+			"profitbricks_s3_bucket":            dataSourceS3Bucket(),
 		},
 	}
 
@@ -171,7 +171,7 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 
 	return Clients{
 		ApiClient: apiClient,
-		S3Client: s3Client,
+		S3Client: *s3Client,
 	}, nil
 }
 
