@@ -65,3 +65,7 @@ _Note:_ Acceptance tests create real resources, and often cost money to run.
 ```sh
 $ make testacc
 ```
+
+## Documentation
+
+The provider documentation can be found at https://registry.terraform.io/providers/ionos-cloud/profitbricks/latest/docs
