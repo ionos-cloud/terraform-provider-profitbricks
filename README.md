@@ -52,7 +52,7 @@ Environment variables can also be used; the provider uses the following variable
 
 Bug reports and feature requests can be opened in the Issues repository: [https://github.com/ionos-cloud/terraform-provider-profitbricks/issues/new/choose](https://github.com/ionos-cloud/terraform-provider-profitbricks/issues/new/choose)
 
-1. Can I contribute to the provider?
+2. Can I contribute to the provider?
 
 Pull requests can be open in the https://github.com/ionos-cloud/terraform-provider-profitbricks repository.
 
