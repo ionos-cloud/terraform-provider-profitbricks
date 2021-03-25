@@ -31,7 +31,7 @@ provider "profitbricks" {
 The username, password and optionally the api endpoint can be manually specified when initializing the provider 
 
 ```terraform
-provider "ionoscloud" {
+provider "profitbricks" {
   username          = var.ionos_username
   password          = var.ionos_password
   endpoint          = var.ionos_api_endpoint
