@@ -6,6 +6,12 @@
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
+## Deprecate 
+
+This provider is now deprecated and we are not releasing any new versions. Please use the new [IONOS Cloud provider](https://github.com/ionos-cloud/terraform-provider-ionoscloud). 
+
+A migration guide from Profitbricks Provider to the new IONOS Cloud Provider is available [here](https://github.com/ionos-cloud/terraform-provider-ionoscloud/blob/master/docs/index.md#migrating-from-the-profitbricks-provider).
+
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) 0.12.x
